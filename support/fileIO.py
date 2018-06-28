@@ -62,7 +62,20 @@ def loadDataset(fFiles, eFiles, linesToLoad=sys.maxsize,
     return zip(fContents, eContents)
 
 
+"""
+AMR/PropBank/NomBank Semantic Frame loaders
+"""
+
+
+def loadSemFrame(filename, linesToLoad=sys.maxsize):
+
+    raise NotImplemented
+
+
 def loadAMRFrame(filename, linesToLoad=sys.maxsize):
+    """
+    Loader for AMR2.0 frames file: propbank-frame-arg-descr.txt
+    """
     content = list(open(os.path.expanduser(filename)))[:linesToLoad]
 
     def splitEntry(line):
@@ -86,6 +99,29 @@ def loadAMRFrame(filename, linesToLoad=sys.maxsize):
         return result
 
     content = [splitEntry(entry) for entry in content]
+    return content
+
+
+def loadSemFrameXML(filename, linesToLoad=sys.maxsize):
+    """
+    Loader for CoNLL-2008 frames file: *.xml
+    """
+    content = []
+    if linesToLoad != sys.maxsize:
+        sys.stderr.write(
+            "fileIO.loadAMRFrameXML [WARN]: linesToLoad option ignored\n")
+
+    from xml.dom import minidom
+    xmldoc = minidom.parse(os.path.expanduser(filename))
+    items = xmldoc.getElementsByTagName('roleset')
+    for item in items:
+        frame = str(item.attributes['id'].value)
+        args = {}
+        roleList = item.getElementsByTagName('role')
+        for role in roleList:
+            args[str("ARG" + role.attributes['n'].value)] =\
+                str(role.attributes['descr'].value)
+        content.append((frame, args))
     return content
 
 
