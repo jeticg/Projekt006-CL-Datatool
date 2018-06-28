@@ -22,8 +22,9 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(
         description="""AMR 2.0 Frame Analyser""")
     ap.add_argument(
-        "filename", metavar='FILENAME',
-        help="AMR 2.0 frame file")
+        "filename", metavar='FILENAME', nargs='+',
+        help="""AMR 2.0 frame file. Multiple files supported.
+                If bash reports argument list too long, use quotation marks""")
     args = ap.parse_args()
     frames = loadSemFrame(args.filename)
     print("----- Statistics -----")

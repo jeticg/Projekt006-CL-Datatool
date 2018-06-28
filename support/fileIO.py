@@ -70,13 +70,21 @@ AMR/PropBank/NomBank Semantic Frame loaders
 def loadSemFrame(filePattern, linesToLoad=sys.maxsize):
     content = []
     import glob
-    files = [filename
-             for filename in glob.glob(os.path.expanduser(filePattern))
-             if os.path.isfile(filename)]
+    if isinstance(filePattern, list):
+        files = []
+        for fileP in filePattern:
+            files += [filename
+                      for filename in glob.glob(os.path.expanduser(fileP))
+                      if os.path.isfile(filename)]
+    else:
+        files = [filename
+                 for filename in glob.glob(os.path.expanduser(filePattern))
+                 if os.path.isfile(filename)]
     if len(files) == 0:
-        sys.stderr.write(
-            "fileIO.loadSemFrame [ERROR]: matching pattern" +
-            filePattern + "\n")
+        if not isinstance(filePattern, list):
+            sys.stderr.write(
+                "fileIO.loadSemFrame [ERROR]: matching pattern" +
+                filePattern + "\n")
         raise RuntimeError(
             "fileIO.loadSemFrame [ERROR]: Cannot find matching files")
     for filename in files:
