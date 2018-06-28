@@ -1,0 +1,3 @@
+(ROOT (S (NP Andrei)(VP (VP likes)(NP cheese))))
+(ROOT (FRAG (NP (NNP Madam)(NNP President))(, ,)(PP (IN on)(NP (NP (DT a) (NN point))(PP (IN of)(NP(NN order)))))(. .)))
+

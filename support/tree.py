@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Python version: 2
+# Python version: 2/3
 #
 # Constituency Tree class
 # Simon Fraser University
@@ -36,11 +36,11 @@ class Node:
         This method prints the structure of the subtree with self as root.
         '''
         if self.child is not None:
-            print __spacing + str((self.id,) + self.value)[:-1]
+            print(__spacing + str((self.id,) + self.value)[:-1])
             self.child.__repr__(__spacing + "  ", True)
-            print __spacing + ")"
+            print(__spacing + ")")
         else:
-            print __spacing + str((self.id,) + self.value)
+            print(__spacing + str((self.id,) + self.value))
         if self.sibling is not None and __showSibling is True:
             self.sibling.__repr__(__spacing, True)
         return "\nRepresentation: " +\
@@ -484,5 +484,5 @@ if __name__ == '__main__':
             " ( , , ) ( PP ( IN on ) ( NP ( NP ( DT a ) ( NN point ) ) (" +\
             " PP ( IN of ) ( NP ( NN order ) ) ) ) ) ( . . ) ) )"
         y = constructTreeFromStr(elements)
-        print "Use the two Nodes x and y for testing new methods on Node."
-        print "Use unittest.main() to start unit test"
+        print("Use the two Nodes x and y for testing new methods on Node.")
+        print("Use unittest.main() to start unit test")
