@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-
+# Python version: 2
 #
-# Tree of Jetic's NMT
+# Constituency Tree class
 # Simon Fraser University
 # Jetic Gu
 #
 # This module contains functions and classes necessary for loading single lined
-# penn treebank format sentences. 2 examples are provided in TestTree.
+# penn treebank format sentences with constituency information. 2 examples are
+# provided in TestTree.
 #
 import sys
 import os

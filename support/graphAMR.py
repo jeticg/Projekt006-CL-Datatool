@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
+# Python version: 2/3
 #
-# Abstract Meaning Representation Graph of Jetic's NMT
+# Abstract Meaning Representation Graph class
 # Simon Fraser University
 # Jetic Gu
 #

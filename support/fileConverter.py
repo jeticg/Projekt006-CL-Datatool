@@ -1,7 +1,12 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
+# Python version: 2
 #
-# Converter for datasets
-# The functions here converts all sorts of things.
+# Jetic's file converter tool for NLP datasets
+# Simon Fraser University
+# Jetic Gu
+#
+# This module contains functions for loading and converting
+# datasets in multiple formats.
 #
 import os
 import xml.etree.ElementTree as ET

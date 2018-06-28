@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
+# Python version: 2
 #
-# FileIO of Jetic's NMT
+# Jetic's dataset loader for NLP experiments.
 # Simon Fraser University
 # Jetic Gu
 #
