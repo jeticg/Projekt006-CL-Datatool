@@ -27,14 +27,18 @@ if __name__ == '__main__':
     args = ap.parse_args()
     frames = loadAMRFrame(args.filename)
     print("----- Statistics -----")
-    print("# of frames:          ", len(frames))
+    print("# of frames:          " + str(len(frames)))
     args = {}
-    for _, a in frames:
+    for frame, a in frames:
         for ar in a:
             if ar not in args:
-                args[ar] = 1
-            else:
-                args[ar] += 1
-    print("# of different ARGs:  ", len(args))
+                args[ar] = {}
+            args[ar][frame] = a[ar]
+    print("# of different ARGs:  " + str(len(args)))
     for arg in args:
-        print("# of frames with " + arg + ":", args[arg])
+        print("# of frames with " + arg + ": " + str(len(args[arg])))
+    if bool(getattr(sys, 'ps1', sys.flags.interactive)):
+        print("Use frames (dict of frameName:{argName, description})) to see" +
+              " frames.")
+        print("Use args (dict of arg:frameName:description) to see all args")
+        frames = dict(frames)
