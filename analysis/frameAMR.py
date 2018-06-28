@@ -38,7 +38,19 @@ if __name__ == '__main__':
     for arg in args:
         print("# of frames with " + arg + ": " + str(len(args[arg])))
     if bool(getattr(sys, 'ps1', sys.flags.interactive)):
+        frames = dict(frames)
+        words = {}
+        for frame in frames:
+            try:
+                word, frameId = tuple(frame.rsplit("-", 1))
+            except ValueError:
+                print(frame)
+                raise
+            if word not in words:
+                words[word] = {}
+            words[word][frameId] = frames[frame]
         print("Use frames (dict of frameName:{argName, description})) to see" +
               " frames.")
+        print("Use words (dict of word:frameId:{argName, description})) to " +
+              "see frames of a word.")
         print("Use args (dict of arg:frameName:description) to see all args")
-        frames = dict(frames)
