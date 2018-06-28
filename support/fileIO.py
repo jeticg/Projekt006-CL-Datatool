@@ -67,9 +67,24 @@ AMR/PropBank/NomBank Semantic Frame loaders
 """
 
 
-def loadSemFrame(filename, linesToLoad=sys.maxsize):
-
-    raise NotImplemented
+def loadSemFrame(filePattern, linesToLoad=sys.maxsize):
+    content = []
+    import glob
+    files = [filename
+             for filename in glob.glob(os.path.expanduser(filePattern))
+             if os.path.isfile(filename)]
+    if len(files) == 0:
+        sys.stderr.write(
+            "fileIO.loadSemFrame [ERROR]: matching pattern" +
+            filePattern + "\n")
+        raise RuntimeError(
+            "fileIO.loadSemFrame [ERROR]: Cannot find matching files")
+    for filename in files:
+        if filename[-4:] == ".xml":
+            content += loadSemFrameXML(filename)
+        else:
+            content += loadAMRFrame(filename, linesToLoad=linesToLoad)
+    return content
 
 
 def loadAMRFrame(filename, linesToLoad=sys.maxsize):

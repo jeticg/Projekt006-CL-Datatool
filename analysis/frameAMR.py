@@ -16,7 +16,7 @@ currentdir =\
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from support.fileIO import loadAMRFrame
+from support.fileIO import loadSemFrame
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         "filename", metavar='FILENAME',
         help="AMR 2.0 frame file")
     args = ap.parse_args()
-    frames = loadAMRFrame(args.filename)
+    frames = loadSemFrame(args.filename)
     print("----- Statistics -----")
     print("# of frames:          " + str(len(frames)))
     args = {}
@@ -41,7 +41,14 @@ if __name__ == '__main__':
     words = {}
     for frame in frames:
         try:
-            word, frameId = tuple(frame.rsplit("-", 1))
+            if "." in frame:
+                word, frameId = tuple(frame.rsplit(".", 1))
+            elif "-" in frame:
+                word, frameId = tuple(frame.rsplit("-", 1))
+            else:
+                sys.stderr.write(
+                    "main [WARN]: frame without ID: " + frame + "\n")
+                word, frameId = (frame, "NaN")
         except ValueError:
             print(frame)
             raise
