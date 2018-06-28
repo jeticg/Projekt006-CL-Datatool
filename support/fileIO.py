@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Python version: 2
+# Python version: 2/3
 #
 # Jetic's dataset loader for NLP experiments.
 # Simon Fraser University
@@ -56,6 +56,33 @@ def loadDataset(fFiles, eFiles, linesToLoad=sys.maxsize,
                                     for eFile in eFiles]))[:linesToLoad]]
 
     return zip(fContents, eContents)
+
+
+def loadAMRFrame(filename, linesToLoad=sys.maxsize):
+    content = list(open(os.path.expanduser(filename)))[:linesToLoad]
+
+    def splitEntry(line):
+        raw = line.strip().split()
+        result = [raw[0]]
+        try:
+            for i in range(1, len(raw)):
+                if raw[i][:3] == "ARG" and raw[i][-1] == ":":
+                    result.append([raw[i][:-1], ""])
+                else:
+                    if result[-1][1] == "":
+                        result[-1][1] = raw[i]
+                    else:
+                        result[-1][1] += " " + raw[i]
+            result =\
+                (result[0], dict(result[1:]))
+        except ValueError:
+            sys.stderr.write("Original entry: " + str(raw) + "\n")
+            sys.stderr.write("Entry Frame:    " + str(result[0]) + "\n")
+            raise
+        return result
+
+    content = [splitEntry(entry) for entry in content]
+    return content
 
 
 def loadTreeDataset(fFile, eFile, linesToLoad=sys.maxsize):
