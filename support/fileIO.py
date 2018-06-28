@@ -81,6 +81,7 @@ def exportToFile(result, fileName):
     try:
         outputFile = open(fileName, "w")
     except IOError:
+        # In case of Keroberos failure.
         os.system("kinit")
         outputFile = open(fileName, "w")
 
@@ -95,6 +96,9 @@ def exportToFile(result, fileName):
 
 
 class RealtimeExporter():
+    """
+    Use this class to export in real time.
+    """
     def __init__(self, fileName):
         self.__outputFile = open(fileName, "w")
         return
