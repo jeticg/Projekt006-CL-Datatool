@@ -14,12 +14,49 @@ def read_sentences(file):
 
 
 class TreeNode:
-    def __init__(self, info, children=None):
-        self.info = info
-        if children is None:
-            self.children = []
+    def __init__(self, POS, form, parent=None, rel=None, next_sib=None, flc=None, frc=None):
+        # info = (POS, FORM)
+        self.info = POS, form
+
+        self.parent = parent
+        self.rel = rel
+        self.next_sib = next_sib
+        # first left child
+        self.flc = flc
+        # first right child
+        self.frc = frc
+
+    def last_left_child(self):
+        if self.flc is None:
+            return None
+        node = self.flc
+        while node.next_sib is not None:
+            node = node.next_sib
+        return node
+
+    def last_right_child(self):
+        if self.frc is None:
+            return None
+        node = self.frc
+        while node.next_sib is not None:
+            node = node.next_sib
+        return node
+
+    def append_left_child(self, POS, form, rel):
+        new_node = TreeNode(POS, form, parent=self, rel=rel)
+        llc = self.last_left_child()
+        if llc is None:
+            self.flc = new_node
         else:
-            self.children = children
+            llc.next_sib = new_node
+
+    def append_right_child(self, POS, form, rel):
+        new_node = TreeNode(POS, form, parent=self, rel=rel)
+        lrc = self.last_right_child()
+        if lrc is None:
+            self.frc = new_node
+        else:
+            lrc.next_sib = new_node
 
     def __repr__(self):
         return f'TreeNode({self.info})'
@@ -52,12 +89,18 @@ def parse_sentence(sentence):
     root = None
     nodes = []
     for word in sentence:
-        nodes.append(TreeNode(word[FORM_OFFSET:PPOS_OFFSET + 1]))
+        nodes.append(TreeNode(word[PPOS_OFFSET], word[FORM_OFFSET]))
 
     for i, word in enumerate(sentence):
         head_idx, rel = int(word[HEAD_OFFSET]), word[DEPREL_OFFSET]
         if head_idx > 0:
-            nodes[head_idx - 1].children.append((nodes[i], rel))
+            parent_idx = head_idx - 1
+            nodes[i].parent = parent_idx
+
+            if parent_idx > i:
+                nodes[parent_idx].append_left_child(word[PPOS_OFFSET], word[FORM_OFFSET], rel)
+            else:
+                nodes[parent_idx].append_right_child(word[PPOS_OFFSET], word[FORM_OFFSET], rel)
         else:
             root = nodes[i]
 
