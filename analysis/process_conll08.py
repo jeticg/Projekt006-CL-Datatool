@@ -79,9 +79,8 @@ def parse_sentence(sentence):
 
 
 def load_frames():
-    nb_frames = loadSemFrame('data/nb_frames/*.xml')
     pb_frames = loadSemFrame('data/pb_frames/*.xml')
-    return nb_frames, pb_frames
+    return pb_frames
 
 
 def process_frames(frames):
@@ -95,35 +94,23 @@ def verify_idx(names, pred_name):
     return idx < len(names) and names[idx] == pred_name
 
 
-def partition_args_data(nb_names, pb_names, args_data):
-    nb_data = []
+def filter_args_data(pb_names, args_data):
     pb_data = []
-
     for data in args_data:
         pred_name = data[1]
-        nb_idx_valid = verify_idx(nb_names, pred_name)
-        pb_idx_valid = verify_idx(pb_names, pred_name)
-        if nb_idx_valid and pb_idx_valid:
-            # ambiguous
-            print(f'ambiguous predicate "{pred_name}"')
-        elif not nb_idx_valid and not pb_idx_valid:
-            # not found
-            print(f'unknown predicate "{pred_name}"')
-        else:
-            if pb_idx_valid:
-                nb_data.append(data)
-            else:
-                pb_data.append(data)
+        if verify_idx(pb_names, pred_name):
+            pb_data.append(data)
 
-    return nb_data, pb_data
+    return pb_data
 
 
 if __name__ == '__main__':
     with open('data/conll08st/data/train/train.closed') as file:
         sentences = read_sentences(file)
-        sentence = next(sentences)
-        root, args_data = parse_sentence(sentence)
-        nb_frames, pb_frames = load_frames()
-        nb_names = process_frames(nb_frames)
+        pb_frames = load_frames()
         pb_names = process_frames(pb_frames)
-        nb_data, pb_data = partition_args_data(nb_names, pb_names, args_data)
+
+        for sentence in sentences:
+            root, args_data = parse_sentence(sentence)
+            pb_data = filter_args_data(pb_names, args_data)
+            break
