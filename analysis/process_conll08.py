@@ -17,9 +17,9 @@ class TreeNode:
     def __init__(self, POS, form, parent=None, rel=None, next_sib=None, flc=None, frc=None):
         # info = (POS, FORM)
         self.info = POS, form
-
         self.parent = parent
         self.rel = rel
+
         self.next_sib = next_sib
         # first left child
         self.flc = flc
@@ -60,17 +60,44 @@ class TreeNode:
         else:
             lrc.next_sib = node
 
-    def export_to_vec(self):
-        words = []
-        for node in inorder_traversal(self):
-            words.append(node.info[1])
-        return words
-
-    def export_to_table(self):
-        pass
-
     def __repr__(self):
         return f'TreeNode({self.info})'
+
+
+def export_to_vec(node):
+    words = []
+    for n in inorder_traversal(node):
+        words.append(n.info[1])
+    return words
+
+
+def export_to_table(node, args_data):
+    table = []
+    indices = {}
+    for i, n in enumerate(inorder_traversal(node)):
+        table.append([i + 1, node.info[1], node.info[0]])
+        indices[n] = i
+
+    for n, i in indices.items():
+        if n.parent is None:
+            table[i].extend([0, 'ROOT'])
+        else:
+            table[i].extend([indices[n.parent] + 1, n.rel])
+
+    for x in table:
+        x.append('_')
+    for arg_data in args_data:
+        pred_node, pred_name, args_dict = arg_data
+        table[indices[pred_node]][-1] = pred_name
+
+    for arg_data in args_data:
+        for x in table:
+            x.append('_')
+        pred_node, pred_name, args_dict = arg_data
+        for arg_name, arg_node in args_dict.items():
+            table[indices[arg_node]][-1] = arg_name
+
+    return table
 
 
 def inorder_traversal(node):
