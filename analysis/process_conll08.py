@@ -191,13 +191,21 @@ def filter_args_data(pb_names, args_data):
     return pb_data
 
 
+def parse_conll08(file):
+    sentences = read_sentences(file)
+    pb_frames = load_frames()
+    pb_names = process_frames(pb_frames)
+
+    forest = []
+    all_pb_data = []
+    for sentence in sentences:
+        root, args_data = parse_sentence(sentence)
+        pb_data = filter_args_data(pb_names, args_data)
+        forest.append(root)
+        all_pb_data.append(pb_data)
+    return forest, all_pb_data
+
+
 if __name__ == '__main__':
     with open('data/conll08st/data/train/train.closed') as file:
-        sentences = read_sentences(file)
-        pb_frames = load_frames()
-        pb_names = process_frames(pb_frames)
-
-        for sentence in sentences:
-            root, args_data = parse_sentence(sentence)
-            pb_data = filter_args_data(pb_names, args_data)
-            break
+        forest, all_pb_data = parse_conll08(file)
