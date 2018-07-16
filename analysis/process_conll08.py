@@ -1,6 +1,25 @@
+# -*- coding: utf-8 -*-
+# Python version: 3.6+
+#
+# Dependency Tree class
+# Simon Fraser University
+# Ruoyi Wang
+#
+# This module contains functions and classes necessary for loading
+# penn treebank format sentences with dependency information. 2 examples are
+# provided in sampleDepTree.txt
+#
+
 from support.fileIO import loadSemFrame
 from bisect import bisect_left
 from collections import namedtuple
+
+FORM_OFFSET = 1
+PPOS_OFFSET = 7
+HEAD_OFFSET = 8
+DEPREL_OFFSET = 9
+PRED_OFFSET = 10
+ARGS_OFFSET = 11
 
 
 def read_sentences(file):
@@ -21,7 +40,9 @@ class TreeNode:
         self.info = None
         self.parent = parent
         self.rel = None
+        # frame is the predicate name
         self.frame = None
+        # args: {arg name: arg node}
         self.args = None
 
         self.next_sib = None
@@ -118,14 +139,6 @@ def inorder_traversal(node):
         yield from inorder_traversal(node.frc)
     if node.next_sib is not None:
         yield from inorder_traversal(node.next_sib)
-
-
-FORM_OFFSET = 1
-PPOS_OFFSET = 7
-HEAD_OFFSET = 8
-DEPREL_OFFSET = 9
-PRED_OFFSET = 10
-ARGS_OFFSET = 11
 
 
 def is_pred(word):
