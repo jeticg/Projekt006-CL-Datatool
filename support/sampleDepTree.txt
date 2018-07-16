@@ -1,0 +1,55 @@
+1	In	in	IN	IN	In	in	IN	43	LOC	_	_	_	_	_	_	_	AM-LOC
+2	an	an	DT	DT	an	an	DT	5	NMOD	_	_	_	_	_	_	_	_
+3	Oct.	oct.	NNP	NNP	Oct.	oct.	NNP	4	NMOD	_	_	_	_	_	_	_	_
+4	19	19	CD	CD	19	19	CD	5	NMOD	_	AM-TMP	_	_	_	_	_	_
+5	review	review	NN	NN	review	review	NN	1	PMOD	review.01	_	_	_	_	_	_	_
+6	of	of	IN	IN	of	of	IN	5	NMOD	_	A1	_	_	_	_	_	_
+7	``	``	``	``	``	``	``	9	P	_	_	_	_	_	_	_	_
+8	The	the	DT	DT	The	the	DT	9	NMOD	_	_	_	_	_	_	_	_
+9	Misanthrope	misanthrope	NN	NN	Misanthrope	misanthrope	NN	6	PMOD	_	_	_	_	_	_	_	_
+10	''	''	''	''	''	''	''	9	P	_	_	_	_	_	_	_	_
+11	at	at	IN	IN	at	at	IN	9	LOC	_	_	_	_	_	_	_	_
+12	Chicago	chicago	NNP	NNP	Chicago	chicago	NNP	15	NMOD	_	_	_	_	_	_	_	_
+13	's	's	POS	POS	's	's	POS	12	SUFFIX	_	_	_	_	_	_	_	_
+14	Goodman	goodman	NNP	NNP	Goodman	goodman	NNP	15	NAME	_	_	_	_	_	_	_	_
+15	Theatre	theatre	NNP	NNP	Theatre	theatre	NNP	11	PMOD	_	_	_	_	_	_	_	_
+16	(	-lrb-	(	(	(	-lrb-	(	20	P	_	_	_	_	_	_	_	_
+17	``	``	``	``	``	``	``	20	P	_	_	_	_	_	_	_	_
+18	Revitalized	revitalize	VBN	VBN	Revitalized	revitalize	VBN	19	NMOD	revitalize.01	_	_	_	_	_	_	_
+19	Classics	classics	NNS	NNS	Classics	classics	NNS	20	SBJ	_	_	A1	A0	A1	_	_	_
+20	Take	take	VBP	VB	Take	take	VB	5	PRN	take.01	_	_	_	SU	_	_	_
+21	the	the	DT	DT	the	the	DT	22	NMOD	_	_	_	_	_	_	_	_
+22	Stage	stage	NN	NNP	Stage	stage	NNP	20	OBJ	stage.02	_	_	A1	_	_	_	_
+23	in	in	IN	IN	in	in	IN	20	LOC	_	_	_	AM-LOC	_	_	_	_
+24	Windy	windy	NNP	NNP	Windy	windy	NNP	25	NAME	_	_	_	_	_	_	_	_
+25	City	city	NNP	NNP	City	city	NNP	23	PMOD	_	_	_	_	_	_	_	_
+26	,	,	,	,	,	,	,	20	P	_	_	_	_	_	_	_	_
+27	''	''	''	''	''	''	''	20	P	_	_	_	_	_	_	_	_
+28	Leisure	leisure	NN	NNP	Leisure	leisure	NNP	30	NAME	_	_	_	_	_	_	_	_
+29	&	&	CC	CC	&	&	CC	30	NAME	_	_	_	_	_	_	_	_
+30	Arts	arts	NNS	NNPS	Arts	arts	NNS	20	TMP	_	_	_	_	_	_	_	_
+31	)	-rrb-	)	)	)	-rrb-	)	20	P	_	_	_	_	_	_	_	_
+32	,	,	,	,	,	,	,	43	P	_	_	_	_	_	_	_	_
+33	the	the	DT	DT	the	the	DT	34	NMOD	_	_	_	_	_	_	_	_
+34	role	role	NN	NN	role	role	NN	43	SBJ	role.01	_	_	_	_	_	A1	A1
+35	of	of	IN	IN	of	of	IN	34	NMOD	_	_	_	_	_	A1	_	_
+36	Celimene	celimene	NNP	NNP	Celimene	celimene	NNP	35	PMOD	_	_	_	_	_	_	_	_
+37	,	,	,	,	,	,	,	34	P	_	_	_	_	_	_	_	_
+38	played	play	VBN	VBN	played	play	VBN	34	APPO	play.02	_	_	_	_	SU	_	_
+39	by	by	IN	IN	by	by	IN	38	LGS	_	_	_	_	_	_	A0	_
+40	Kim	kim	NNP	NNP	Kim	kim	NNP	41	NAME	_	_	_	_	_	_	_	_
+41	Cattrall	cattrall	NNP	NNP	Cattrall	cattrall	NNP	39	PMOD	_	_	_	_	_	A0	_	_
+42	,	,	,	,	,	,	,	34	P	_	_	_	_	_	_	_	_
+43	was	be	VBD	VBD	was	be	VBD	0	ROOT	_	_	_	_	_	_	_	_
+44	mistakenly	mistakenly	RB	RB	mistakenly	mistakenly	RB	45	MNR	_	_	_	_	_	_	_	AM-MNR
+45	attributed	attribute	VBN	VBN	attributed	attribute	VBN	43	VC	attribute.01	_	_	_	_	_	_	_
+46	to	to	TO	TO	to	to	TO	45	ADV	_	_	_	_	_	_	_	A2
+47	Christina	christina	NNP	NNP	Christina	christina	NNP	48	NAME	_	_	_	_	_	_	_	_
+48	Haag	haag	NNP	NNP	Haag	haag	NNP	46	PMOD	_	_	_	_	_	_	_	_
+49	.	.	.	.	.	.	.	43	P	_	_	_	_	_	_	_	_
+
+1	Ms.	ms.	NNP	NNP	Ms.	ms.	NNP	2	TITLE	_	_
+2	Haag	haag	NNP	NNP	Haag	haag	NNP	3	SBJ	_	A0
+3	plays	play	VBZ	VBZ	plays	play	VBZ	0	ROOT	play.02	_
+4	Elianti	elianti	NNP	NNP	Elianti	elianti	NNP	3	OBJ	_	A1
+5	.	.	.	.	.	.	.	3	P	_	_

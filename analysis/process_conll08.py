@@ -11,6 +11,8 @@ def read_sentences(file):
             lines.clear()
         else:
             lines.append(line.strip().split('\t'))
+    if len(lines):
+        yield lines
 
 
 class TreeNode:
@@ -83,7 +85,7 @@ def export_to_table(node):
     table = []
     indices = {}
     for i, n in enumerate(inorder_traversal(node)):
-        table.append([i + 1, node.info[1], node.info[0]])
+        table.append([i + 1, n.info[1], n.info[0]])
         indices[n] = i
 
     for n, i in indices.items():
@@ -180,8 +182,8 @@ def parse_sentence(pb_names, sentence):
     return root
 
 
-def load_frames():
-    pb_frames = loadSemFrame('data/pb_frames/*.xml')
+def load_frames(frames_path):
+    pb_frames = loadSemFrame(f'{frames_path}/*.xml')
     return pb_frames
 
 
@@ -206,28 +208,19 @@ def filter_args_data(pb_names, args_data):
     return pb_data
 
 
-def parse_conll08(file):
+def parse_conll08(frames_path, file):
     sentences = read_sentences(file)
-    pb_frames = load_frames()
+    pb_frames = load_frames(frames_path)
     pb_names = process_frames(pb_frames)
 
     forest = []
-    all_pb_data = []
     for sentence in sentences:
-        root, pb_data = parse_sentence(pb_names, sentence)
-        # pb_data = filter_args_data(pb_names, args_data)
+        root = parse_sentence(pb_names, sentence)
         forest.append(root)
-        all_pb_data.append(pb_data)
-    return forest, all_pb_data
+    return forest
 
 
 if __name__ == '__main__':
-    with open('data/conll08st/data/train/train.closed') as file:
-        # forest, all_pb_data = parse_conll08(file)
-        sentences = read_sentences(file)
-        pb_frames = load_frames()
-        pb_names = process_frames(pb_frames)
-
-        for sentence in sentences:
-            root = parse_sentence(pb_names, sentence)
-            break
+    with open('support/sampleDepTree.txt') as file:
+        forest = parse_conll08('data/pb_frames', file)
+    export_to_table(forest[1])
