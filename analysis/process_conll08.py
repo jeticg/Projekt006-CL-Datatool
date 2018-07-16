@@ -14,17 +14,19 @@ def read_sentences(file):
 
 
 class TreeNode:
-    def __init__(self, POS, form, parent=None, rel=None, next_sib=None, flc=None, frc=None):
+    def __init__(self, parent=None):
         # info = (POS, FORM)
-        self.info = POS, form
+        self.info = None
         self.parent = parent
-        self.rel = rel
+        self.rel = None
+        self.frame = None
+        self.args = None
 
-        self.next_sib = next_sib
+        self.next_sib = None
         # first left child
-        self.flc = flc
+        self.flc = None
         # first right child
-        self.frc = frc
+        self.frc = None
 
     def last_left_child(self):
         if self.flc is None:
@@ -71,7 +73,13 @@ def export_to_vec(node):
     return words
 
 
-def export_to_table(node, args_data):
+def export_to_table(node):
+    # reconstruct args_data
+    args_data = []
+    for n in inorder_traversal(node):
+        if n.frame is not None:
+            args_data.append((n, n.frame, n.args))
+
     table = []
     indices = {}
     for i, n in enumerate(inorder_traversal(node)):
@@ -125,7 +133,7 @@ def is_pred(word):
 ArgData = namedtuple('ArgData', ['pred_node', 'pred_name', 'args_dict'])
 
 
-def parse_sentence(sentence):
+def parse_sentence(pb_names, sentence):
     """
     :return:
         root: the root node of the tree
@@ -135,7 +143,9 @@ def parse_sentence(sentence):
     root = None
     nodes = []
     for word in sentence:
-        nodes.append(TreeNode(word[PPOS_OFFSET], word[FORM_OFFSET]))
+        node = TreeNode()
+        node.info = word[PPOS_OFFSET], word[FORM_OFFSET]
+        nodes.append(node)
 
     for i, word in enumerate(sentence):
         head_idx, rel = int(word[HEAD_OFFSET]), word[DEPREL_OFFSET]
@@ -152,8 +162,9 @@ def parse_sentence(sentence):
     pred_names = []
     for i, word in enumerate(sentence):
         if is_pred(word):
+            pred_name = word[PRED_OFFSET]
             preds.append(nodes[i])
-            pred_names.append(word[PRED_OFFSET])
+            pred_names.append(pred_name)
 
     args_data = [(x, y, {}) for x, y in zip(preds, pred_names)]
     for i, word in enumerate(sentence):
@@ -162,7 +173,11 @@ def parse_sentence(sentence):
             if arg != '_':
                 args_data[j][-1][arg] = nodes[i]
 
-    return root, args_data
+    pb_data = filter_args_data(pb_names, args_data)
+    for node, name, d in pb_data:
+        node.frame = name
+        node.args = d
+    return root
 
 
 def load_frames():
@@ -199,8 +214,8 @@ def parse_conll08(file):
     forest = []
     all_pb_data = []
     for sentence in sentences:
-        root, args_data = parse_sentence(sentence)
-        pb_data = filter_args_data(pb_names, args_data)
+        root, pb_data = parse_sentence(pb_names, sentence)
+        # pb_data = filter_args_data(pb_names, args_data)
         forest.append(root)
         all_pb_data.append(pb_data)
     return forest, all_pb_data
@@ -208,4 +223,11 @@ def parse_conll08(file):
 
 if __name__ == '__main__':
     with open('data/conll08st/data/train/train.closed') as file:
-        forest, all_pb_data = parse_conll08(file)
+        # forest, all_pb_data = parse_conll08(file)
+        sentences = read_sentences(file)
+        pb_frames = load_frames()
+        pb_names = process_frames(pb_frames)
+
+        for sentence in sentences:
+            root = parse_sentence(pb_names, sentence)
+            break
