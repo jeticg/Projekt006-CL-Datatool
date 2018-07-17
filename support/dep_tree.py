@@ -12,7 +12,6 @@
 
 from support.fileIO import loadSemFrame
 from bisect import bisect_left
-from collections import namedtuple
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -20,18 +19,6 @@ HEAD_OFFSET = 8
 DEPREL_OFFSET = 9
 PRED_OFFSET = 10
 ARGS_OFFSET = 11
-
-
-def read_sentences(file):
-    lines = []
-    for line in file:
-        if line == '\n':
-            yield lines
-            lines.clear()
-        else:
-            lines.append(line.strip().split('\t'))
-    if len(lines):
-        yield lines
 
 
 class TreeNode:
@@ -90,6 +77,7 @@ class TreeNode:
 
 
 def export_to_vec(node):
+    """export the tree at node to a vec of FORMs representing the original sentence"""
     words = []
     for n in inorder_traversal(node):
         words.append(n.info[1])
@@ -97,6 +85,7 @@ def export_to_vec(node):
 
 
 def export_to_table(node):
+    """export the tree to a table with similar structure of the original table"""
     # reconstruct args_data
     args_data = []
     for n in inorder_traversal(node):
@@ -145,23 +134,29 @@ def is_pred(word):
     return word[PRED_OFFSET] != '_'
 
 
-ArgData = namedtuple('ArgData', ['pred_node', 'pred_name', 'args_dict'])
+def read_sentences(file):
+    lines = []
+    for line in file:
+        if line == '\n':
+            yield lines
+            lines.clear()
+        else:
+            lines.append(line.strip().split('\t'))
+    if len(lines):
+        yield lines
 
 
 def parse_sentence(pb_names, sentence):
-    """
-    :return:
-        root: the root node of the tree
-        args_data: [(predicate node, predicate name, {arg name: arg node})]
-        for predicates in the order they appear in the sentence
-    """
-    root = None
+    """construct the dependecy tree and return the root"""
     nodes = []
+    # construct a node for each word
     for word in sentence:
         node = TreeNode()
         node.info = word[PPOS_OFFSET], word[FORM_OFFSET]
         nodes.append(node)
 
+    # link the nodes into a tree
+    root = None
     for i, word in enumerate(sentence):
         head_idx, rel = int(word[HEAD_OFFSET]), word[DEPREL_OFFSET]
         if head_idx > 0:
@@ -173,6 +168,7 @@ def parse_sentence(pb_names, sentence):
         else:
             root = nodes[i]
 
+    # extract predicate info
     preds = []
     pred_names = []
     for i, word in enumerate(sentence):
@@ -181,6 +177,7 @@ def parse_sentence(pb_names, sentence):
             preds.append(nodes[i])
             pred_names.append(pred_name)
 
+    # link predicate info to the nodes
     args_data = [(x, y, {}) for x, y in zip(preds, pred_names)]
     for i, word in enumerate(sentence):
         args = word[ARGS_OFFSET:]
@@ -188,7 +185,10 @@ def parse_sentence(pb_names, sentence):
             if arg != '_':
                 args_data[j][-1][arg] = nodes[i]
 
+    # filter irrelevant predicates
     pb_data = filter_args_data(pb_names, args_data)
+
+    # insert predicates info into the tree nodes
     for node, name, d in pb_data:
         node.frame = name
         node.args = d
@@ -196,32 +196,42 @@ def parse_sentence(pb_names, sentence):
 
 
 def load_frames(frames_path):
+    """load frame info"""
     pb_frames = loadSemFrame(f'{frames_path}/*.xml')
     return pb_frames
 
 
 def process_frames(frames):
+    """extract only the frame name and sort"""
     l = [x[0] for x in frames]
     l.sort()
     return l
 
 
-def verify_idx(names, pred_name):
+def _verify_name(names, pred_name):
+    """verify the pred name is in the SORTED list of pred names"""
     idx = bisect_left(names, pred_name)
     return idx < len(names) and names[idx] == pred_name
 
 
 def filter_args_data(pb_names, args_data):
+    """remove args data that are not in TreeBank"""
     pb_data = []
     for data in args_data:
         pred_name = data[1]
-        if verify_idx(pb_names, pred_name):
+        if _verify_name(pb_names, pred_name):
             pb_data.append(data)
 
     return pb_data
 
 
-def parse_conll08(frames_path, file):
+def parse_dep_tree(frames_path, file):
+    """
+    main entry point
+    read dependency tree file and construct a forest
+    each tree represents a sentence
+    trees appear in the forest in the order of the original sentences
+    """
     sentences = read_sentences(file)
     pb_frames = load_frames(frames_path)
     pb_names = process_frames(pb_frames)
@@ -235,5 +245,5 @@ def parse_conll08(frames_path, file):
 
 if __name__ == '__main__':
     with open('support/sampleDepTree.txt') as file:
-        forest = parse_conll08('data/pb_frames', file)
+        forest = parse_dep_tree('data/pb_frames', file)
     export_to_table(forest[1])
