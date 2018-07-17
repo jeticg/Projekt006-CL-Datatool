@@ -1,5 +1,5 @@
 import unittest
-from support.dep_tree import parse_dep_tree, export_to_table
+from support.dep_tree import parse_dep_tree, export_to_table, read_back_sentence
 
 
 class TestParse(unittest.TestCase):
@@ -62,6 +62,18 @@ class TestParse(unittest.TestCase):
                      [5, '.', '.', 3, 'P', '_', '_']]
         self.assertEqual(export_to_table(forest[0]), correct_0)
         self.assertEqual(export_to_table(forest[1]), correct_1)
+
+
+class TestReadBack(unittest.TestCase):
+    def test_read_back(self):
+        with open('../support/sampleDepTree.txt') as file:
+            forest = parse_dep_tree('../data/pb_frames', file)
+
+        tree = forest[1]
+        original_dump = export_to_table(tree)
+        new_tree = read_back_sentence(original_dump)
+        new_dump = export_to_table(new_tree)
+        self.assertEqual(original_dump, new_dump)
 
 
 if __name__ == '__main__':

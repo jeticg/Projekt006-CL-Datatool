@@ -26,12 +26,14 @@ class TreeNode:
         # info = (POS, FORM)
         self.info = None
         self.parent = parent
+        # dependency relationship with parent
         self.rel = None
         # frame is the predicate name
         self.frame = None
         # args: {arg name: arg node}
         self.args = None
 
+        # next sibling
         self.next_sib = None
         # first left child
         self.flc = None
@@ -85,7 +87,17 @@ def export_to_vec(node):
 
 
 def export_to_table(node):
-    """export the tree to a table with similar structure of the original table"""
+    """
+    export the tree to a table
+    columns:
+    0: id. starting from 1
+    1: FORM
+    2: POS
+    3: parent id
+    4: dependency relationship
+    5: predicate name
+    6+: arguments info
+    """
     # reconstruct args_data
     args_data = []
     for n in inorder_traversal(node):
@@ -134,7 +146,7 @@ def _is_pred(word):
     return word[PRED_OFFSET] != '_'
 
 
-def _read_sentences(file):
+def read_sentences(file):
     """split the file into tables, each representing a sentence"""
     lines = []
     for line in file:
@@ -148,7 +160,7 @@ def _read_sentences(file):
 
 
 def _parse_sentence(pb_names, sentence):
-    """construct the dependecy tree and return the root"""
+    """construct the dependency tree and return the root"""
     nodes = []
     # construct a node for each word
     for word in sentence:
@@ -233,7 +245,7 @@ def parse_dep_tree(frames_path, file):
     each tree represents a sentence
     trees appear in the forest in the order of the original sentences
     """
-    sentences = _read_sentences(file)
+    sentences = read_sentences(file)
     pb_frames = _load_frames(frames_path)
     pb_names = _process_frames(pb_frames)
 
@@ -242,6 +254,46 @@ def parse_dep_tree(frames_path, file):
         root = _parse_sentence(pb_names, sentence)
         forest.append(root)
     return forest
+
+
+def read_back_sentence(sentence):
+    nodes = []
+    # construct a node for each word
+    for word in sentence:
+        node = TreeNode()
+        node.info = word[2], word[1]
+        nodes.append(node)
+
+    # link the nodes into a tree
+    root = None
+    for i, word in enumerate(sentence):
+        head_idx, rel = int(word[3]), word[4]
+        if head_idx > 0:
+            parent_idx = head_idx - 1
+            if parent_idx > i:
+                nodes[parent_idx].append_left_child(nodes[i], rel)
+            else:
+                nodes[parent_idx].append_right_child(nodes[i], rel)
+        else:
+            root = nodes[i]
+
+    preds = []
+    for i, word in enumerate(sentence):
+        if word[5] != '_':
+            pred_name = word[5]
+            preds.append(nodes[i])
+            nodes[i].frame = pred_name
+
+    for n in preds:
+        n.args = {}
+
+    for i, word in enumerate(sentence):
+        args = word[6:]
+        for j, arg in enumerate(args):
+            if arg != '_':
+                preds[j].args[arg] = nodes[i]
+
+    return root
 
 
 if __name__ == '__main__':
