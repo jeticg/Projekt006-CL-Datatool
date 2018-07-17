@@ -130,11 +130,12 @@ def inorder_traversal(node):
         yield from inorder_traversal(node.next_sib)
 
 
-def is_pred(word):
+def _is_pred(word):
     return word[PRED_OFFSET] != '_'
 
 
-def read_sentences(file):
+def _read_sentences(file):
+    """split the file into tables, each representing a sentence"""
     lines = []
     for line in file:
         if line == '\n':
@@ -146,7 +147,7 @@ def read_sentences(file):
         yield lines
 
 
-def parse_sentence(pb_names, sentence):
+def _parse_sentence(pb_names, sentence):
     """construct the dependecy tree and return the root"""
     nodes = []
     # construct a node for each word
@@ -172,7 +173,7 @@ def parse_sentence(pb_names, sentence):
     preds = []
     pred_names = []
     for i, word in enumerate(sentence):
-        if is_pred(word):
+        if _is_pred(word):
             pred_name = word[PRED_OFFSET]
             preds.append(nodes[i])
             pred_names.append(pred_name)
@@ -186,7 +187,7 @@ def parse_sentence(pb_names, sentence):
                 args_data[j][-1][arg] = nodes[i]
 
     # filter irrelevant predicates
-    pb_data = filter_args_data(pb_names, args_data)
+    pb_data = _filter_args_data(pb_names, args_data)
 
     # insert predicates info into the tree nodes
     for node, name, d in pb_data:
@@ -195,13 +196,13 @@ def parse_sentence(pb_names, sentence):
     return root
 
 
-def load_frames(frames_path):
+def _load_frames(frames_path):
     """load frame info"""
     pb_frames = loadSemFrame(f'{frames_path}/*.xml')
     return pb_frames
 
 
-def process_frames(frames):
+def _process_frames(frames):
     """extract only the frame name and sort"""
     l = [x[0] for x in frames]
     l.sort()
@@ -214,7 +215,7 @@ def _verify_name(names, pred_name):
     return idx < len(names) and names[idx] == pred_name
 
 
-def filter_args_data(pb_names, args_data):
+def _filter_args_data(pb_names, args_data):
     """remove args data that are not in TreeBank"""
     pb_data = []
     for data in args_data:
@@ -232,13 +233,13 @@ def parse_dep_tree(frames_path, file):
     each tree represents a sentence
     trees appear in the forest in the order of the original sentences
     """
-    sentences = read_sentences(file)
-    pb_frames = load_frames(frames_path)
-    pb_names = process_frames(pb_frames)
+    sentences = _read_sentences(file)
+    pb_frames = _load_frames(frames_path)
+    pb_names = _process_frames(pb_frames)
 
     forest = []
     for sentence in sentences:
-        root = parse_sentence(pb_names, sentence)
+        root = _parse_sentence(pb_names, sentence)
         forest.append(root)
     return forest
 
