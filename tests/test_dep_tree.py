@@ -1,11 +1,13 @@
 import unittest
-from support.dep_tree import parse_dep_tree, export_to_table, read_back_sentence
+from support.dep_tree import parse_dep_tree, export_to_table, read_back_sentence, level_order_traversal
 
 
 class TestParse(unittest.TestCase):
-    def test_parse(self):
+    def setUp(self):
         with open('../support/sampleDepTree.txt') as file:
-            forest = parse_dep_tree('../data/pb_frames', file)
+            self.forest = parse_dep_tree('../data/pb_frames', file)
+
+    def test_parse(self):
         correct_0 = [[1, 'In', 'IN', 43, 'LOC', '_', '_', '_', '_', '_', 'AM-LOC'],
                      [2, 'an', 'DT', 5, 'NMOD', '_', '_', '_', '_', '_', '_'],
                      [3, 'Oct.', 'NNP', 4, 'NMOD', '_', '_', '_', '_', '_', '_'],
@@ -60,20 +62,32 @@ class TestParse(unittest.TestCase):
                      [3, 'plays', 'VBZ', 0, 'ROOT', 'play.02', '_'],
                      [4, 'Elianti', 'NNP', 3, 'OBJ', '_', 'A1'],
                      [5, '.', '.', 3, 'P', '_', '_']]
-        self.assertEqual(export_to_table(forest[0]), correct_0)
-        self.assertEqual(export_to_table(forest[1]), correct_1)
+        self.assertEqual(export_to_table(self.forest[0]), correct_0)
+        self.assertEqual(export_to_table(self.forest[1]), correct_1)
 
-
-class TestReadBack(unittest.TestCase):
     def test_read_back(self):
-        with open('../support/sampleDepTree.txt') as file:
-            forest = parse_dep_tree('../data/pb_frames', file)
-
-        tree = forest[1]
+        tree = self.forest[1]
         original_dump = export_to_table(tree)
         new_tree = read_back_sentence(original_dump)
         new_dump = export_to_table(new_tree)
         self.assertEqual(original_dump, new_dump)
+
+
+class TestColumnFormat(unittest.TestCase):
+    def test_level_order_traversal(self):
+        sentence = [[1, 'Ms.', 'NNP', 2, 'TITLE', '_', '_'],
+                    [2, 'Haag', 'NNP', 3, 'SBJ', '_', 'A0'],
+                    [3, 'plays', 'VBZ', 0, 'ROOT', 'play.02', '_'],
+                    [4, 'Elianti', 'NNP', 3, 'OBJ', '_', 'A1'],
+                    [5, '.', '.', 3, 'P', '_', '_']]
+        root = read_back_sentence(sentence)
+        self.assertEqual([
+            [[[root]]],
+            [[[root.flc], [root.frc, root.frc.next_sib]]],
+            [[[root.flc.flc], []], [[], []], [[], []]],
+            [[[], []]]
+        ],
+            list(level_order_traversal(root)))
 
 
 if __name__ == '__main__':

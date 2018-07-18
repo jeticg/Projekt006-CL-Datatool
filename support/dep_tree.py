@@ -5,13 +5,15 @@
 # Simon Fraser University
 # Ruoyi Wang
 #
-# This module contains functions and classes necessary for loading
-# penn treebank format sentences with dependency information. 2 examples are
-# provided in sampleDepTree.txt
+# This module contains is used for loading
+# penn treebank format sentences with dependency information
+# 2 examples are provided in sampleDepTree.txt
 #
 
 from support.fileIO import loadSemFrame
 from bisect import bisect_left
+from collections import deque
+import itertools
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -296,7 +298,51 @@ def read_back_sentence(sentence):
     return root
 
 
+def level_order_traversal(root):
+    """
+    :returns
+    1st iteration: [[[root]]]
+    following iterations:
+    [[[left children], [right children]], [[], []], .. for each node from the previous level]
+    """
+    level = [[[root]]]
+    while level:
+        yield level
+        cache = level.copy()
+        level = []
+        for nodes in cache:
+            for node in itertools.chain.from_iterable(nodes):
+                x = node.flc
+                lc = []  # left children
+                while x is not None:
+                    lc.append(x)
+                    x = x.next_sib
+                x = node.frc
+                rc = []  # right children
+                while x is not None:
+                    rc.append(x)
+                    x = x.next_sib
+                node_children = [lc, rc]
+                level.append(node_children)
+
+
+def get_column_format(root):
+    ids = {}
+    par_column = []
+    sib_column = []
+    val_column = [("NULL",)]
+    has_left_child = []
+    has_right_child = []
+    has_sib = []
+    for level in level_order_traversal(root):
+        pass
+
+
 if __name__ == '__main__':
-    with open('support/sampleDepTree.txt') as file:
-        forest = parse_dep_tree('data/pb_frames', file)
-    export_to_table(forest[1])
+    sentence = [[1, 'Ms.', 'NNP', 2, 'TITLE', '_', '_'],
+                [2, 'Haag', 'NNP', 3, 'SBJ', '_', 'A0'],
+                [3, 'plays', 'VBZ', 0, 'ROOT', 'play.02', '_'],
+                [4, 'Elianti', 'NNP', 3, 'OBJ', '_', 'A1'],
+                [5, '.', '.', 3, 'P', '_', '_']]
+    root = read_back_sentence(sentence)
+    list(level_order_traversal(root))
