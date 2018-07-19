@@ -327,15 +327,43 @@ def level_order_traversal(root):
 
 
 def get_column_format(root):
-    ids = {}
+    parent_id = 0
     par_column = []
     sib_column = []
-    val_column = [("NULL",)]
+    val_column = []
     has_left_child = []
     has_right_child = []
     has_sib = []
     for level in level_order_traversal(root):
-        pass
+        for branches in level:  # for each 2 branches from the previous node
+            for branch in branches:
+                for n in branch:
+                    # parent id
+                    par_column.append(parent_id)
+                    # next sib exist?
+                    if n.next_sib is not None:
+                        sib_column.append(1)
+                    else:
+                        sib_column.append(0)
+                    # value
+                    val_column.append(n.info)
+                    # has left child?
+                    if n.flc is not None:
+                        has_left_child.append(1)
+                    else:
+                        has_left_child.append(0)
+                    # has right child?
+                    if n.frc is not None:
+                        has_right_child.append(1)
+                    else:
+                        has_right_child.append(0)
+                    # has sib?
+                    if len(branch) > 1:
+                        has_sib.append(1)
+                    else:
+                        has_sib.append(0)
+            parent_id += 1
+    return par_column, sib_column, val_column, has_left_child, has_right_child, has_sib
 
 
 if __name__ == '__main__':
@@ -345,4 +373,4 @@ if __name__ == '__main__':
                 [4, 'Elianti', 'NNP', 3, 'OBJ', '_', 'A1'],
                 [5, '.', '.', 3, 'P', '_', '_']]
     root = read_back_sentence(sentence)
-    list(level_order_traversal(root))
+    x = get_column_format(root)
