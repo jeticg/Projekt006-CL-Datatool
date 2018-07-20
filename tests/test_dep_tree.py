@@ -6,7 +6,7 @@ currentdir =\
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from support.dep_tree import parse_dep_tree, export_to_table,\
+from dep_tree import parse_dep_tree, export_to_table,\
     read_back_sentence, level_order_traversal, get_column_format
 
 
