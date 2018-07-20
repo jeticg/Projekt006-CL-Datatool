@@ -1,0 +1,40 @@
+1	Ms.	ms.	NNP	NNP	Ms.	ms.	NNP	2	TITLE	_	_
+2	Haag	haag	NNP	NNP	Haag	haag	NNP	3	SBJ	_	A0
+3	plays	play	VBZ	VBZ	plays	play	VBZ	0	ROOT	play.02	_
+4	Elianti	elianti	NNP	NNP	Elianti	elianti	NNP	3	OBJ	_	A1
+5	.	.	.	.	.	.	.	3	P	_	_
+
+1	Bell	bell	NNP	NNP	Bell	bell	NNP	8	SBJ	_	A1	A0	A0	_	A0
+2	,	,	,	,	,	,	,	1	P	_	_	_	_	_	_
+3	based	base	VBN	VBN	based	base	VBN	1	APPO	base.01	_	_	_	_	_
+4	in	in	IN	IN	in	in	IN	3	LOC	_	AM-LOC	_	_	_	_
+5	Los	los	NNP	NNP	Los	los	NNP	6	NAME	_	_	_	_	_	_
+6	Angeles	angeles	NNP	NNP	Angeles	angeles	NNP	4	PMOD	_	_	_	_	_	_
+7	,	,	,	,	,	,	,	1	P	_	_	_	_	_	_
+8	makes	make	VBZ	VBZ	makes	make	VBZ	0	ROOT	make.01	_	_	_	_	SU
+9	and	and	CC	CC	and	and	CC	8	COORD	_	_	_	_	_	_
+10	distributes	distribute	VBZ	VBZ	distributes	distribute	VBZ	9	CONJ	distribute.01	_	_	_	_	SU
+11	electronic	electronic	JJ	JJ	electronic	electronic	JJ	16	NMOD	_	_	_	_	_	A1
+12	,	,	,	,	,	,	,	11	P	_	_	_	_	_	_
+13	computer	computer	NN	NN	computer	computer	NN	11	COORD	_	_	_	_	_	_
+14	and	and	CC	CC	and	and	CC	13	COORD	_	_	_	_	_	_
+15	building	building	NN	NN	building	building	NN	14	CONJ	building.01	_	_	_	_	A3
+16	products	product	NNS	NNS	products	product	NNS	8	OBJ	product.01	_	A1	A1	A2	_
+17	.	.	.	.	.	.	.	8	P	_	_	_	_	_	_
+
+
+1	BELL	bell	NNP	NNP	BELL	bell	NNP	2	NAME	_	_
+2	INDUSTRIES	industry	NNP	NNPS	INDUSTRIES	industry	NNS	4	SBJ	_	A0
+3	Inc.	inc.	NNP	NNP	Inc.	inc.	NNP	2	POSTHON	_	_
+4	increased	increase	VBD	VBD	increased	increase	VBD	0	ROOT	increase.01	_
+5	its	its	PRP$	PRP$	its	its	PRP$	6	NMOD	_	_
+6	quarterly	quarterly	NN	NN	quarterly	quarterly	NN	4	OBJ	_	A1
+7	to	to	TO	TO	to	to	TO	4	DIR	_	A4
+8	10	10	CD	CD	10	10	CD	9	NMOD	_	_
+9	cents	cent	NNS	NNS	cents	cent	NNS	7	PMOD	_	_
+10	from	from	IN	IN	from	from	IN	4	DIR	_	A3
+11	seven	seven	CD	CD	seven	seven	CD	12	NMOD	_	_
+12	cents	cent	NNS	NNS	cents	cent	NNS	10	PMOD	_	_
+13	a	a	DT	DT	a	a	DT	14	NMOD	_	_
+14	share	share	NN	NN	share	share	NN	12	ADV	_	_
+15	.	.	.	.	.	.	.	4	P	_	_
