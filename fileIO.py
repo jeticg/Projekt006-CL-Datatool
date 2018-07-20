@@ -14,8 +14,8 @@ currentdir =\
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from support.tree import loadPennTree, Node
-__version__ = "0.1a"
+from tree import loadPennTree, Node
+__version__ = "0.2a"
 
 
 def _loadBitext(file1, file2, linesToLoad=sys.maxsize):

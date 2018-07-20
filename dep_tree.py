@@ -20,7 +20,7 @@ currentdir =\
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from support.fileIO import loadSemFrame
+from fileIO import loadSemFrame
 
 
 FORM_OFFSET = 1
