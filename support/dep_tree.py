@@ -10,10 +10,18 @@
 # 2 examples are provided in sampleDepTree.txt
 #
 
-from support.fileIO import loadSemFrame
+import os
+import sys
+import inspect
 from bisect import bisect_left
 from collections import deque
 import itertools
+currentdir =\
+    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+from support.fileIO import loadSemFrame
+
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
