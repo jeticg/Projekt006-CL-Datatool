@@ -2,18 +2,19 @@ import os
 import sys
 import inspect
 import unittest
-currentdir =\
+
+currentdir = \
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from dep_tree import parse_dep_tree, export_to_table,\
+from support.datatool.dep_tree import parse_dep_tree, export_to_table, \
     read_back_sentence, level_order_traversal, get_column_format
 
 
 class TestParse(unittest.TestCase):
     def setUp(self):
-        with open('../support/sampleDepTree.txt') as file:
-            self.forest = parse_dep_tree('../data/pb_frames', file)
+        with open('../sampleDepTree.txt') as file:
+            self.forest = parse_dep_tree('../../../../data/pb_frames', file)
 
     def test_parse(self):
         correct_0 = [[1, 'Ms.', 'NNP', 2, 'TITLE', '_', '_'],

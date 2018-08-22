@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Python version: 3.6+
+# Python version: 2.7
 #
 # Dependency Tree class
 # Simon Fraser University
@@ -14,14 +14,14 @@ import os
 import sys
 import inspect
 from bisect import bisect_left
-from collections import deque
 import itertools
-currentdir =\
+import copy
+
+currentdir = \
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 from fileIO import loadSemFrame
-
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -85,7 +85,7 @@ class TreeNode:
             lrc.next_sib = node
 
     def __repr__(self):
-        return f'TreeNode({self.info})'
+        return 'TreeNode({})'.format(self.info)
 
 
 def export_to_vec(node):
@@ -144,25 +144,28 @@ def export_to_table(node):
 
 def inorder_traversal(node):
     if node.flc is not None:
-        yield from inorder_traversal(node.flc)
+        for n in inorder_traversal(node.flc):
+            yield n
     yield node
     if node.frc is not None:
-        yield from inorder_traversal(node.frc)
+        for n in inorder_traversal(node.frc):
+            yield n
     if node.next_sib is not None:
-        yield from inorder_traversal(node.next_sib)
+        for n in inorder_traversal(node.next_sib):
+            yield n
 
 
 def _is_pred(word):
     return word[PRED_OFFSET] != '_'
 
 
-def read_sentences(file):
+def read_sentences(f):
     """split the file into tables, each representing a sentence"""
     lines = []
-    for line in file:
+    for line in f:
         if line == '\n':
             yield lines
-            lines.clear()
+            del lines[:]
         else:
             lines.append(line.strip().split('\t'))
     if len(lines):
@@ -220,7 +223,7 @@ def _parse_sentence(pb_names, sentence):
 
 def _load_frames(frames_path):
     """load frame info"""
-    pb_frames = loadSemFrame(f'{frames_path}/*.xml')
+    pb_frames = loadSemFrame('{}/*.xml'.format(frames_path))
     return pb_frames
 
 
@@ -248,14 +251,14 @@ def _filter_args_data(pb_names, args_data):
     return pb_data
 
 
-def parse_dep_tree(frames_path, file):
+def parse_dep_tree(frames_path, f):
     """
     main entry point
     read dependency tree file and construct a forest
     each tree represents a sentence
     trees appear in the forest in the order of the original sentences
     """
-    sentences = read_sentences(file)
+    sentences = read_sentences(f)
     pb_frames = _load_frames(frames_path)
     pb_names = _process_frames(pb_frames)
 
@@ -316,7 +319,7 @@ def level_order_traversal(root):
     level = [[[root]]]
     while level:
         yield level
-        cache = level.copy()
+        cache = copy.copy(level)
         level = []
         for nodes in cache:
             for node in itertools.chain.from_iterable(nodes):
