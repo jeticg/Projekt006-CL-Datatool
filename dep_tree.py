@@ -33,8 +33,8 @@ ARGS_OFFSET = 11
 
 class TreeNode:
     def __init__(self, parent=None):
-        # info = (POS, FORM)
-        self.info = None
+        # value = (POS, FORM)
+        self.value = None
         self.parent = parent
         # dependency relationship with parent
         self.rel = None
@@ -49,6 +49,8 @@ class TreeNode:
         self.flc = None
         # first right child
         self.frc = None
+
+        self.phrase = []
 
     def last_left_child(self):
         if self.flc is None:
@@ -85,14 +87,17 @@ class TreeNode:
             lrc.next_sib = node
 
     def __repr__(self):
-        return 'TreeNode({})'.format(self.info)
+        return 'TreeNode({})'.format(self.value)
+
+    def calcPhrase(self, force=False):  # todo: figure out the desired result
+        raise NotImplementedError
 
 
 def export_to_vec(node):
-    """export the tree at node to a vec of FORMs representing the original sentence"""
+    """export the tree at node to a vec of (POS, FORM) representing the original sentence"""
     words = []
     for n in inorder_traversal(node):
-        words.append(n.info[1])
+        words.append(n.info)
     return words
 
 
@@ -178,7 +183,7 @@ def _parse_sentence(pb_names, sentence):
     # construct a node for each word
     for word in sentence:
         node = TreeNode()
-        node.info = word[PPOS_OFFSET], word[FORM_OFFSET]
+        node.value = word[PPOS_OFFSET], word[FORM_OFFSET]
         nodes.append(node)
 
     # link the nodes into a tree
@@ -274,7 +279,7 @@ def read_back_sentence(sentence):
     # construct a node for each word
     for word in sentence:
         node = TreeNode()
-        node.info = word[2], word[1]
+        node.value = word[2], word[1]
         nodes.append(node)
 
     # link the nodes into a tree
