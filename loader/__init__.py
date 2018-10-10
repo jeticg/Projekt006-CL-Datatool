@@ -25,7 +25,8 @@ class ParallelDataLoader():
         return
 
     def load(self, fFile, eFile, linesToLoad=sys.maxsize):
-        data = zip(self.srcLoader(fFile), self.tgtLoader(eFile))
+        data = zip(self.srcLoader(fFile, linesToLoad),
+                   self.tgtLoader(eFile, linesToLoad))
         # Remove incomplete or invalid entries
         data = [(f, e) for f, e in data if f is not None and e is not None]
         data = [(f, e) for f, e in data if len(f) > 0 and len(e) > 0]
