@@ -23,9 +23,9 @@ __version__ = "0.3a"
 class ParallelDataLoader():
     def __init__(self, srcFormat='txtOrTree', tgtFormat='txtOrTree'):
         self.srcLoader =\
-            importlib.import_module("datatool.format." + srcFormat).load
+            importlib.import_module("format." + srcFormat).load
         self.tgtLoader =\
-            importlib.import_module("datatool.format." + tgtFormat).load
+            importlib.import_module("format." + tgtFormat).load
         return
 
     def load(self, fFile, eFile, linesToLoad=sys.maxsize):
