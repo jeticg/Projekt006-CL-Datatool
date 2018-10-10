@@ -1,4 +1,5 @@
 import ast
+from support.tree import Node
 
 
 class TmpNode:
@@ -8,19 +9,7 @@ class TmpNode:
         self.children = []
 
     def __repr__(self):
-        return 'Node({}, {})'.format(self.tag, repr(self.value))
-
-
-class Node:
-    def __init__(self, tag, value, parent=None, first_child=None, next_sibling=None):
-        self.tag = tag
-        self.value = value
-        self.parent = parent
-        self.first_child = first_child
-        self.next_sibling = next_sibling
-
-    def __repr__(self):
-        return 'Node({}, {})'.format(self.tag, repr(self.value))
+        return 'TmpNode({}, {})'.format(self.tag, repr(self.value))
 
 
 def translate(py_ast):
@@ -57,22 +46,24 @@ def translate(py_ast):
 def _restructure_rec(node, orig_children):
     child_nodes = []
     for orig_child in orig_children:
-        child_node = Node(orig_child.tag, orig_child.value)
+        child_node = Node()
+        child_node.value = (orig_child.tag, orig_child.value)
         child_nodes.append(child_node)
     for i, child_node in enumerate(child_nodes):
         child_node.parent = node
         if i == 0:
-            node.first_child = child_node
+            node.child = child_node
         if i + 1 < len(child_nodes):
             # not last node
-            child_node.next_sibling = child_nodes[i + 1]
+            child_node.sibling = child_nodes[i + 1]
     for child_node, orig_child in zip(child_nodes, orig_children):
         _restructure_rec(child_node, orig_child.children)
 
 
 def restructure(tmp_node):
     """transform the structure of TmpNode into Node"""
-    node = Node(tmp_node.tag, tmp_node.value)
+    node = Node()
+    node.value = (tmp_node.tag, tmp_node.value)
     _restructure_rec(node, tmp_node.children)
     return node
 

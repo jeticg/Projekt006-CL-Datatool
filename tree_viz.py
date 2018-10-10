@@ -25,6 +25,10 @@ def draw_tmp_tree(root, name='tmp'):
     return g.render()
 
 
+def repr_n(node):
+    return 'Node({}, {})'.format(node.value[0], repr(node.value[1]))
+
+
 def draw_res_tree(root, name='res'):
     try:
         os.makedirs('figures')
@@ -38,17 +42,17 @@ def draw_res_tree(root, name='res'):
     fringe = [root]
     while fringe:
         node = fringe.pop()
-        g.node(str(id(node)), repr(node))
-        if node.first_child is not None:
-            child = node.first_child
+        g.node(str(id(node)), repr_n(node))
+        if node.child is not None:
+            child = node.child
             fringe.append(child)
-            g.node(str(id(child)), repr(node))
+            g.node(str(id(child)), repr_n(node))
             g.edge(str(id(node)), str(id(child)), color='red')
 
-        if node.next_sibling is not None:
-            sibling = node.next_sibling
+        if node.sibling is not None:
+            sibling = node.sibling
             fringe.append(sibling)
-            g.node(str(id(sibling)), repr(node))
+            g.node(str(id(sibling)), repr_n(node))
             g.edge(str(id(node)), str(id(sibling)), color='blue')
 
         if node.parent is not None:
