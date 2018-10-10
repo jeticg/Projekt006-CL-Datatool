@@ -202,8 +202,8 @@ class TestAMR(unittest.TestCase):
     def testLoadAMRFromFile(self):
         import warnings
         warnings.simplefilter("ignore")
-        content = loadAMR("sampleAMR.amr", verbose=True)
-        rawText = list(open("sampleAMR.amr"))
+        content = loadAMR("tests/sampleAMR.amr", verbose=True)
+        rawText = list(open("tests/sampleAMR.amr"))
         for amr, str in zip(content, rawText):
             self.assertEqual(str.split(), amr.export().split())
         return

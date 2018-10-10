@@ -21,7 +21,7 @@ currentdir = \
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from fileIO import loadSemFrame
+from loader.SemanticFrame import load as loadSemFrame
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -94,7 +94,10 @@ class TreeNode:
 
 
 def export_to_vec(node):
-    """export the tree at node to a vec of (POS, FORM) representing the original sentence"""
+    """
+    export the tree at node to a vec of (POS, FORM) representing the original
+    sentence
+    """
     words = []
     for n in inorder_traversal(node):
         words.append(n.info)
@@ -234,9 +237,9 @@ def _load_frames(frames_path):
 
 def _process_frames(frames):
     """extract only the frame name and sort"""
-    l = [x[0] for x in frames]
-    l.sort()
-    return l
+    result = [x[0] for x in frames]
+    result.sort()
+    return result
 
 
 def _verify_name(names, pred_name):
@@ -319,7 +322,8 @@ def level_order_traversal(root):
     :returns
     1st iteration: [[[root]]]
     following iterations:
-    [[[left children], [right children]], [[], []], .. for each node from the previous level]
+    [[[left children], [right children]], [[], []], .. for each node from the
+    previous level]
     """
     level = [[[root]]]
     while level:
@@ -379,7 +383,8 @@ def get_column_format(root):
                     else:
                         has_sib.append(0)
             parent_id += 1
-    return par_column, sib_column, val_column, has_left_child, has_right_child, has_sib
+    return (par_column, sib_column, val_column,
+            has_left_child, has_right_child, has_sib)
 
 
 if __name__ == '__main__':

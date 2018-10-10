@@ -33,10 +33,10 @@ def load(file, linesToLoad=sys.maxsize):
     if len(files) == 0:
         if not isinstance(file, list):
             sys.stderr.write(
-                "fileIO.loadSemFrame [ERROR]: matching pattern" +
+                "loader.SementicFrame [ERROR]: matching pattern" +
                 file + "\n")
         raise RuntimeError(
-            "fileIO.loadSemFrame [ERROR]: Cannot find matching files")
+            "loader.SementicFrame [ERROR]: Cannot find matching files")
     for filename in files:
         if filename[-4:] == ".xml":
             content += loadSemFrameXML(filename)
@@ -82,7 +82,7 @@ def loadSemFrameXML(filename, linesToLoad=sys.maxsize):
     content = []
     if linesToLoad != sys.maxsize:
         sys.stderr.write(
-            "fileIO.loadAMRFrameXML [WARN]: linesToLoad option ignored\n")
+            "loader.loadSemFrameXML [WARN]: linesToLoad option ignored\n")
 
     from xml.dom import minidom
     xmldoc = minidom.parse(os.path.expanduser(filename))
