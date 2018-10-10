@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 from io import open
 
-fpath = '/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments/data/ASPEC/ASPEC-JE/train/train-1.txt'
+fpath =\
+    '/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments/data/ASPEC/' +\
+    'ASPEC-JE/train/train-1.txt'
 
 with open(fpath, 'r', encoding='utf8') as infile, \
         open('jpn.txt', 'w', encoding='utf8') as jpn_file, \
