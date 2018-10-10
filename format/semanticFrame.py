@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Python version: 2/3
 #
-# Jetic's AMR/Propbank/Nombank Frame loader for NLP experiments.
+# AMR/Propbank/Nombank Frame loader
 # Simon Fraser University
 # Jetic Gu
 #

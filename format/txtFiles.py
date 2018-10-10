@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Python version: 2/3
 #
-# Jetic's txt file format loader for NLP experiments.
+# Txt file format loader
 # Simon Fraser University
 # Jetic Gu
 #

@@ -16,6 +16,7 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 from tree import loadPennTree, Node
 __version__ = "0.2a"
+sys.stderr.write("Warning, use of fileIO is deprecated")
 
 
 def _loadBitext(file1, file2, linesToLoad=sys.maxsize):
