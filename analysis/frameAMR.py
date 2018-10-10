@@ -16,7 +16,7 @@ currentdir =\
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-from fileIO import loadSemFrame
+from loader.SemanticFrame import load as loadSemFrame
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(
