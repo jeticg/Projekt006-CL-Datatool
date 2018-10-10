@@ -10,7 +10,13 @@ import os
 import sys
 import inspect
 import unittest
-from format.tree import Node
+currentdir = os.path.dirname(
+    os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+if parentdir not in sys.path:
+    sys.path.insert(0, parentdir)
+
+from datatool.format.tree import Node
 __version__ = "0.3a"
 
 

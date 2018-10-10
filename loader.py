@@ -11,13 +11,21 @@ import sys
 import inspect
 import unittest
 import importlib
+currentdir = os.path.dirname(
+    os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+if parentdir not in sys.path:
+    sys.path.insert(0, parentdir)
+
 __version__ = "0.3a"
 
 
 class ParallelDataLoader():
     def __init__(self, srcFormat='txtOrTree', tgtFormat='txtOrTree'):
-        self.srcLoader = importlib.import_module("format." + srcFormat).load
-        self.tgtLoader = importlib.import_module("format." + tgtFormat).load
+        self.srcLoader =\
+            importlib.import_module("datatool.format." + srcFormat).load
+        self.tgtLoader =\
+            importlib.import_module("datatool.format." + tgtFormat).load
         return
 
     def load(self, fFile, eFile, linesToLoad=sys.maxsize):

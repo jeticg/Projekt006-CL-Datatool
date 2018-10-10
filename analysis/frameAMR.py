@@ -11,12 +11,13 @@ import sys
 import inspect
 import argparse
 
-currentdir =\
-    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+currentdir = os.path.dirname(
+    os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
+if os.path.dirname(parentdir) not in sys.path:
+    sys.path.insert(0, os.path.dirname(parentdir))
 
-from format.semanticFrame import load as loadSemFrame
+from datatool.format.semanticFrame import load as loadSemFrame
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(
