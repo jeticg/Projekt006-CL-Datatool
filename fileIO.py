@@ -10,12 +10,9 @@ import os
 import sys
 import inspect
 import unittest
-currentdir =\
-    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-from support.tree import loadPennTree, Node
-__version__ = "0.1a"
+from format.tree import loadPennTree, Node
+__version__ = "0.2a"
+sys.stderr.write("Warning, use of fileIO is deprecated")
 
 
 def _loadBitext(file1, file2, linesToLoad=sys.maxsize):
@@ -159,7 +156,16 @@ def loadTreeDataset(fFile, eFile, linesToLoad=sys.maxsize):
         fContents =\
             [line.strip().split() for line in open(os.path.expanduser(fFile))][
                 :linesToLoad]
-    eContents = loadPennTree(eFile, linesToLoad)
+    try:
+        eContents = loadPennTree(eFile, linesToLoad)
+        if len([e for e in eContents if e is not None]) < (len(eContents) / 2):
+            eContents =\
+                [line.strip().split()
+                 for line in open(os.path.expanduser(eFile))][:linesToLoad]
+    except AttributeError:
+        eContents =\
+            [line.strip().split() for line in open(os.path.expanduser(eFile))][
+                :linesToLoad]
     dataset = zip(fContents, eContents)
     dataset = [(f, e) for f, e in dataset if f is not None and e is not None]
     dataset = [(f, e) for f, e in dataset if len(f) > 0 and len(e) > 0]

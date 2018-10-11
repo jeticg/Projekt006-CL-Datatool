@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Python version: 3.6+
+# Python version: 2.7
 #
 # Dependency Tree class
 # Simon Fraser University
@@ -14,14 +14,14 @@ import os
 import sys
 import inspect
 from bisect import bisect_left
-from collections import deque
 import itertools
-currentdir =\
+import copy
+
+currentdir = \
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from support.fileIO import loadSemFrame
-
+from loader.SemanticFrame import load as loadSemFrame
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -33,8 +33,8 @@ ARGS_OFFSET = 11
 
 class TreeNode:
     def __init__(self, parent=None):
-        # info = (POS, FORM)
-        self.info = None
+        # value = (POS, FORM)
+        self.value = None
         self.parent = parent
         # dependency relationship with parent
         self.rel = None
@@ -49,6 +49,8 @@ class TreeNode:
         self.flc = None
         # first right child
         self.frc = None
+
+        self.phrase = []
 
     def last_left_child(self):
         if self.flc is None:
@@ -85,14 +87,20 @@ class TreeNode:
             lrc.next_sib = node
 
     def __repr__(self):
-        return f'TreeNode({self.info})'
+        return 'TreeNode({})'.format(self.value)
+
+    def calcPhrase(self, force=False):  # todo: figure out the desired result
+        raise NotImplementedError
 
 
 def export_to_vec(node):
-    """export the tree at node to a vec of FORMs representing the original sentence"""
+    """
+    export the tree at node to a vec of (POS, FORM) representing the original
+    sentence
+    """
     words = []
     for n in inorder_traversal(node):
-        words.append(n.info[1])
+        words.append(n.info)
     return words
 
 
@@ -144,25 +152,28 @@ def export_to_table(node):
 
 def inorder_traversal(node):
     if node.flc is not None:
-        yield from inorder_traversal(node.flc)
+        for n in inorder_traversal(node.flc):
+            yield n
     yield node
     if node.frc is not None:
-        yield from inorder_traversal(node.frc)
+        for n in inorder_traversal(node.frc):
+            yield n
     if node.next_sib is not None:
-        yield from inorder_traversal(node.next_sib)
+        for n in inorder_traversal(node.next_sib):
+            yield n
 
 
 def _is_pred(word):
     return word[PRED_OFFSET] != '_'
 
 
-def read_sentences(file):
+def read_sentences(f):
     """split the file into tables, each representing a sentence"""
     lines = []
-    for line in file:
+    for line in f:
         if line == '\n':
             yield lines
-            lines.clear()
+            del lines[:]
         else:
             lines.append(line.strip().split('\t'))
     if len(lines):
@@ -175,7 +186,7 @@ def _parse_sentence(pb_names, sentence):
     # construct a node for each word
     for word in sentence:
         node = TreeNode()
-        node.info = word[PPOS_OFFSET], word[FORM_OFFSET]
+        node.value = word[PPOS_OFFSET], word[FORM_OFFSET]
         nodes.append(node)
 
     # link the nodes into a tree
@@ -220,15 +231,15 @@ def _parse_sentence(pb_names, sentence):
 
 def _load_frames(frames_path):
     """load frame info"""
-    pb_frames = loadSemFrame(f'{frames_path}/*.xml')
+    pb_frames = loadSemFrame('{}/*.xml'.format(frames_path))
     return pb_frames
 
 
 def _process_frames(frames):
     """extract only the frame name and sort"""
-    l = [x[0] for x in frames]
-    l.sort()
-    return l
+    result = [x[0] for x in frames]
+    result.sort()
+    return result
 
 
 def _verify_name(names, pred_name):
@@ -248,14 +259,14 @@ def _filter_args_data(pb_names, args_data):
     return pb_data
 
 
-def parse_dep_tree(frames_path, file):
+def parse_dep_tree(frames_path, f):
     """
     main entry point
     read dependency tree file and construct a forest
     each tree represents a sentence
     trees appear in the forest in the order of the original sentences
     """
-    sentences = read_sentences(file)
+    sentences = read_sentences(f)
     pb_frames = _load_frames(frames_path)
     pb_names = _process_frames(pb_frames)
 
@@ -271,7 +282,7 @@ def read_back_sentence(sentence):
     # construct a node for each word
     for word in sentence:
         node = TreeNode()
-        node.info = word[2], word[1]
+        node.value = word[2], word[1]
         nodes.append(node)
 
     # link the nodes into a tree
@@ -311,12 +322,13 @@ def level_order_traversal(root):
     :returns
     1st iteration: [[[root]]]
     following iterations:
-    [[[left children], [right children]], [[], []], .. for each node from the previous level]
+    [[[left children], [right children]], [[], []], .. for each node from the
+    previous level]
     """
     level = [[[root]]]
     while level:
         yield level
-        cache = level.copy()
+        cache = copy.copy(level)
         level = []
         for nodes in cache:
             for node in itertools.chain.from_iterable(nodes):
@@ -371,7 +383,8 @@ def get_column_format(root):
                     else:
                         has_sib.append(0)
             parent_id += 1
-    return par_column, sib_column, val_column, has_left_child, has_right_child, has_sib
+    return (par_column, sib_column, val_column,
+            has_left_child, has_right_child, has_sib)
 
 
 if __name__ == '__main__':

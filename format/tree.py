@@ -12,6 +12,7 @@
 import sys
 import os
 import unittest
+import inspect
 from copy import deepcopy
 
 
@@ -264,7 +265,7 @@ def constructTreeFromRNNGAction(actions):
     return root
 
 
-def loadPennTree(fileName, linesToLoad=sys.maxsize, verbose=False):
+def load(fileName, linesToLoad=sys.maxsize, verbose=False):
     import progressbar
     fileName = os.path.expanduser(fileName)
     content = []
@@ -387,7 +388,10 @@ class TestTree(unittest.TestCase):
         return
 
     def testLoadTreeFromFile(self):
-        content = loadPennTree("sampleTree.txt", verbose=True)
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = load(parentdir + "/test/sampleTree.txt", verbose=True)
         A = content[0]
         B = content[1]
         self.testBuildTreeA(A)

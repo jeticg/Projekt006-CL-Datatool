@@ -2,18 +2,19 @@ import os
 import sys
 import inspect
 import unittest
-currentdir =\
+
+currentdir = \
     os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
-from support.dep_tree import parse_dep_tree, export_to_table,\
+from dep_tree import parse_dep_tree, export_to_table, \
     read_back_sentence, level_order_traversal, get_column_format
 
 
 class TestParse(unittest.TestCase):
     def setUp(self):
-        with open('../support/sampleDepTree.txt') as file:
-            self.forest = parse_dep_tree('../data/pb_frames', file)
+        with open(parentdir + '/test/sampleDepTree.txt') as file:
+            self.forest = parse_dep_tree('../../../../data/pb_frames', file)
 
     def test_parse(self):
         correct_0 = [[1, 'Ms.', 'NNP', 2, 'TITLE', '_', '_'],
@@ -31,7 +32,8 @@ class TestParse(unittest.TestCase):
                      [7, ',', ',', 1, 'P', '_', '_', '_', '_'],
                      [8, 'makes', 'VBZ', 0, 'ROOT', 'make.01', '_', '_', '_'],
                      [9, 'and', 'CC', 8, 'COORD', '_', '_', '_', '_'],
-                     [10, 'distributes', 'VBZ', 9, 'CONJ', 'distribute.01', '_', '_', '_'],
+                     [10, 'distributes', 'VBZ', 9, 'CONJ', 'distribute.01',
+                      '_', '_', '_'],
                      [11, 'electronic', 'JJ', 16, 'NMOD', '_', '_', '_', '_'],
                      [12, ',', ',', 11, 'P', '_', '_', '_', '_'],
                      [13, 'computer', 'NN', 11, 'COORD', '_', '_', '_', '_'],
@@ -75,7 +77,8 @@ class TestColumnFormat(unittest.TestCase):
         root = read_back_sentence(sentence)
         self.assertEqual(([0, 1, 1, 1, 2],
                           [0, 0, 1, 0, 0],
-                          [('VBZ', 'plays'), ('NNP', 'Haag'), ('NNP', 'Elianti'), ('.', '.'), ('NNP', 'Ms.')],
+                          [('VBZ', 'plays'), ('NNP', 'Haag'),
+                           ('NNP', 'Elianti'), ('.', '.'), ('NNP', 'Ms.')],
                           [1, 1, 0, 0, 0],
                           [1, 0, 0, 0, 0],
                           [0, 0, 1, 1, 0]),
@@ -91,7 +94,8 @@ class TestColumnFormat(unittest.TestCase):
                     [7, ',', ',', 1, 'P', '_', '_', '_', '_'],
                     [8, 'makes', 'VBZ', 0, 'ROOT', 'make.01', '_', '_', '_'],
                     [9, 'and', 'CC', 8, 'COORD', '_', '_', '_', '_'],
-                    [10, 'distributes', 'VBZ', 9, 'CONJ', 'distribute.01', '_', '_', '_'],
+                    [10, 'distributes', 'VBZ', 9, 'CONJ', 'distribute.01', '_',
+                     '_', '_'],
                     [11, 'electronic', 'JJ', 16, 'NMOD', '_', '_', '_', '_'],
                     [12, ',', ',', 11, 'P', '_', '_', '_', '_'],
                     [13, 'computer', 'NN', 11, 'COORD', '_', '_', '_', '_'],
@@ -100,11 +104,15 @@ class TestColumnFormat(unittest.TestCase):
                     [16, 'products', 'NNS', 8, 'OBJ', '_', '_', 'A1', 'A1'],
                     [17, '.', '.', 8, 'P', '_', '_', '_', '_']]
         root = read_back_sentence(sentence)
-        self.assertEqual(([0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 7, 10, 10, 11, 13, 14, 15],
+        self.assertEqual(([0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 7, 10, 10, 11, 13, 14,
+                           15],
                           [0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-                          [('VBZ', 'makes'), ('NNP', 'Bell'), ('CC', 'and'), ('NNS', 'products'), ('.', '.'),
-                           (',', ','), ('VBN', 'based'), (',', ','), ('VBZ', 'distributes'), ('JJ', 'electronic'),
-                           ('IN', 'in'), (',', ','), ('NN', 'computer'), ('NNP', 'Angeles'), ('CC', 'and'),
+                          [('VBZ', 'makes'), ('NNP', 'Bell'), ('CC', 'and'),
+                           ('NNS', 'products'), ('.', '.'),
+                           (',', ','), ('VBN', 'based'), (',', ','),
+                           ('VBZ', 'distributes'), ('JJ', 'electronic'),
+                           ('IN', 'in'), (',', ','), ('NN', 'computer'),
+                           ('NNP', 'Angeles'), ('CC', 'and'),
                            ('NNP', 'Los'), ('NN', 'building')],
                           [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
                           [1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0],

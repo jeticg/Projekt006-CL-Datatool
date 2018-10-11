@@ -11,6 +11,7 @@
 import sys
 import os
 import unittest
+import inspect
 from copy import deepcopy
 from six import string_types
 
@@ -141,7 +142,7 @@ def constructAMRFromStr(string):
     return root
 
 
-def loadAMR(fileName, linesToLoad=sys.maxsize, verbose=False):
+def load(fileName, linesToLoad=sys.maxsize, verbose=False):
     import progressbar
     fileName = os.path.expanduser(fileName)
     content = []
@@ -201,9 +202,12 @@ class TestAMR(unittest.TestCase):
 
     def testLoadAMRFromFile(self):
         import warnings
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
         warnings.simplefilter("ignore")
-        content = loadAMR("sampleAMR.amr", verbose=True)
-        rawText = list(open("sampleAMR.amr"))
+        content = load(parentdir + "/test/sampleAMR.amr", verbose=True)
+        rawText = list(open(parentdir + "/test/sampleAMR.amr"))
         for amr, str in zip(content, rawText):
             self.assertEqual(str.split(), amr.export().split())
         return
