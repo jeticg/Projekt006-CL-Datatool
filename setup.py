@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# Setup
+# Simon Fraser University
+# Jetic Gu
+#
 import setuptools
 
 with open("README.md", "r") as fh:
