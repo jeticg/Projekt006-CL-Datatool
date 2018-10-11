@@ -5,8 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="datatool",
-    version="0.3",
-    author="Jetic Gu, Rory Wang",
+    version="0.3.a1",
+    author="Jetic Gū, Rory Wang",
     author_email="jeticg@sfu.ca",
     description="NLP data processing tools",
     long_description=long_description,

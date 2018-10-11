@@ -13,7 +13,7 @@ from dep_tree import parse_dep_tree, export_to_table, \
 
 class TestParse(unittest.TestCase):
     def setUp(self):
-        with open(parentdir + '/tests/sampleDepTree.txt') as file:
+        with open(parentdir + '/test/sampleDepTree.txt') as file:
             self.forest = parse_dep_tree('../../../../data/pb_frames', file)
 
     def test_parse(self):
