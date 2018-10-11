@@ -8,20 +8,16 @@
 #
 import os
 import sys
-from tree import load
+from tree import load as loadTree
+from txt import load as loadTxt
 __version__ = "0.3a"
 
 
 def load(file, linesToLoad=sys.maxsize):
     try:
-        contents = load(file, linesToLoad)
+        contents = loadTree(file, linesToLoad)
         if len([f for f in contents if f is not None]) < (len(contents) / 2):
-            return loadText(file, linesToLoad)
+            return loadTxt(file, linesToLoad)
     except AttributeError:
-        return loadText(file, linesToLoad)
+        return loadTxt(file, linesToLoad)
     return contents
-
-
-def loadText(file, linesToLoad=sys.maxsize):
-    return [line.strip().split() for line in open(os.path.expanduser(file))][
-        :linesToLoad]

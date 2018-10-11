@@ -11,15 +11,28 @@ import sys
 import inspect
 import unittest
 import importlib
+import format.tree
+import format.txtFiles
+import format.txt
+import format.AMR
+import format.txtOrTree
+
 __version__ = "0.3a"
+
+supportedList = {
+    'tree': format.tree,
+    'txtFiles': format.txtFiles,
+    'txt': format.txt,
+    'AMR': format.AMR,
+    'txtOrTree': format.txtOrTree,
+}
 
 
 class ParallelDataLoader():
     def __init__(self, srcFormat='txtOrTree', tgtFormat='txtOrTree'):
-        self.srcLoader =\
-            importlib.import_module(".format." + srcFormat, "datatool").load
-        self.tgtLoader =\
-            importlib.import_module(".format." + tgtFormat, "datatool").load
+        self.srcLoader = supportedList[srcFormat].load
+        #    importlib.import_module(srcFormat, format).load
+        self.tgtLoader = supportedList[tgtFormat].load
         return
 
     def load(self, fFile, eFile, linesToLoad=sys.maxsize):
