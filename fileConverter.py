@@ -13,7 +13,8 @@ import xml.etree.ElementTree as ET
 import sys
 import jieba
 
-from format.tree import Node, load, lexicaliseNode
+from format.tree import Node, lexicaliseNode
+from format.tree import load as loadPennTree
 
 
 def procXML(filename, jieba=False):
