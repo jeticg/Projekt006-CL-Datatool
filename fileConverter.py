@@ -11,9 +11,9 @@
 import os
 import xml.etree.ElementTree as ET
 import sys
-# reload(sys)
-# sys.setdefaultencoding('UTF8')
 import jieba
+
+from format.tree import Node, load, lexicaliseNode
 
 
 def procXML(filename, jieba=False):
@@ -69,7 +69,6 @@ def pennTreeIntoTags(fileName, linesToLoad=sys.maxsize):
 
 
 def pennTreeNoWords(fileName, linesToLoad=sys.maxsize):
-    from format.tree import Node, loadPennTree, lexicaliseNode
     w2int = {"<UNK>": "XX"}
     t2int = {"<UNK>": "XX"}
     result = []
@@ -219,7 +218,7 @@ def convertFiles(filePattern, converter, output="o.pos"):
             if not isinstance(converterOutput, tuple):
                 converterOutput = (converterOutput, )
             if len(converterOutput) != numFiles:
-                print(len(converterOutput), type(entry))
+                print(len(converterOutput))
                 raise RuntimeError("Incorrect return entry length")
             for i in range(len(output)):
                 result[i] += converterOutput[i]
