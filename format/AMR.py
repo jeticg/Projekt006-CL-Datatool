@@ -206,8 +206,8 @@ class TestAMR(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         warnings.simplefilter("ignore")
-        content = load(parentdir + "/tests/sampleAMR.amr", verbose=True)
-        rawText = list(open(parentdir + "/tests/sampleAMR.amr"))
+        content = load(parentdir + "/test/sampleAMR.amr", verbose=True)
+        rawText = list(open(parentdir + "/test/sampleAMR.amr"))
         for amr, str in zip(content, rawText):
             self.assertEqual(str.split(), amr.export().split())
         return
