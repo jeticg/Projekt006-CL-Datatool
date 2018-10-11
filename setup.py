@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="datatool",
+    name="natlang",
     version="0.3.a1",
     author="Jetic Gū, Rory Wang",
     author_email="jeticg@sfu.ca",
-    description="NLP data processing tools",
+    description="Natural language data loading tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/jeticg/datatool",
