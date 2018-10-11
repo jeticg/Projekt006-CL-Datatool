@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Python version: 2
+# Python version: 2/3
 #
 # Jetic's file converter tool for NLP datasets
 # Simon Fraser University
@@ -11,8 +11,8 @@
 import os
 import xml.etree.ElementTree as ET
 import sys
-reload(sys)
-sys.setdefaultencoding('UTF8')
+# reload(sys)
+# sys.setdefaultencoding('UTF8')
 import jieba
 
 
@@ -40,7 +40,7 @@ def procXMLCN(filename):
     return result
 
 
-def rawIntoSegForms(fileName, linesToLoad=sys.maxint):
+def rawIntoSegForms(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -49,7 +49,7 @@ def rawIntoSegForms(fileName, linesToLoad=sys.maxint):
     return result
 
 
-def pennTreeIntoTags(fileName, linesToLoad=sys.maxint):
+def pennTreeIntoTags(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -62,14 +62,14 @@ def pennTreeIntoTags(fileName, linesToLoad=sys.maxint):
         for i in range(len(procLine)):
             if procLine[i].isdigit():
                 sentence.append(procLine[i - 1])
-                print "Missing elements!"
+                print("Missing elements!")
         # sentence = [entry for entry in sentence if entry != "-NONE-"]
         result.append(sentence)
     return result
 
 
-def pennTreeNoWords(fileName, linesToLoad=sys.maxint):
-    from tree import Node, loadPennTree, lexicaliseNode
+def pennTreeNoWords(fileName, linesToLoad=sys.maxsize):
+    from format.tree import Node, loadPennTree, lexicaliseNode
     w2int = {"<UNK>": "XX"}
     t2int = {"<UNK>": "XX"}
     result = []
@@ -81,7 +81,7 @@ def pennTreeNoWords(fileName, linesToLoad=sys.maxint):
     return result
 
 
-def tokenIntoForms(fileName, linesToLoad=sys.maxint):
+def tokenIntoForms(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -96,7 +96,7 @@ def tokenIntoForms(fileName, linesToLoad=sys.maxint):
     return result
 
 
-def sgmIntoText(fileName, linesToLoad=sys.maxint):
+def sgmIntoText(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.replace('>', '<').split("<")
@@ -105,7 +105,7 @@ def sgmIntoText(fileName, linesToLoad=sys.maxint):
     return content
 
 
-def removeEmptyLines(fileName, linesToLoad=sys.maxint):
+def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
@@ -113,7 +113,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxint):
     return content
 
 
-def rawIntoForms(fileName, linesToLoad=sys.maxint):
+def rawIntoForms(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -128,7 +128,7 @@ def rawIntoForms(fileName, linesToLoad=sys.maxint):
     return result
 
 
-def alignmentToList(fileName, linesToLoad=sys.maxint):
+def alignmentToList(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -137,7 +137,7 @@ def alignmentToList(fileName, linesToLoad=sys.maxint):
     return result
 
 
-def pennTreeSplitIntoPennTree(fileName, linesToLoad=sys.maxint):
+def pennTreeSplitIntoPennTree(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.strip() for line in open(fileName)][:linesToLoad]
@@ -163,7 +163,7 @@ def pennTreeSplitIntoPennTree(fileName, linesToLoad=sys.maxint):
     return results
 
 
-def armSplitIntoARMAndText(fileName, linesToLoad=sys.maxint):
+def armSplitIntoARMAndText(fileName, linesToLoad=sys.maxsize):
     result = []
     text = []
     fileName = os.path.expanduser(fileName)
@@ -214,12 +214,12 @@ def convertFiles(filePattern, converter, output="o.pos"):
     import glob
     for name in glob.glob(os.path.expanduser(filePattern)):
         if os.path.isfile(name):
-            print name
+            print(name)
             converterOutput = converter(name)
             if not isinstance(converterOutput, tuple):
                 converterOutput = (converterOutput, )
             if len(converterOutput) != numFiles:
-                print len(converterOutput), type(entry)
+                print(len(converterOutput), type(entry))
                 raise RuntimeError("Incorrect return entry length")
             for i in range(len(output)):
                 result[i] += converterOutput[i]
@@ -237,7 +237,7 @@ def convertFiles(filePattern, converter, output="o.pos"):
     return
 
 
-def ASPECtoBitext(path, file1out, file2out, linesToLoad=sys.maxint, pos=3):
+def ASPECtoBitext(path, file1out, file2out, linesToLoad=sys.maxsize, pos=3):
     path = os.path.expanduser(path)
     bitext = list(open(path))[:linesToLoad]
     bitext = [entry.strip().split(" ||| ")[pos:] for entry in bitext]
@@ -251,7 +251,7 @@ def ASPECtoBitext(path, file1out, file2out, linesToLoad=sys.maxint, pos=3):
     return
 
 
-def alignedRawText(file1, file2, file1out, file2out, linesToLoad=sys.maxint):
+def alignedRawText(file1, file2, file1out, file2out, linesToLoad=sys.maxsize):
     path1 = os.path.expanduser(file1)
     path2 = os.path.expanduser(file2)
     bitext = list(zip(open(path1), open(path2)))[:linesToLoad]
@@ -268,7 +268,7 @@ def alignedRawText(file1, file2, file1out, file2out, linesToLoad=sys.maxint):
     return
 
 
-def alignedTextTree(textFile, treeFile, treeOut, linesToLoad=sys.maxint):
+def alignedTextTree(textFile, treeFile, treeOut, linesToLoad=sys.maxsize):
     path1 = os.path.expanduser(textFile)
     path2 = os.path.expanduser(treeFile)
 
