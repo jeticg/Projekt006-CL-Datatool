@@ -1,4 +1,4 @@
-import ast
+import ast, sys, json
 from tree import Node
 
 
@@ -75,12 +75,105 @@ def python_to_tree(code):
     return res_root
 
 
-if __name__ == '__main__':
-    code = r"os.path.abspath('mydir/myfile.txt')"
-    py_ast = ast.parse(code)
-    root = _translate(py_ast)
-    res_root = _restructure(root)
-    from test import tree_viz
+def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+    import progressbar
+    fileName = os.path.expanduser(fileName)
+    content = []
+    i = 0
+    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
+               progressbar.FormatLabel(
+                   '; Total: %(value)d sents (in: %(elapsed)s)')]
+    if verbose is False:
+        loadProgressBar = \
+            progressbar.ProgressBar(widgets=widgets,
+                                    maxval=min(
+                                        sum(1 for line in open(fileName)),
+                                        linesToLoad)).start()
+    for line in open(fileName):
+        i += 1
+        if verbose is False:
+            loadProgressBar.update(i)
+        content.append(python_to_tree(line))
+        if i == linesToLoad:
+            break
+    if verbose is False:
+        loadProgressBar.finish()
+    return content
 
-    tree_viz.draw_tmp_tree(root)
-    tree_viz.draw_res_tree(res_root)
+
+if __name__ == '__main__':
+    if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
+        pass
+    else:
+        # viz tools
+        from graphviz import Graph
+        import os
+        import errno
+
+
+        def draw_tmp_tree(root, name='tmp'):
+            try:
+                os.makedirs('figures')
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
+            fname = 'figures/{}'.format(name + '.gv')
+            g = Graph(format='png', filename=fname)
+
+            fringe = [root]
+            while fringe:
+                node = fringe.pop()
+                g.node(str(id(node)), repr(node))
+                for child in node.children:
+                    fringe.append(child)
+                    g.node(str(id(child)), repr(node))
+                    g.edge(str(id(node)), str(id(child)))
+
+            return g.render()
+
+
+        def repr_n(node):
+            return 'Node({}, {})'.format(node.value[0], repr(node.value[1]))
+
+
+        def draw_res_tree(root, name='res'):
+            try:
+                os.makedirs('figures')
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
+            fname = 'figures/{}'.format(name + '.gv')
+            g = Graph(format='png', filename=fname)
+
+            fringe = [root]
+            while fringe:
+                node = fringe.pop()
+                g.node(str(id(node)), repr_n(node))
+                if node.child is not None:
+                    child = node.child
+                    fringe.append(child)
+                    g.node(str(id(child)), repr_n(node))
+                    g.edge(str(id(node)), str(id(child)), color='red')
+
+                if node.sibling is not None:
+                    sibling = node.sibling
+                    fringe.append(sibling)
+                    g.node(str(id(sibling)), repr_n(node))
+                    g.edge(str(id(node)), str(id(sibling)), color='blue')
+
+                if node.parent is not None:
+                    g.edge(str(id(node)), str(id(node.parent)), color='green')
+
+            return g.render()
+
+
+        # example data structures
+        code = r"os.path.abspath('mydir/myfile.txt')"
+        py_ast = ast.parse(code)
+        root = _translate(py_ast)
+        res_root = _restructure(root)
+
+        # draw_tmp_tree(root)
+        # draw_res_tree(res_root)
