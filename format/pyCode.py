@@ -1,4 +1,4 @@
-import ast
+import ast, sys, json
 from tree import Node
 
 
@@ -75,9 +75,33 @@ def python_to_tree(code):
     return res_root
 
 
-if __name__ == '__main__':
-    import sys
+def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+    import progressbar
+    fileName = os.path.expanduser(fileName)
+    content = []
+    i = 0
+    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
+               progressbar.FormatLabel(
+                   '; Total: %(value)d sents (in: %(elapsed)s)')]
+    if verbose is False:
+        loadProgressBar = \
+            progressbar.ProgressBar(widgets=widgets,
+                                    maxval=min(
+                                        sum(1 for line in open(fileName)),
+                                        linesToLoad)).start()
+    for line in open(fileName):
+        i += 1
+        if verbose is False:
+            loadProgressBar.update(i)
+        content.append(python_to_tree(line))
+        if i == linesToLoad:
+            break
+    if verbose is False:
+        loadProgressBar.finish()
+    return content
 
+
+if __name__ == '__main__':
     if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
         pass
     else:

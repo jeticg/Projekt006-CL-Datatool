@@ -16,6 +16,7 @@ import format.txtFiles
 import format.txt
 import format.AMR
 import format.txtOrTree
+import format.pyCode
 
 __version__ = "0.3a"
 
@@ -25,6 +26,7 @@ supportedList = {
     'txt': format.txt,
     'AMR': format.AMR,
     'txtOrTree': format.txtOrTree,
+    'pyCode': format.pyCode
 }
 
 
