@@ -28,5 +28,11 @@
     "rewritten_intent": "format number of spaces between strings `Python`, `:` and `Very Good` to be `20`",
     "snippet": "print('%*s : %*s' % (20, 'Python', 20, 'Very Good'))",
     "question_id": 4302166
+  },
+  {
+    "intent": "Save JSON outputed from a URL to a file",
+    "rewritten_intent": "save json output from a url \u2018http://search.twitter.com/search.json?q=hi\u2019 to file \u2018hi.json\u2019 in Python 2",
+    "snippet": "urllib.request.urlretrieve('http://search.twitter.com/search.json?q=hi', 'hi.json')",
+    "question_id": 3040904
   }
 ]

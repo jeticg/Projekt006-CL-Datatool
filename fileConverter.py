@@ -13,17 +13,20 @@ import xml.etree.ElementTree as ET
 import sys
 import jieba
 
+import io
+
 from format.tree import Node, lexicaliseNode
 from format.tree import load as loadPennTree
 
 
 def procCoNaLa(filename, intent_output='intent.txt', snippet_output='snippets.txt'):
     import json
-    with open(filename) as f:
-        data = json.load(f)
+    with io.open(filename, encoding='utf8') as f:
+        data = json.load(f, encoding='utf8')
 
     skipped = 0
-    with open(intent_output, 'w') as intent_file, open(snippet_output, 'w') as snippet_file:
+    with io.open(intent_output, 'w', encoding='utf8') as intent_file, \
+            io.open(snippet_output, 'w', encoding='utf8') as snippet_file:
         for entry in data:
             rewritten_intent = entry['rewritten_intent']
             snippet = entry['snippet']
@@ -31,9 +34,9 @@ def procCoNaLa(filename, intent_output='intent.txt', snippet_output='snippets.tx
                 skipped += 1
             else:
                 intent_file.write(rewritten_intent)
-                intent_file.write('\n')
+                intent_file.write(u'\n')
                 snippet_file.write(snippet)
-                snippet_file.write('\n')
+                snippet_file.write(u'\n')
     print('transformation complete. {} entries skipped.'.format(skipped))
 
 
