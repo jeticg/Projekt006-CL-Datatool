@@ -17,6 +17,29 @@ from format.tree import Node, lexicaliseNode
 from format.tree import load as loadPennTree
 
 
+def procCoNaLa(filename,
+               intent_output='intent.txt',
+               snippet_output='snippets.txt'):
+    import json
+    with open(filename) as f:
+        data = json.load(f)
+
+    skipped = 0
+    with open(intent_output, 'w') as intent_file,\
+            open(snippet_output, 'w') as snippet_file:
+        for entry in data:
+            rewritten_intent = entry['rewritten_intent']
+            snippet = entry['snippet']
+            if rewritten_intent is None:
+                skipped += 1
+            else:
+                intent_file.write(rewritten_intent)
+                intent_file.write('\n')
+                snippet_file.write(snippet)
+                snippet_file.write('\n')
+    print('transformation complete. {} entries skipped.'.format(skipped))
+
+
 def procXML(filename, jieba=False):
     result = []
     tree = ET.parse(filename)
@@ -77,7 +100,7 @@ def pennTreeNoWords(fileName, linesToLoad=sys.maxsize):
     content = loadPennTree(fileName, linesToLoad)
     for node in content:
         sentence = lexicaliseNode(node, w2int, t2int).export()
-        result.append((sentence, ))
+        result.append((sentence,))
     return result
 
 
@@ -217,7 +240,7 @@ def convertFiles(filePattern, converter, output="o.pos"):
             print(name)
             converterOutput = converter(name)
             if not isinstance(converterOutput, tuple):
-                converterOutput = (converterOutput, )
+                converterOutput = (converterOutput,)
             if len(converterOutput) != numFiles:
                 print(len(converterOutput))
                 raise RuntimeError("Incorrect return entry length")
