@@ -12,7 +12,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="natlang",
-    version="0.3.a3",
+    version="0.3.a4",
     author="Jetic Gū, Rory Wang",
     author_email="jeticg@sfu.ca",
     description="Natural language data loading tools",
