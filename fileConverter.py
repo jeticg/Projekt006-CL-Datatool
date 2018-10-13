@@ -15,11 +15,13 @@ import jieba
 
 import io
 
-from format.tree import Node, lexicaliseNode
-from format.tree import load as loadPennTree
+from .format.tree import Node, lexicaliseNode
+from .format.tree import load as loadPennTree
 
 
-def procCoNaLa(filename, intent_output='intent.txt', snippet_output='snippets.txt'):
+def procCoNaLa(filename,
+               intent_output='intent.txt',
+               snippet_output='snippets.txt'):
     import json
     with io.open(filename, encoding='utf8') as f:
         data = json.load(f, encoding='utf8')
@@ -132,7 +134,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
-              :linesToLoad]
+        :linesToLoad]
     return content
 
 
