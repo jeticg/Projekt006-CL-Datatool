@@ -1,7 +1,15 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# Python format Code (CoNaLa) loader
+# Simon Fraser University
+# Ruoyi Wang
+#
+#
 import ast
 import sys
 import os
-from tree import Node
+from .tree import Node
 
 
 class _TmpNode:
@@ -113,7 +121,6 @@ if __name__ == '__main__':
         import os
         import errno
 
-
         def draw_tmp_tree(root, name='tmp'):
             try:
                 os.makedirs('figures')
@@ -135,10 +142,8 @@ if __name__ == '__main__':
 
             return g.render()
 
-
         def repr_n(node):
             return 'Node({}, {})'.format(node.value[0], repr(node.value[1]))
-
 
         def draw_res_tree(root, name='res'):
             try:
@@ -170,7 +175,6 @@ if __name__ == '__main__':
                     g.edge(str(id(node)), str(id(node.parent)), color='green')
 
             return g.render()
-
 
         # example data structures
         code = r"os.path.abspath('mydir/myfile.txt')"

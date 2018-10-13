@@ -9,12 +9,13 @@
 import os
 import sys
 import unittest
+import glob
+from xml.dom import minidom
 __version__ = "0.3a"
 
 
 def load(file, linesToLoad=sys.maxsize):
     content = []
-    import glob
     if isinstance(file, list):
         files = []
         for fileP in file:
@@ -79,7 +80,6 @@ def loadSemFrameXML(filename, linesToLoad=sys.maxsize):
         sys.stderr.write(
             "loader.loadSemFrameXML [WARN]: linesToLoad option ignored\n")
 
-    from xml.dom import minidom
     xmldoc = minidom.parse(os.path.expanduser(filename))
     items = xmldoc.getElementsByTagName('roleset')
     for item in items:

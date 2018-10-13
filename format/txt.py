@@ -8,7 +8,6 @@
 #
 import os
 import sys
-from tree import load
 __version__ = "0.3a"
 
 

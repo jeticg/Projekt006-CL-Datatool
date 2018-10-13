@@ -11,22 +11,18 @@ import sys
 import inspect
 import unittest
 import importlib
-import format.tree
-import format.txtFiles
-import format.txt
-import format.AMR
-import format.txtOrTree
-import format.pyCode
+
+from .format import *
 
 __version__ = "0.3a"
 
 supportedList = {
-    'tree': format.tree,
-    'txtFiles': format.txtFiles,
-    'txt': format.txt,
-    'AMR': format.AMR,
-    'txtOrTree': format.txtOrTree,
-    'pyCode': format.pyCode
+    'tree': tree,
+    'txtFiles': txtFiles,
+    'txt': txt,
+    'AMR': AMR,
+    'txtOrTree': txtOrTree,
+    'pyCode': pyCode
 }
 
 
