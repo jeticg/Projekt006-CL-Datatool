@@ -16,12 +16,9 @@ import inspect
 from bisect import bisect_left
 import itertools
 import copy
+import unittest
 
-currentdir = \
-    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-from semanticFrame import load as loadSemFrame
+from .semanticFrame import load as loadSemFrame
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
@@ -393,10 +390,6 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
 
 
 # unit test
-import sys
-import unittest
-
-
 class TestParse(unittest.TestCase):
     def setUp(self):
         with open(parentdir + '/test/sampleDepTree.txt') as file:

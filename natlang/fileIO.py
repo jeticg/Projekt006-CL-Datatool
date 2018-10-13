@@ -10,7 +10,8 @@ import os
 import sys
 import inspect
 import unittest
-from format.tree import loadPennTree, Node
+from format.tree import Node
+from format.tree import load as loadPennTree
 __version__ = "0.2a"
 sys.stderr.write("Warning, use of fileIO is deprecated")
 

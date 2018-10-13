@@ -15,8 +15,8 @@ import jieba
 
 import io
 
-from format.tree import Node, lexicaliseNode
-from format.tree import load as loadPennTree
+from .format.tree import Node, lexicaliseNode
+from .format.tree import load as loadPennTree
 
 
 def procCoNaLa(filename,

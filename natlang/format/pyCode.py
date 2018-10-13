@@ -1,7 +1,15 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# Python format Code (CoNaLa) loader
+# Simon Fraser University
+# Ruoyi Wang
+#
+#
 import ast
 import sys
 import os
-from tree import Node
+from .tree import Node
 
 
 class _TmpNode:
