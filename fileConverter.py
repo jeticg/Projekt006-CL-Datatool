@@ -35,7 +35,7 @@ def procCoNaLa(filename, intent_output='intent.txt', snippet_output='snippets.tx
             else:
                 intent_file.write(rewritten_intent)
                 intent_file.write(u'\n')
-                snippet_file.write(snippet)
+                snippet_file.write(unicode(repr(snippet)))
                 snippet_file.write(u'\n')
     print('transformation complete. {} entries skipped.'.format(skipped))
 
