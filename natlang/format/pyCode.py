@@ -1,6 +1,6 @@
 import ast
 import sys
-import json
+import os
 from tree import Node
 
 
@@ -95,7 +95,8 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
         i += 1
         if verbose is False:
             loadProgressBar.update(i)
-        content.append(python_to_tree(line))
+        code = eval(line)
+        content.append(python_to_tree(code))
         if i == linesToLoad:
             break
     if verbose is False:
