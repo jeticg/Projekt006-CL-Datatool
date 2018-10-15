@@ -6,3 +6,4 @@ from . import tree
 from . import txt
 from . import txtFiles
 from . import txtOrTree
+from . import conll
