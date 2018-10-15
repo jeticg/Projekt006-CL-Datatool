@@ -18,7 +18,7 @@ import itertools
 import copy
 import unittest
 
-from .semanticFrame import load as loadSemFrame
+from natlang.format.semanticFrame import load as loadSemFrame
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7

@@ -9,7 +9,7 @@
 import ast
 import sys
 import os
-from tree import Node
+from natlang.format.tree import Node
 
 
 class _TmpNode:
