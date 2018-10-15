@@ -15,8 +15,8 @@ import xml.etree.ElementTree as ET
 
 import jieba
 
-from format.tree import lexicaliseNode
-from format.tree import load as loadPennTree
+from .format.tree import lexicaliseNode
+from .format.tree import load as loadPennTree
 
 
 def procCoNaLa(filename,
