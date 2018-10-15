@@ -95,7 +95,8 @@ class Node():
             self.sibling.__repr__(__spacing, True)
         return "\nRepresentation: " +\
             "conll.Node(\"" + str((self.id,) + self.value) + "\")\n" +\
-            "Leafnode Label: " + str(self.phrase) + "\n"
+            "Leafnode Label: " + str([value[0] for value in self.phrase]) +\
+            "\n"
 
     def __len__(self):
         return len(self.phrase)
@@ -107,7 +108,7 @@ class Node():
                 self.phrase += self.leftChild.calcPhrase(force)
 
             if self.parent is not None:
-                self.phrase += [self.value[0]]
+                self.phrase += [self.value]
 
             if self.rightChild is not None:
                 self.phrase += self.rightChild.calcPhrase(force)
