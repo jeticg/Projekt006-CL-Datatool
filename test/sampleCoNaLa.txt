@@ -1,2 +1,6 @@
-u"call(['ls', '-l'])"
-u"p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)\nfor line in p.stdout.readlines():\n    print(line, end=' ')\nretval = p.wait()"
+u'sum(d * 10 ** i for i, d in enumerate(x[::-1]))'
+u"r = int(''.join(map(str, x)))"
+u"datetime.strptime('2010-11-13 10:33:54.227806', '%Y-%m-%d %H:%M:%S.%f')"
+u'[(i, sum(j) / len(j)) for i, j in list(d.items())]'
+u'zip([1, 2], [3, 4])'
+u"['hello{0}'.format(i) for i in a]"
