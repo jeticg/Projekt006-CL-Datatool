@@ -102,7 +102,7 @@ class Node():
             self.sibling.__repr__(__spacing, True)
         return "\nRepresentation: " +\
             "conll.Node(\"" + str((self.id,) + self.value) + "\")\n" +\
-            "Leafnode Label: " + str([value[0] for value in self.phrase]) +\
+            "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
             "\n"
 
     def __len__(self):
@@ -115,7 +115,7 @@ class Node():
                 self.phrase += self.leftChild.calcPhrase(force)
 
             if self.parent is not None:
-                self.phrase += [self.value]
+                self.phrase += [self]
 
             if self.rightChild is not None:
                 self.phrase += self.rightChild.calcPhrase(force)
@@ -245,7 +245,61 @@ class TestTree(unittest.TestCase):
             "7	:	:	PUNCT	:	_	4	punct	_	_]"]
         if x is None:
             x = constructFromText(rawLine)
-        raise NotImplementedError
+
+        correctEntirePhraseForm = ["From", "the", "AP", "comes", "this",
+                                   "story", ":"]
+        correctLSubPhraseForm = ["From", "the", "AP"]
+        correctRSubPhraseForm = ["this", "story"]
+
+        self.assertSequenceEqual(
+            correctEntirePhraseForm,
+            [n.value[0] for n in x.phrase])
+        self.assertSequenceEqual(
+            correctLSubPhraseForm,
+            [n.value[0] for n in x.rightChild.leftChild.phrase])
+        self.assertSequenceEqual(
+            correctRSubPhraseForm,
+            [n.value[0] for n in x.rightChild.rightChild.phrase])
+        return
+
+    def testBuildTreeB(self, x=None):
+        rawText = """1	President	President	PROPN	NNP	Number=Sing	2	compound	_	_
+        2	Bush	Bush	PROPN	NNP	Number=Sing	5	nsubj	_	_
+        3	on	on	ADP	IN	_	4	case	_	_
+        4	Tuesday	Tuesday	PROPN	NNP	Number=Sing	5	nmod	_	_
+        5	nominated	nominate	VERB	VBD	Mood=Ind|Tense=Past|VerbForm=Fin""" +\
+            """	0	root	_	_
+        6	two	two	NUM	CD	NumType=Card	7	nummod	_	_
+        7	individuals	individual	NOUN	NNS	Number=Plur	5	dobj	_	_
+        8	to	to	PART	TO	_	9	mark	_	_
+        9	replace	replace	VERB	VB	VerbForm=Inf	5	advcl	_	_
+        10	retiring	retire	VERB	VBG	VerbForm=Ger	11	amod	_	_
+        11	jurists	jurist	NOUN	NNS	Number=Plur	9	dobj	_	_
+        12	on	on	ADP	IN	_	14	case	_	_
+        13	federal	federal	ADJ	JJ	Degree=Pos	14	amod	_	_
+        14	courts	court	NOUN	NNS	Number=Plur	11	nmod	_	_
+        15	in	in	ADP	IN	_	18	case	_	_
+        16	the	the	DET	DT	Definite=Def|PronType=Art	18	det	_	_
+        17	Washington	Washington	PROPN	NNP	Number=Sing	18	compound	_	_
+        18	area	area	NOUN	NN	Number=Sing	14	nmod	_	SpaceAfter=No
+        19	.	.	PUNCT	.	_	5	punct	_	_"""
+        if x is None:
+            x = constructFromText(rawText.split('\n'))
+
+        correctEntirePhraseForm = ["From", "the", "AP", "comes", "this",
+                                   "story", ":"]
+        correctLSubPhraseForm = ["From", "the", "AP"]
+        correctRSubPhraseForm = ["this", "story"]
+
+        self.assertSequenceEqual(
+            correctEntirePhraseForm,
+            [n.value[0] for n in x.phrase])
+        self.assertSequenceEqual(
+            correctLSubPhraseForm,
+            [n.value[0] for n in x.rightChild.leftChild.phrase])
+        self.assertSequenceEqual(
+            correctRSubPhraseForm,
+            [n.value[0] for n in x.rightChild.rightChild.phrase])
         return
 
 
@@ -263,5 +317,26 @@ if __name__ == '__main__':
             "6	story	story	NOUN	NN	Number=Sing	4	nsubj	_	_",
             "7	:	:	PUNCT	:	_	4	punct	_	_]"]
         x = constructFromText(rawLine)
-        print("Use node x for testing new methods on Node.")
+        rawText = """1	President	President	PROPN	NNP	Number=Sing	2	compound	_	_
+        2	Bush	Bush	PROPN	NNP	Number=Sing	5	nsubj	_	_
+        3	on	on	ADP	IN	_	4	case	_	_
+        4	Tuesday	Tuesday	PROPN	NNP	Number=Sing	5	nmod	_	_
+        5	nominated	nominate	VERB	VBD	Mood=Ind|Tense=Past|VerbForm=Fin""" +\
+            """	0	root	_	_
+        6	two	two	NUM	CD	NumType=Card	7	nummod	_	_
+        7	individuals	individual	NOUN	NNS	Number=Plur	5	dobj	_	_
+        8	to	to	PART	TO	_	9	mark	_	_
+        9	replace	replace	VERB	VB	VerbForm=Inf	5	advcl	_	_
+        10	retiring	retire	VERB	VBG	VerbForm=Ger	11	amod	_	_
+        11	jurists	jurist	NOUN	NNS	Number=Plur	9	dobj	_	_
+        12	on	on	ADP	IN	_	14	case	_	_
+        13	federal	federal	ADJ	JJ	Degree=Pos	14	amod	_	_
+        14	courts	court	NOUN	NNS	Number=Plur	11	nmod	_	_
+        15	in	in	ADP	IN	_	18	case	_	_
+        16	the	the	DET	DT	Definite=Def|PronType=Art	18	det	_	_
+        17	Washington	Washington	PROPN	NNP	Number=Sing	18	compound	_	_
+        18	area	area	NOUN	NN	Number=Sing	14	nmod	_	SpaceAfter=No
+        19	.	.	PUNCT	.	_	5	punct	_	_"""
+        y = constructFromText(rawText.split('\n'))
+        print("Use the two Nodes x and y for testing new methods on Node.")
         print("Use unittest.main() to start unit test")
