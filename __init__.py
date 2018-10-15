@@ -5,4 +5,4 @@ from . import fileConverter
 from . import loader
 
 name = "natlang"
-version = "0.3a5"
+version = "0.3a7"
