@@ -8,21 +8,23 @@
 # This module contains functions for loading and converting
 # datasets in multiple formats.
 #
+import io
 import os
-import xml.etree.ElementTree as ET
 import sys
+import xml.etree.ElementTree as ET
+
 import jieba
 
-import io
-
-from .format.tree import Node, lexicaliseNode
-from .format.tree import load as loadPennTree
+from format.tree import lexicaliseNode
+from format.tree import load as loadPennTree
 
 
 def procCoNaLa(filename,
                intent_output='intent.txt',
                snippet_output='snippets.txt'):
+
     import json
+    import ast
     with io.open(filename, encoding='utf8') as f:
         data = json.load(f, encoding='utf8')
 
@@ -35,10 +37,17 @@ def procCoNaLa(filename,
             if rewritten_intent is None:
                 skipped += 1
             else:
-                intent_file.write(rewritten_intent)
-                intent_file.write(u'\n')
-                snippet_file.write(unicode(repr(snippet)))
-                snippet_file.write(u'\n')
+                try:
+                    ast.parse(snippet)
+                except SyntaxError:
+                    skipped += 1
+                else:
+                    x = rewritten_intent.replace(u'\r', u' ')
+                    y = x.replace(u'\n', u' ')
+                    intent_file.write(y)
+                    intent_file.write(u'\n')
+                    snippet_file.write(unicode(repr(snippet)))
+                    snippet_file.write(u'\n')
     print('transformation complete. {} entries skipped.'.format(skipped))
 
 
