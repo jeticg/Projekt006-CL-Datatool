@@ -6,13 +6,14 @@
 # Jetic Gu
 #
 import setuptools
+from natlang import version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="natlang",
-    version="0.3.a6",
+    version=version,
     author="Jetic Gū, Rory Wang",
     author_email="jeticg@sfu.ca",
     description="Natural language data loading tools",
@@ -27,5 +28,7 @@ setuptools.setup(
     ],
     install_requires=[
           'jieba',
-    ]
+          'progressbar'
+    ],
+    test_suite='natlang.format.testSuite'
 )
