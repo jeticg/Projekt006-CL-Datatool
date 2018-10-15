@@ -9,7 +9,7 @@
 import ast
 import sys
 import os
-from .tree import Node
+from tree import Node
 
 
 class _TmpNode:
@@ -19,7 +19,7 @@ class _TmpNode:
         self.children = []
 
     def __repr__(self):
-        return 'TmpNode({}, {})'.format(self.tag, repr(self.value))
+        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
 
 
 def _translate(py_ast):
@@ -44,6 +44,10 @@ def _translate(py_ast):
                     vec_child = _TmpNode(field + '_vec', None)
                     vec_child.children = list(value)
                     node.children.append(vec_child)
+                elif value is None:
+                    # optional-production
+                    vec_child = _TmpNode(field + '_optional', None)
+                    node.children.append(vec_child)
                 else:
                     node.children.append(value)
 
@@ -54,11 +58,32 @@ def _translate(py_ast):
 
 
 def _restructure_rec(node, orig_children):
+    """
+    `node` is the already transformed node (type=tree.Node)
+    `orig_children` is a list of the children corresponds to `node` (type=[TmpNode])
+    """
+    # edge case
+    tag = node.value[0]
+    if (tag.endswith('_vec') or tag.endswith('_optional')) and not orig_children:
+        # transformed grammar with no children
+        dummy = Node()
+        dummy.value = ('DUMMY', None)
+        node.child = dummy
+        dummy.parent = node
+
+    # transform each child node
     child_nodes = []
     for orig_child in orig_children:
         child_node = Node()
-        child_node.value = (orig_child.tag, orig_child.value)
+        if orig_child.value is None:
+            # internal node
+            child_node.value = (orig_child.tag,)
+        else:
+            # leaf node
+            child_node.value = (orig_child.tag, orig_child.value)
         child_nodes.append(child_node)
+
+    # link child nodes
     for i, child_node in enumerate(child_nodes):
         child_node.parent = node
         if i == 0:
@@ -66,6 +91,8 @@ def _restructure_rec(node, orig_children):
         if i + 1 < len(child_nodes):
             # not last node
             child_node.sibling = child_nodes[i + 1]
+
+    # recurse
     for child_node, orig_child in zip(child_nodes, orig_children):
         _restructure_rec(child_node, orig_child.children)
 
@@ -73,15 +100,27 @@ def _restructure_rec(node, orig_children):
 def _restructure(tmp_node):
     """transform the structure of TmpNode into Node"""
     node = Node()
-    node.value = (tmp_node.tag, tmp_node.value)
+    if tmp_node.value is None:
+        node.value = (tmp_node.tag,)
+    else:
+        node.value = (tmp_node.tag, tmp_node.value)
+
     _restructure_rec(node, tmp_node.children)
-    return node
+
+    # append topmost root node
+    root = Node()
+    root.value = ('ROOT',)
+    root.child = node
+    node.parent = root
+    return root
 
 
 def python_to_tree(code):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root)
+    res_root.calcId(1)
+    res_root.calcPhrase(force=True)
     return res_root
 
 
@@ -121,6 +160,7 @@ if __name__ == '__main__':
         import os
         import errno
 
+
         def draw_tmp_tree(root, name='tmp'):
             try:
                 os.makedirs('figures')
@@ -142,8 +182,10 @@ if __name__ == '__main__':
 
             return g.render()
 
+
         def repr_n(node):
-            return 'Node({}, {})'.format(node.value[0], repr(node.value[1]))
+            return 'Node{}'.format(repr(node.value))
+
 
         def draw_res_tree(root, name='res'):
             try:
@@ -175,6 +217,7 @@ if __name__ == '__main__':
                     g.edge(str(id(node)), str(id(node.parent)), color='green')
 
             return g.render()
+
 
         # example data structures
         code = r"os.path.abspath('mydir/myfile.txt')"
