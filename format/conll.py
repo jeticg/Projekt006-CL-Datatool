@@ -5,6 +5,8 @@
 # Simon Fraser University
 # Jetic Gu
 #
+from __future__ import print_function
+
 import os
 import sys
 import copy
@@ -37,6 +39,10 @@ defaultEntryIndex = {
 }
 
 defaultCommentMark = '#'
+_lArrow = u'\u250C'
+_rArrow = u'\u2514'
+_vArrow = u'\u2502'
+_hArrow = u'\u2500'
 
 
 class Node():
@@ -58,15 +64,28 @@ class Node():
         self.format = "Unspecified"
         return
 
-    def __repr__(self, __spacing="", __showSibling=False):
+    def __repr__(self, __spacing=[], __showSibling=False):
         '''
         This method prints the structure of the subtree with self as root.
         '''
         if self.leftChild is not None:
-            self.leftChild.__repr__(__spacing + "  ", True)
-        print(__spacing + str((self.id, self.value[0])))
+            self.leftChild.__repr__(__spacing + [_lArrow], True)
+
+        last = _rArrow
+        for i, entry in enumerate(__spacing):
+            if i == len(__spacing) - 1:
+                print(entry, end='')
+            elif (__spacing[i + 1] == _rArrow and entry == _lArrow) or\
+                    (__spacing[i + 1] == _lArrow and entry == _rArrow):
+                print(_vArrow + "       ", end='')
+            else:
+                print("        ", end='')
+        if self.value == ("-ROOT-", ):
+            print("ROOT")
+        else:
+            print(_hArrow + self.deprel + _hArrow + self.value[0])
         if self.rightChild is not None:
-            self.rightChild.__repr__(__spacing + "  ", True)
+            self.rightChild.__repr__(__spacing + [_rArrow], True)
 
         if self.sibling is not None and __showSibling is True:
             self.sibling.__repr__(__spacing, True)
@@ -90,7 +109,6 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     for i, line in enumerate(content, start=1):
         # Check ID for data integrity
         if int(line[entryIndex["ID"]]) != i:
-            print line, i
             sys.stderr.write(
                 "natlang.format.conll [WARN]: Corrupt data format\n")
             return None
@@ -113,8 +131,28 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
 
         nodes.append(newNode)
 
+    # replace node.parent with real entity.
+    # add sibling, leftChild, rightChild
     for node in nodes[1:]:
         node.parent = nodes[node.parent]
+        if node.parent.id > node.id:
+            # leftChild
+            if node.parent.leftChild is None:
+                node.parent.leftChild = node
+                continue
+            tmp = node.parent.leftChild
+            while tmp.sibling is not None:
+                tmp = tmp.sibling
+            tmp.sibling = node
+        else:
+            # rightChild
+            if node.parent.rightChild is None:
+                node.parent.rightChild = node
+                continue
+            tmp = node.parent.rightChild
+            while tmp.sibling is not None:
+                tmp = tmp.sibling
+            tmp.sibling = node
 
     return nodes[0]
 
