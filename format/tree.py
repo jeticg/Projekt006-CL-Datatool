@@ -273,19 +273,21 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is False:
-        loadProgressBar =\
-            progressbar.ProgressBar(widgets=widgets,
-                                    maxval=min(
-                                        sum(1 for line in open(fileName)),
-                                        linesToLoad)).start()
-    for line in open(fileName):
-        i += 1
+    with open(fileName) as file:
         if verbose is False:
-            loadProgressBar.update(i)
-        content.append(constructTreeFromStr(line))
-        if i == linesToLoad:
-            break
+            loadProgressBar =\
+                progressbar.ProgressBar(widgets=widgets,
+                                        maxval=min(
+                                            sum(1 for line in file),
+                                            linesToLoad)).start()
+        for line in file:
+            i += 1
+            if verbose is False:
+                loadProgressBar.update(i)
+            content.append(constructTreeFromStr(line))
+            if i == linesToLoad:
+                break
+
     if verbose is False:
         loadProgressBar.finish()
     return content
