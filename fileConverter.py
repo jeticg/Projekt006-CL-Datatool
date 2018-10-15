@@ -19,7 +19,8 @@ from format.tree import lexicaliseNode
 from format.tree import load as loadPennTree
 
 
-def procCoNaLa(filename, intent_output='intent.txt', snippet_output='snippets.txt'):
+def procCoNaLa(filename,
+               intent_output='intent.txt', snippet_output='snippets.txt'):
     import json
     import ast
     with io.open(filename, encoding='utf8') as f:
@@ -140,7 +141,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
-              :linesToLoad]
+        :linesToLoad]
     return content
 
 
