@@ -12,7 +12,7 @@ import inspect
 import unittest
 import importlib
 
-from .format import *
+from natlang.format import *
 
 __version__ = "0.3a"
 

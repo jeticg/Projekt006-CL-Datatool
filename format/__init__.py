@@ -1,12 +1,12 @@
 import unittest
-from . import AMR
-from . import pyCode
-from . import semanticFrame
-from . import tree
-from . import txt
-from . import txtFiles
-from . import txtOrTree
-from . import conll
+import natlang.format.AMR as AMR
+import natlang.format.pyCode as pyCode
+import natlang.format.semanticFrame as semanticFrame
+import natlang.format.tree as tree
+import natlang.format.txt as txt
+import natlang.format.txtFiles as txtFiles
+import natlang.format.txtOrTree as txtOrTree
+import natlang.format.conll as conll
 
 
 modules = {

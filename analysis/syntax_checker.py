@@ -1,4 +1,5 @@
-# run with python2 and python3 separately, to check whether the data is valid python2/3 syntax
+# run with python2 and python3 separately, to check whether the data is valid
+# python2/3 syntax
 
 from __future__ import print_function
 import ast
