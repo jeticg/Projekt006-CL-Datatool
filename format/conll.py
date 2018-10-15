@@ -64,7 +64,7 @@ class Node():
         '''
         if self.leftChild is not None:
             self.leftChild.__repr__(__spacing + "  ", True)
-        print(__spacing + str((self.id,) + self.value[0]))
+        print(__spacing + str((self.id, self.value[0])))
         if self.rightChild is not None:
             self.rightChild.__repr__(__spacing + "  ", True)
 
@@ -85,10 +85,12 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     content = [line.strip().split('\t') for line in rawContent]
     # adding the root node
     nodes = [Node()]
+    nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
         # Check ID for data integrity
-        if line[entryIndex["ID"]] != i:
+        if int(line[entryIndex["ID"]]) != i:
+            print line, i
             sys.stderr.write(
                 "natlang.format.conll [WARN]: Corrupt data format\n")
             return None
@@ -107,14 +109,14 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         for i, item in enumerate(line):
             if i != entryIndex["ID"] and i != entryIndex["HEAD"] and\
                     i != entryIndex["DEPREL"]:
-                value += (line[entryIndex[i]], )
+                newNode.value += (line[i], )
 
-        nodes.append(newNode())
+        nodes.append(newNode)
 
     for node in nodes[1:]:
         node.parent = nodes[node.parent]
 
-    return node[0]
+    return nodes[0]
 
 
 def load(fileName,
