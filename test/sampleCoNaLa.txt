@@ -1,0 +1,2 @@
+u"call(['ls', '-l'])"
+u"p = subprocess.Popen('ls', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)\nfor line in p.stdout.readlines():\n    print(line, end=' ')\nretval = p.wait()"
