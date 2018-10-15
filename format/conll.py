@@ -39,10 +39,17 @@ defaultEntryIndex = {
 }
 
 defaultCommentMark = '#'
-_lArrow = u'\u250C'
-_rArrow = u'\u2514'
-_vArrow = u'\u2502'
-_hArrow = u'\u2500'
+if sys.version_info[0] < 3:
+    # OK this is a tad silly
+    _lArrow = u'\u250C'.encode('utf-8')
+    _rArrow = u'\u2514'.encode('utf-8')
+    _vArrow = u'\u2502'.encode('utf-8')
+    _hArrow = u'\u2500'.encode('utf-8')
+else:
+    _lArrow = u'\u250C'
+    _rArrow = u'\u2514'
+    _vArrow = u'\u2502'
+    _hArrow = u'\u2500'
 
 
 class Node():
