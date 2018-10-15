@@ -20,7 +20,9 @@ from format.tree import load as loadPennTree
 
 
 def procCoNaLa(filename,
-               intent_output='intent.txt', snippet_output='snippets.txt'):
+               intent_output='intent.txt',
+               snippet_output='snippets.txt'):
+
     import json
     import ast
     with io.open(filename, encoding='utf8') as f:

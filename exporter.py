@@ -10,7 +10,7 @@ import os
 import sys
 import inspect
 import unittest
-from format.tree import Node
+from .format.tree import Node
 __version__ = "0.3a"
 
 
