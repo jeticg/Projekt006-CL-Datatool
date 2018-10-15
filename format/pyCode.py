@@ -1,4 +1,6 @@
-import ast, sys, os
+import ast
+import sys
+import os
 from tree import Node
 
 
