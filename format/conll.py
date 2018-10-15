@@ -10,6 +10,7 @@ from __future__ import print_function
 import os
 import sys
 import copy
+import inspect
 import unittest
 import progressbar
 
@@ -17,7 +18,6 @@ import progressbar
 defaultEntryIndex = {
     # This is taken from http://universaldependencies.org/format.html
     # CoNLL-U
-    # item 8 and 9 are disabled
     "ID": 0,  # Word index, integer starting at 1 for each new sentence;
     "FORM": 1,  # Word form or punctuation symbol.
     "LEMMA": 2,  # Lemma or stem of word form.
@@ -31,10 +31,10 @@ defaultEntryIndex = {
                 # zero (0).
     "DEPREL": 7,  # Universal dependency relation to the HEAD (root iff HEAD =
                   # 0) or a defined language-specific subtype of one.
-    # "DEPS": 8,  # Enhanced dependency graph in the form of a list of
+    "DEPS": 8,  # Enhanced dependency graph in the form of a list of
                 # head-deprel pairs.
                 # Note (Jetic): Universal dependencies don't use this at all.
-    # "MISC": 9,  # Any other annotation.
+    "MISC": 9,  # Any other annotation.
     "__name__": "CoNLL U",
 }
 
@@ -205,24 +205,20 @@ def load(fileName,
                                         linesToLoad)).start()
     i = 0
     entry = []
-    for rawLine in open(fileName):
-        i += 1
-        if verbose is False:
-            loadProgressBar.update(i)
-        line = rawLine.strip()
+    with open(fileName) as file:
+        for rawLine in file:
+            i += 1
+            if verbose is False:
+                loadProgressBar.update(i)
+            line = rawLine.strip()
 
-        # Remove comments
-        if line[0] == commentMark:
-            continue
-
-        if line == "":
-            entry.append(line)
-        else:
-            content.append(constructFromText(entry))
-            entry = []
-
-        if i == linesToLoad and line == "":
-            break
+            if line != "" and line[0] != commentMark:
+                entry.append(line)
+            else:
+                content.append(constructFromText(entry))
+                entry = []
+                if i >= linesToLoad:
+                    break
 
     if len(entry) > 0:
         content.append(constructFromText(entry))
@@ -286,10 +282,16 @@ class TestTree(unittest.TestCase):
         if x is None:
             x = constructFromText(rawText.split('\n'))
 
-        correctEntirePhraseForm = ["From", "the", "AP", "comes", "this",
-                                   "story", ":"]
-        correctLSubPhraseForm = ["From", "the", "AP"]
-        correctRSubPhraseForm = ["this", "story"]
+        correctEntirePhraseForm = [
+            "President", "Bush", "on", "Tuesday", "nominated", "two",
+            "individuals", "to", "replace", "retiring", "jurists", "on",
+            "federal", "courts", "in", "the", "Washington", "area", "."]
+        correctLSubPhraseForm = ["President", "Bush"]
+        correctLSSubPhraseForm = ["on", "Tuesday"]
+        correctRSubPhraseForm = ["two", "individuals"]
+        correctRSSubPhraseForm = [
+            "to", "replace", "retiring", "jurists", "on", "federal", "courts",
+            "in", "the", "Washington", "area"]
 
         self.assertSequenceEqual(
             correctEntirePhraseForm,
@@ -298,9 +300,22 @@ class TestTree(unittest.TestCase):
             correctLSubPhraseForm,
             [n.value[0] for n in x.rightChild.leftChild.phrase])
         self.assertSequenceEqual(
-            correctRSubPhraseForm,
-            [n.value[0] for n in x.rightChild.rightChild.phrase])
+            correctLSSubPhraseForm,
+            [n.value[0] for n in x.rightChild.leftChild.sibling.phrase])
+        self.assertSequenceEqual(
+            correctRSSubPhraseForm,
+            [n.value[0] for n in x.rightChild.rightChild.sibling.phrase])
         return
+
+    def testLoader(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=True)
+        A = content[0]
+        B = content[1]
+        self.testBuildTreeA(A)
+        self.testBuildTreeB(B)
 
 
 if __name__ == '__main__':
