@@ -73,6 +73,8 @@ class Node():
 
         last = _rArrow
         for i, entry in enumerate(__spacing):
+            if i == 0:
+                print(' ', end='')
             if i == len(__spacing) - 1:
                 print(entry, end='')
             elif (__spacing[i + 1] == _rArrow and entry == _lArrow) or\
@@ -80,8 +82,10 @@ class Node():
                 print(_vArrow + "       ", end='')
             else:
                 print("        ", end='')
-        if self.value == ("-ROOT-", ):
+        if self.parent is None:
             print("ROOT")
+        elif len(__spacing) == 0:
+            print(self.value[0])
         else:
             print(_hArrow + self.deprel + _hArrow + self.value[0])
         if self.rightChild is not None:
@@ -95,6 +99,25 @@ class Node():
 
     def __len__(self):
         return len(self.phrase)
+
+    def calcPhrase(self, force=False):
+        if self.phrase == [] or force is True:
+            self.phrase = []
+            if self.leftChild is not None:
+                self.phrase += self.leftChild.calcPhrase(force)
+
+            if self.parent is not None:
+                self.phrase += [self.value[0]]
+
+            if self.rightChild is not None:
+                self.phrase += self.rightChild.calcPhrase(force)
+
+            if self.sibling is not None:
+                self.sibling.calcPhrase(force)
+
+        if self.sibling is not None:
+            return self.phrase + self.sibling.calcPhrase()
+        return self.phrase
 
     def export(self):
         raise NotImplementedError
@@ -126,8 +149,8 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         newNode.value = (line[entryIndex["FORM"]], )
         for i, item in enumerate(line):
             if i != entryIndex["ID"] and i != entryIndex["HEAD"] and\
-                    i != entryIndex["DEPREL"]:
-                newNode.value += (line[i], )
+                    i != entryIndex["DEPREL"] and i != entryIndex["FORM"]:
+                newNode.value += (line[i] if line[i] != '_' else None, )
 
         nodes.append(newNode)
 
@@ -153,7 +176,7 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
             while tmp.sibling is not None:
                 tmp = tmp.sibling
             tmp.sibling = node
-
+    nodes[0].calcPhrase(force=True)
     return nodes[0]
 
 
