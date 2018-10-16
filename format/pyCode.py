@@ -6,10 +6,14 @@
 # Ruoyi Wang
 #
 #
+from __future__ import absolute_import
 import ast
 import sys
 import os
-from tree import Node
+try:
+    from tree import Node
+except ImportError:
+    from .tree import Node
 
 
 class _TmpNode:

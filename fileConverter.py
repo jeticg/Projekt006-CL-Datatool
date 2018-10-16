@@ -8,6 +8,7 @@
 # This module contains functions for loading and converting
 # datasets in multiple formats.
 #
+from __future__ import absolute_import
 import io
 import os
 import sys

@@ -8,6 +8,7 @@
 # This module contains functions and classes necessary for loading Abstract
 # Meaning Representation trees. 2 examples are provided in TestTree.
 #
+from __future__ import absolute_import
 import sys
 import os
 import unittest

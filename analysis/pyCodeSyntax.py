@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from subprocess import Popen, PIPE
 import argparse
 
