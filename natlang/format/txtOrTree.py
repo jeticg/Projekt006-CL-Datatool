@@ -13,8 +13,8 @@ try:
     from tree import load as loadTree
     from txt import load as loadTxt
 except ImportError:
-    from .tree import load as loadTree
-    from .txt import load as loadTxt
+    from natlang.format.tree import load as loadTree
+    from natlang.format.txt import load as loadTxt
 __version__ = "0.3a"
 
 
