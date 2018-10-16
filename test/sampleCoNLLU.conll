@@ -1,0 +1,27 @@
+1	From	from	ADP	IN	_	3	case	_	_
+2	the	the	DET	DT	Definite=Def|PronType=Art	3	det	_	_
+3	AP	AP	PROPN	NNP	Number=Sing	4	nmod	_	_
+4	comes	come	VERB	VBZ	Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	0	root	_	_
+5	this	this	DET	DT	Number=Sing|PronType=Dem	6	det	_	_
+6	story	story	NOUN	NN	Number=Sing	4	nsubj	_	_
+7	:	:	PUNCT	:	_	4	punct	_	_
+
+1	President	President	PROPN	NNP	Number=Sing	2	compound	_	_
+2	Bush	Bush	PROPN	NNP	Number=Sing	5	nsubj	_	_
+3	on	on	ADP	IN	_	4	case	_	_
+4	Tuesday	Tuesday	PROPN	NNP	Number=Sing	5	nmod	_	_
+5	nominated	nominate	VERB	VBD	Mood=Ind|Tense=Past|VerbForm=Fin	0	root	_	_
+6	two	two	NUM	CD	NumType=Card	7	nummod	_	_
+7	individuals	individual	NOUN	NNS	Number=Plur	5	dobj	_	_
+8	to	to	PART	TO	_	9	mark	_	_
+9	replace	replace	VERB	VB	VerbForm=Inf	5	advcl	_	_
+10	retiring	retire	VERB	VBG	VerbForm=Ger	11	amod	_	_
+11	jurists	jurist	NOUN	NNS	Number=Plur	9	dobj	_	_
+12	on	on	ADP	IN	_	14	case	_	_
+13	federal	federal	ADJ	JJ	Degree=Pos	14	amod	_	_
+14	courts	court	NOUN	NNS	Number=Plur	11	nmod	_	_
+15	in	in	ADP	IN	_	18	case	_	_
+16	the	the	DET	DT	Definite=Def|PronType=Art	18	det	_	_
+17	Washington	Washington	PROPN	NNP	Number=Sing	18	compound	_	_
+18	area	area	NOUN	NN	Number=Sing	14	nmod	_	SpaceAfter=No
+19	.	.	PUNCT	.	_	5	punct	_	_

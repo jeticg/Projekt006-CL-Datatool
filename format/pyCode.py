@@ -6,10 +6,14 @@
 # Ruoyi Wang
 #
 #
+from __future__ import absolute_import
 import ast
 import sys
 import os
-from tree import Node
+try:
+    from tree import Node
+except ImportError:
+    from natlang.format.tree import Node
 
 
 class _TmpNode:
@@ -61,7 +65,7 @@ def _restructure_rec(node, orig_children):
     """
     `node` is the already transformed node (type=tree.Node)
     `orig_children` is a list of the children corresponds to `node`
-    (type=[TmpNode])
+        (type=[TmpNode])
     """
     # edge case
     tag = node.value[0]

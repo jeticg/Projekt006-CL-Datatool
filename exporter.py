@@ -6,11 +6,12 @@
 # Jetic Gu
 #
 #
+from __future__ import absolute_import
 import os
 import sys
 import inspect
 import unittest
-from .format.tree import Node
+from natlang.format.tree import Node
 __version__ = "0.3a"
 
 

@@ -1,8 +1,10 @@
-from . import format
+from __future__ import absolute_import
 
-from . import exporter
-from . import fileConverter
-from . import loader
+from natlang import format
+
+from natlang import exporter
+from natlang import fileConverter
+from natlang import loader
 
 name = "natlang"
-version = "0.3a5"
+version = "0.3a12"

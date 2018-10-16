@@ -8,6 +8,7 @@
 # This module contains functions for loading and converting
 # datasets in multiple formats.
 #
+from __future__ import absolute_import
 import io
 import os
 import sys
@@ -15,8 +16,8 @@ import xml.etree.ElementTree as ET
 
 import jieba
 
-from format.tree import lexicaliseNode
-from format.tree import load as loadPennTree
+from natlang.format.tree import lexicaliseNode
+from natlang.format.tree import load as loadPennTree
 
 
 def procCoNaLa_mined(filename,
