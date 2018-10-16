@@ -73,7 +73,7 @@ def _restructure_rec(node, orig_children):
             not orig_children:
         # transformed grammar with no children
         dummy = Node()
-        dummy.value = ('DUMMY', None)
+        dummy.value = ('DUMMY', '')
         node.child = dummy
         dummy.parent = node
 
