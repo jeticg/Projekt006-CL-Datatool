@@ -281,6 +281,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
                                         maxval=min(
                                             sum(1 for line in file),
                                             linesToLoad)).start()
+            file.seek(0)
         for line in file:
             i += 1
             if verbose is False:
