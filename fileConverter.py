@@ -20,10 +20,42 @@ from natlang.format.tree import lexicaliseNode
 from natlang.format.tree import load as loadPennTree
 
 
+def procCoNaLa_mined(filename,
+                     intent_output='intent.txt',
+                     snippet_output='snippets.txt'):
+    import json
+    import ast
+    data = []
+    with io.open(filename, encoding='utf8') as f:
+        for line in f:
+            data.append(json.loads(line))
+
+    skipped = 0
+    with io.open(intent_output, 'w', encoding='utf8') as intent_file, \
+            io.open(snippet_output, 'w', encoding='utf8') as snippet_file:
+        for entry in data:
+            rewritten_intent = entry['intent']
+            snippet = entry['snippet']
+            if rewritten_intent is None:
+                skipped += 1
+            else:
+                try:
+                    ast.parse(snippet)
+                except SyntaxError:
+                    skipped += 1
+                else:
+                    x = rewritten_intent.replace(u'\r', u' ')
+                    y = x.replace(u'\n', u' ')
+                    intent_file.write(y)
+                    intent_file.write(u'\n')
+                    snippet_file.write(unicode(repr(snippet)))
+                    snippet_file.write(u'\n')
+    print('transformation complete. {} entries skipped.'.format(skipped))
+
+
 def procCoNaLa(filename,
                intent_output='intent.txt',
                snippet_output='snippets.txt'):
-
     import json
     import ast
     with io.open(filename, encoding='utf8') as f:
@@ -144,7 +176,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
-        :linesToLoad]
+              :linesToLoad]
     return content
 
 
