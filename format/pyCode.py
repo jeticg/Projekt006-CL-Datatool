@@ -13,7 +13,7 @@ import os
 try:
     from tree import Node
 except ImportError:
-    from .tree import Node
+    from natlang.format.tree import Node
 
 
 class _TmpNode:
