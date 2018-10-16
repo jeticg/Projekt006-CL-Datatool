@@ -60,11 +60,13 @@ def _translate(py_ast):
 def _restructure_rec(node, orig_children):
     """
     `node` is the already transformed node (type=tree.Node)
-    `orig_children` is a list of the children corresponds to `node` (type=[TmpNode])
+    `orig_children` is a list of the children corresponds to `node`
+    (type=[TmpNode])
     """
     # edge case
     tag = node.value[0]
-    if (tag.endswith('_vec') or tag.endswith('_optional')) and not orig_children:
+    if (tag.endswith('_vec') or tag.endswith('_optional')) and\
+            not orig_children:
         # transformed grammar with no children
         dummy = Node()
         dummy.value = ('DUMMY', None)
@@ -160,7 +162,6 @@ if __name__ == '__main__':
         import os
         import errno
 
-
         def draw_tmp_tree(root, name='tmp'):
             try:
                 os.makedirs('figures')
@@ -182,10 +183,8 @@ if __name__ == '__main__':
 
             return g.render()
 
-
         def repr_n(node):
             return 'Node{}'.format(repr(node.value))
-
 
         def draw_res_tree(root, name='res'):
             try:
@@ -217,7 +216,6 @@ if __name__ == '__main__':
                     g.edge(str(id(node)), str(id(node.parent)), color='green')
 
             return g.render()
-
 
         # example data structures
         code = r"os.path.abspath('mydir/myfile.txt')"
