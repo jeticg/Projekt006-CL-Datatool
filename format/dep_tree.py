@@ -9,7 +9,7 @@
 # penn treebank format sentences with dependency information
 # 2 examples are provided in sampleDepTree.txt
 #
-
+from __future__ import absolute_import
 import os
 import sys
 import inspect
@@ -17,8 +17,10 @@ from bisect import bisect_left
 import itertools
 import copy
 import unittest
-
-from .semanticFrame import load as loadSemFrame
+try:
+    from semanticFrame import load as loadSemFrame
+except ImportError:
+    from .semanticFrame import load as loadSemFrame
 
 FORM_OFFSET = 1
 PPOS_OFFSET = 7
