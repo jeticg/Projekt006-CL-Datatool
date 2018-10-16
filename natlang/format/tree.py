@@ -9,6 +9,7 @@
 # penn treebank format sentences with constituency information. 2 examples are
 # provided in TestTree.
 #
+from __future__ import absolute_import
 import sys
 import os
 import unittest
