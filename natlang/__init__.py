@@ -7,4 +7,4 @@ from natlang import fileConverter
 from natlang import loader
 
 name = "natlang"
-version = "0.3a12"
+version = "0.3a13"
