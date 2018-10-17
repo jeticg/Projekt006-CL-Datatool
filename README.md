@@ -10,8 +10,13 @@ each source file.
 
 ## 0. Usage
 
-Place this entire repo somewhere in your project, or add it to your python
-library.
+Install using pip will get you the latest tested version of `natlang`.
+
+    > pip install natlang
+
+Alternatively, you can also install from source using the following command:
+
+    > python setup.py install
 
 ## 1. Format
 
