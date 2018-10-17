@@ -1,4 +1,7 @@
 # natlang: Natural Language Data Loading Tools
+master: [![Build Status](https://travis-ci.com/jeticg/datatool.svg?branch=master)](https://travis-ci.com/jeticg/datatool)
+dev: [![Build Status](https://travis-ci.com/jeticg/datatool.svg?branch=dev)](https://travis-ci.com/jeticg/datatool)
+
 Data loader/common data structures and other tools
 
 Most of the code are Python2/3 compatible.
