@@ -15,30 +15,11 @@ from xml.dom import minidom
 __version__ = "0.3a"
 
 
-def load(file, linesToLoad=sys.maxsize):
-    content = []
-    if isinstance(file, list):
-        files = []
-        for fileP in file:
-            files += [filename
-                      for filename in glob.glob(os.path.expanduser(fileP))
-                      if os.path.isfile(filename)]
+def load(filename, linesToLoad=sys.maxsize):
+    if filename[-4:] == ".xml":
+        content += loadSemFrameXML(filename)
     else:
-        files = [filename
-                 for filename in glob.glob(os.path.expanduser(file))
-                 if os.path.isfile(filename)]
-    if len(files) == 0:
-        if not isinstance(file, list):
-            sys.stderr.write(
-                "loader.SementicFrame [ERROR]: matching pattern" +
-                file + "\n")
-        raise RuntimeError(
-            "loader.SementicFrame [ERROR]: Cannot find matching files")
-    for filename in files:
-        if filename[-4:] == ".xml":
-            content += loadSemFrameXML(filename)
-        else:
-            content += loadAMRFrame(filename, linesToLoad=linesToLoad)
+        content += loadAMRFrame(filename, linesToLoad=linesToLoad)
     return content
 
 
