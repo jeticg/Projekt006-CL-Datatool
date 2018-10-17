@@ -136,6 +136,8 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     content = [line.strip().split('\t') for line in rawContent]
     # adding the root node
     nodes = [Node()]
+    if "__name__" in entryIndex:
+        nodes[0].format = entryIndex["__name__"]
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
