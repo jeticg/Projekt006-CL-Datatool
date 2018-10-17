@@ -15,6 +15,8 @@ import inspect
 import unittest
 import progressbar
 
+from natlang.exporter import exportToFile
+
 
 defaultEntryIndex = {
     # This is taken from http://universaldependencies.org/format.html
@@ -128,14 +130,58 @@ class Node():
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
 
-    def export(self):
-        raise NotImplementedError
+    def _exportSingleNode(self, entryIndex):
+        entry = ['_' for i in range(len(self.value) + 3)]
+        entry[entryIndex["ID"]] = str(self.id)
+        entry[entryIndex["HEAD"]] = str(self.parent.id)
+        entry[entryIndex["DEPREL"]] = self.deprel
+        entry[entryIndex["FORM"]] = self.value[0]
+
+        counter = 0
+        for value in self.value[1:]:
+            while entry[counter] != '_':
+                counter += 1
+                if counter >= len(entry):
+                    raise RuntimeError(
+                        "Invalid entryIndex format")
+            if value is not None:
+                entry[counter] = value
+            counter += 1
+        return "\t".join(entry)
+
+    def _exportSubTree(self, entryIndex):
+        content = []
+        if self.leftChild is not None:
+            content += self.leftChild._exportSubTree(entryIndex)
+        # If current node is root then does not output
+        if self.parent is not None:
+            content.append(self._exportSingleNode(entryIndex))
+        if self.rightChild is not None:
+            content += self.rightChild._exportSubTree(entryIndex)
+
+        if self.sibling is not None:
+            content += self.sibling._exportSubTree(entryIndex)
+
+        return content
+
+    def export(self, entryIndex=defaultEntryIndex):
+        if self.format != "Unspecified":
+            if self.format != entryIndex["__name__"]:
+                raise RuntimeError(
+                    "Incorrect node format, please provide valid entryIndex " +
+                    "when exporting. " +
+                    "(instance.format != entryIndex['__name__'])")
+        content = self._exportSubTree(entryIndex) + [""]
+
+        return "\n".join(content)
 
 
 def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     content = [line.strip().split('\t') for line in rawContent]
     # adding the root node
     nodes = [Node()]
+    if "__name__" in entryIndex:
+        nodes[0].format = entryIndex["__name__"]
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
@@ -317,6 +363,17 @@ class TestTree(unittest.TestCase):
         B = content[1]
         self.testBuildTreeA(A)
         self.testBuildTreeB(B)
+
+    def testExporter(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=True)
+        exportToFile(content, parentdir + "/test/.sampleCoNLLU.conll.tmp")
+        exportedContent = load(
+            parentdir + "/test/.sampleCoNLLU.conll.tmp", verbose=True)
+        self.testBuildTreeA(exportedContent[0])
+        self.testBuildTreeB(exportedContent[1])
 
 
 if __name__ == '__main__':
