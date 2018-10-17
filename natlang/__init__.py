@@ -6,5 +6,6 @@ from natlang import exporter
 from natlang import fileConverter
 from natlang import loader
 
+from natlang import version
+
 name = "natlang"
-version = "0.3a13"
