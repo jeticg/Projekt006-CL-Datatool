@@ -6,14 +6,20 @@
 # Jetic Gu
 #
 import setuptools
-from natlang import version
+from distutils.util import convert_path
+
+# Get version
+main_ns = {}
+ver_path = convert_path('natlang/version.py')
+with open(ver_path) as ver_file:
+    exec(ver_file.read(), main_ns)
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="natlang",
-    version=version,
+    version=main_ns['version'],
     author="Jetic Gū, Rory Wang",
     author_email="jeticg@sfu.ca",
     description="Natural language data loading tools",
