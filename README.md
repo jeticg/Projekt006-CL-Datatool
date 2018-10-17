@@ -35,6 +35,9 @@ for analysis.
 4. `AMR`: Abstract Meaning Representation. Run `python -i format/AMR.py` to
 play around.
 
+5. `conll`: General CoNLL format loader. Default is CoNLL_U. Run
+`python -i format/conll.py` to play around.
+
 ### 1.1 Recommended Functions
 
 For formats supporting being loaded from a file, one should implement a `load`
