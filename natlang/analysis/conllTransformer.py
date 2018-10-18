@@ -126,14 +126,12 @@ def _matchCPattern(cPattern, node):
         if cPattern == '*' or (node is not None and cPattern == node.deprel):
             return True
         else:
-            print("root does not match", cPattern, node)
             return False
     # Match Root
     if cPattern[0] == '*' or cPattern[0] == node.deprel:
         if _matchCPatternChildren(cPattern[1], node.leftChild) and\
                 _matchCPatternChildren(cPattern[2], node.rightChild):
             return True
-    print("root does not match", cPattern, node)
     return False
 
 
@@ -142,7 +140,6 @@ def _matchCPatternChildren(childPattern, node):
     if childPattern == ['*'] or (childPattern == [] and node is None):
         return True
     if node is None:
-        print("node is None", childPattern, node)
         return False
 
     # At this point, node is not None and childPattern has at least something
@@ -151,11 +148,9 @@ def _matchCPatternChildren(childPattern, node):
                 _matchCPatternChildren(childPattern[1:], node.sibling):
             return True
         else:
-            print("unable to match children", childPattern[1:], node)
             return False
     else:
         if not _matchCPattern(childPattern[0], node):
-            print("unable to match entire node", childPattern[0], node)
             return False
         return _matchCPatternChildren(
             childPattern[1:], node.sibling)
@@ -212,13 +207,22 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual(content, answer)
         return
 
-    def testMatch(self):
+    def testMatch1(self):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
-        self.assertEqual(True, matchPattern("(* nsubj *|root|*)", content[0]))
+        self.assertEqual(True, matchPattern("(*|root|* nsubj *)", content[0]))
+        return
+
+    def testMatch2(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        self.assertEqual(False, matchPattern("(* nsubj *|root|*)", content[0]))
         return
 
 
