@@ -28,11 +28,11 @@ from natlang.format import conll
 #   leftChild and an advmod as right child
 #
 def parsePattern(pattern):
-    bPattern = parseStage1(pattern)
-    return parseStage2(bPattern)
+    bPattern = _parseStage1(pattern)
+    return _parseStage2(bPattern)
 
 
-def parseStage1(pattern):
+def _parseStage1(pattern):
     def closeBrackets(pattern, startIndex=0):
         entry = []
         counter = 0
@@ -73,7 +73,7 @@ def parseStage1(pattern):
     return bPattern
 
 
-def parseStage2(bPattern):
+def _parseStage2(bPattern):
     if bPattern == []:
         return []
     if isinstance(bPattern, str):
@@ -83,8 +83,8 @@ def parseStage2(bPattern):
         if entry == '|':
             elements.append([])
         elif isinstance(entry, list):
-            tmp = parseStage2(entry)
-            elements[-1].append(tmp)
+            subCPattern = _parseStage2(entry)
+            elements[-1].append(subCPattern)
         else:
             elements[-1].append(entry)
 
@@ -96,12 +96,11 @@ def parseStage2(bPattern):
     if not isinstance(elements[1][0], str):
         raise ValueError("Invalid root specification")
 
-    return elements[1] + [elements[0], elements[2]]
+    cPattern = elements[1] + [elements[0], elements[2]]
+    return cPattern
 
 
 def matchPattern(pattern, node):
-    candidates = []
-
     # Value check
     if not isinstance(pattern, str):
         raise ValueError(
@@ -114,25 +113,30 @@ def matchPattern(pattern, node):
             "natlang.format.conll.Node instance ")
 
     cPattern = parsePattern(pattern)
+    candidates = _matchCPattern(cPattern, node)
 
     return candidates
 
 
+def _matchCPattern():
+    raise NotImplementedError
+
+
 class TestTree(unittest.TestCase):
     def testParseStage1A(self):
-        content = parseStage1("(closeBrackets(pattern))")
+        content = _parseStage1("(closeBrackets(pattern))")
         answer = ["closeBrackets", ["pattern"]]
         self.assertSequenceEqual(content, answer)
         return
 
     def testParseStage1B(self):
-        content = parseStage1("( ( (9)  (16)  (9)  (19) ) )")
+        content = _parseStage1("( ( (9)  (16)  (9)  (19) ) )")
         answer = [[['9'], ['16'], ['9'], ['19']]]
         self.assertSequenceEqual(content, answer)
         return
 
     def testParseStage1C(self):
-        content = parseStage1(
+        content = _parseStage1(
             '( ( ( 5  (6)  (9)  4  (7) )  4  ( (17)  (10)  (1)  16  (4)  (0)' +
             '  (16)  10  2 )  7  2  1  ( (8)  (5)  3  (9)  (12)  15 )  ( (0)' +
             '  6  (1)  (11)  (17)  4 )  18  12 ) )')
@@ -147,22 +151,22 @@ class TestTree(unittest.TestCase):
         return
 
     def testParseStage1D(self):
-        content = parseStage1(
+        content = _parseStage1(
             '( ( (10)  (7)  11  (19)  17  (1)  (3) )  16  2 )')
         answer = [[['10'], ['7'], '11', ['19'], '17', ['1'], ['3']], '16', '2']
         self.assertSequenceEqual(content, answer)
         return
 
     def testParseStage21(self):
-        content = parseStage2(
-            parseStage1("( * nsubj * | root | * advmod * )"))
+        content = _parseStage2(
+            _parseStage1("( * nsubj * | root | * advmod * )"))
         answer = ['root', ['*', 'nsubj', '*'], ['*', 'advmod', '*']]
         self.assertSequenceEqual(content, answer)
         return
 
     def testParseStage22(self):
-        content = parseStage2(
-            parseStage1("( * (*|nsubj|*) * | root | * advmod * )"))
+        content = _parseStage2(
+            _parseStage1("( * (*|nsubj|*) * | root | * advmod * )"))
         answer = ['root',
                   ['*', ['nsubj', ['*'], ['*']], '*'],
                   ['*', 'advmod', '*']]
