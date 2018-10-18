@@ -58,7 +58,7 @@ class DataLoader():
             for filePattern in file:
                 files += matchPattern(filePattern)
         elif isinstance(file, str):
-            files = matchPattern(filePattern)
+            files = matchPattern(file)
         else:
             raise RuntimeError("natlang.dataLoader.load [ERROR]: parameter " +
                                "type")
