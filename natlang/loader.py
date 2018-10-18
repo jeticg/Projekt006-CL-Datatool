@@ -67,7 +67,11 @@ class DataLoader():
             raise RuntimeError(
                 "natlang.dataLoader.load [ERROR]: Cannot find matching files")
 
-        if "verbose" in inspect.getfullargspec(self.loader)[0]:
+        if sys.version_info[0] < 3:
+            getSpec = inspect.getargspec
+        else:
+            getSpec = inspect.getfullargspec
+        if "verbose" in getSpec(self.loader)[0]:
             for filename in files:
                 content += self.loader(filename,
                                        linesToLoad=linesToLoad,
