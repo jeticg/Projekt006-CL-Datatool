@@ -99,6 +99,34 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual(content, answer)
         return
 
+    def testParseBracket2(self):
+        content, _ = parseBrackets("( ( (9)  (16)  (9)  (19) ) )")
+        answer = [[['9'], ['16'], ['9'], ['19']]]
+        self.assertSequenceEqual(content, answer)
+        return
+
+    def testParseBracket3(self):
+        content, _ = parseBrackets(
+            '( ( ( 5  (6)  (9)  4  (7) )  4  ( (17)  (10)  (1)  16  (4)  (0)' +
+            '  (16)  10  2 )  7  2  1  ( (8)  (5)  3  (9)  (12)  15 )  ( (0)' +
+            '  6  (1)  (11)  (17)  4 )  18  12 ) )')
+        answer =\
+            [[
+                ['5', ['6'], ['9'], '4', ['7']], '4',
+                [['17'], ['10'], ['1'], '16', ['4'], ['0'], ['16'], '10', '2'],
+                '7', '2', '1',
+                [['8'], ['5'], '3', ['9'], ['12'], '15'],
+                [['0'], '6', ['1'], ['11'], ['17'], '4'], '18', '12']]
+        self.assertSequenceEqual(content, answer)
+        return
+
+    def testParseBracket4(self):
+        content, _ = parseBrackets(
+            '( ( (10)  (7)  11  (19)  17  (1)  (3) )  16  2 )')
+        answer = [[['10'], ['7'], '11', ['19'], '17', ['1'], ['3']], '16', '2']
+        self.assertSequenceEqual(content, answer)
+        return
+
 
 if __name__ == '__main__':
     if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
