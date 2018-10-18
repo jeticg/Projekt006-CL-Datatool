@@ -402,6 +402,19 @@ class TestTree(unittest.TestCase):
         self.testBuildTreeB(B)
         return
 
+    def testLoadTreeFromLoader(self):
+        from natlang.loader import DataLoader
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        loader = DataLoader("tree")
+        content = loader.load(parentdir + "/test/sampleTree.*")
+        A = content[0]
+        B = content[1]
+        self.testBuildTreeA(A)
+        self.testBuildTreeB(B)
+        return
+
     def testLexicaliseNode(self):
         elements = ["(", "ROOT",
                     "(", "S",
