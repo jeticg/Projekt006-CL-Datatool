@@ -23,48 +23,80 @@ from natlang.format import conll
 # The pattern is a string with tree structure
 # Here are some examples
 #
-#   ( (* nsubj *) | root | (* advmod *) )
+#   ( * nsubj * | root | * advmod * )
 #   This matches any tree with a subtree, the root of which has a nsubj as
 #   leftChild and an advmod as right child
 #
-def parseBrackets(pattern):
+def parsePattern(pattern):
+    bPattern = parseStage1(pattern)
+    return parseStage2(bPattern)
+
+
+def parseStage1(pattern):
+    def closeBrackets(pattern, startIndex=0):
+        entry = []
+        counter = 0
+        i = startIndex
+        while i < len(pattern):
+            if pattern[i] == '(':
+                counter += 1
+                if counter > 1:
+                    subEntry, i = closeBrackets(pattern, i)
+                    entry.append(subEntry)
+                    continue
+            elif pattern[i] == ')':
+                counter -= 1
+                if counter < 0:
+                    raise ValueError(
+                        "natlang.analysis.conllTransformer.closeBrackets: " +
+                        "invalid pattern, brackets not closed")
+                if counter == 0:
+                    return entry, i
+            else:
+                entry.append(pattern[i])
+            i += 1
+        if counter != 0:
+            raise ValueError(
+                "natlang.analysis.conllTransformer.closeBrackets: invalid " +
+                "pattern, brackets not closed")
+        return entry, i
     result = []
     counter = 0
-    pattern = pattern.replace('(', " ( ").replace(')', " ) ")
+    pattern =\
+        pattern.replace('(', " ( ").replace(')', " ) ").replace('|', " | ")
     pattern = pattern.strip().split()
     if pattern[0] != '(':
         pattern = ['('] + pattern
         pattern = [')'] + pattern
-    return closeBrackets(pattern)
+
+    bPattern, _ = closeBrackets(pattern)
+    return bPattern
 
 
-def closeBrackets(pattern, startIndex=0):
-    entry = []
-    counter = 0
-    i = startIndex
-    while i < len(pattern):
-        if pattern[i] == '(':
-            counter += 1
-            if counter > 1:
-                subEntry, i = closeBrackets(pattern, i)
-                entry.append(subEntry)
-                continue
-        elif pattern[i] == ')':
-            counter -= 1
-            if counter < 0:
-                raise ValueError(
-                    "natlang.analysis.conllTransformer.closeBrackets: " +
-                    "invalid pattern, brackets not closed")
-            if counter == 0:
-                return entry, i
+def parseStage2(bPattern):
+    if bPattern == []:
+        return []
+    if isinstance(bPattern, str):
+        return bPattern
+    elements = [[]]
+    for entry in bPattern:
+        if entry == '|':
+            elements.append([])
+        elif isinstance(entry, list):
+            tmp = parseStage2(entry)
+            elements[-1].append(tmp)
         else:
-            entry.append(pattern[i])
-        i += 1
-    if counter != 0:
-        raise ValueError(
-            "natlang.analysis.conllTransformer.closeBrackets: invalid " +
-            "pattern, brackets not closed")
-    return entry, i
+            elements[-1].append(entry)
+
+    if len(elements) != 3:
+        raise ValueError("numOfElements Incorrect")
+
+    if (not isinstance(elements[1], list)) or len(elements[1]) != 1:
+        raise ValueError("Invalid root specification")
+    if not isinstance(elements[1][0], str):
+        raise ValueError("Invalid root specification")
+
+    return elements[1] + [elements[0], elements[2]]
 
 
 def matchPattern(pattern, node):
@@ -81,32 +113,26 @@ def matchPattern(pattern, node):
             "natlang.analysis.conllTransformer.node: pattern must be a" +
             "natlang.format.conll.Node instance ")
 
-    # bracket parser
-    def parseBrackets(pattern):
-        result = []
-        counter = 0
-        pattern.replace('(', " ( ").replace(')', " ) ")
-        pattern = pattern.strip().split()
-        return
+    cPattern = parsePattern(pattern)
 
     return candidates
 
 
 class TestTree(unittest.TestCase):
-    def testParseBracket1(self):
-        content, _ = parseBrackets("(closeBrackets(pattern))")
+    def testParseStage1A(self):
+        content = parseStage1("(closeBrackets(pattern))")
         answer = ["closeBrackets", ["pattern"]]
         self.assertSequenceEqual(content, answer)
         return
 
-    def testParseBracket2(self):
-        content, _ = parseBrackets("( ( (9)  (16)  (9)  (19) ) )")
+    def testParseStage1B(self):
+        content = parseStage1("( ( (9)  (16)  (9)  (19) ) )")
         answer = [[['9'], ['16'], ['9'], ['19']]]
         self.assertSequenceEqual(content, answer)
         return
 
-    def testParseBracket3(self):
-        content, _ = parseBrackets(
+    def testParseStage1C(self):
+        content = parseStage1(
             '( ( ( 5  (6)  (9)  4  (7) )  4  ( (17)  (10)  (1)  16  (4)  (0)' +
             '  (16)  10  2 )  7  2  1  ( (8)  (5)  3  (9)  (12)  15 )  ( (0)' +
             '  6  (1)  (11)  (17)  4 )  18  12 ) )')
@@ -120,10 +146,26 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual(content, answer)
         return
 
-    def testParseBracket4(self):
-        content, _ = parseBrackets(
+    def testParseStage1D(self):
+        content = parseStage1(
             '( ( (10)  (7)  11  (19)  17  (1)  (3) )  16  2 )')
         answer = [[['10'], ['7'], '11', ['19'], '17', ['1'], ['3']], '16', '2']
+        self.assertSequenceEqual(content, answer)
+        return
+
+    def testParseStage21(self):
+        content = parseStage2(
+            parseStage1("( * nsubj * | root | * advmod * )"))
+        answer = ['root', ['*', 'nsubj', '*'], ['*', 'advmod', '*']]
+        self.assertSequenceEqual(content, answer)
+        return
+
+    def testParseStage22(self):
+        content = parseStage2(
+            parseStage1("( * (*|nsubj|*) * | root | * advmod * )"))
+        answer = ['root',
+                  ['*', ['nsubj', ['*'], ['*']], '*'],
+                  ['*', 'advmod', '*']]
         self.assertSequenceEqual(content, answer)
         return
 
