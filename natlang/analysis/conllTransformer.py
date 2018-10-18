@@ -100,17 +100,17 @@ def _parseStage2(bPattern):
     return cPattern
 
 
-def matchPattern(pattern, node):
+def matchPatternOnNode(pattern, node):
     # Value check
     if not isinstance(pattern, str):
         raise ValueError(
-            "natlang.analysis.conllTransformer.matchPattern: pattern must " +
-            "be a str")
+            "natlang.analysis.conllTransformer.matchPatternOnNode: pattern " +
+            "must be a str")
 
     if not isinstance(node, conll.Node):
         raise ValueError(
-            "natlang.analysis.conllTransformer.node: pattern must be a" +
-            "natlang.format.conll.Node instance ")
+            "natlang.analysis.conllTransformer.matchPatternOnNode: pattern " +
+            "must be a natlang.format.conll.Node instance ")
     cPattern = parsePattern(pattern)
     if node.parent is None:
         # node is upper root
@@ -213,7 +213,8 @@ class TestTree(unittest.TestCase):
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
-        self.assertEqual(True, matchPattern("(*|root|* nsubj *)", content[0]))
+        self.assertEqual(
+            True, matchPatternOnNode("(*|root|* nsubj *)", content[0]))
         return
 
     def testMatch2(self):
@@ -222,7 +223,8 @@ class TestTree(unittest.TestCase):
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
-        self.assertEqual(False, matchPattern("(* nsubj *|root|*)", content[0]))
+        self.assertEqual(
+            False, matchPatternOnNode("(* nsubj *|root|*)", content[0]))
         return
 
 
