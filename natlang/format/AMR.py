@@ -13,6 +13,7 @@ import sys
 import os
 import unittest
 import inspect
+import progressbar
 from copy import deepcopy
 from six import string_types
 
@@ -144,7 +145,6 @@ def constructAMRFromStr(string):
 
 
 def load(fileName, linesToLoad=sys.maxsize, verbose=False):
-    import progressbar
     fileName = os.path.expanduser(fileName)
     content = []
     i = 0
