@@ -235,8 +235,8 @@ class TestTree(unittest.TestCase):
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
         self.assertEqual(
-            False, matchPatternOnNode("(* nsubj *|root|*)",
-            content[0].rightChild))
+            False,
+            matchPatternOnNode("(* nsubj *|root|*)", content[0].rightChild))
         return
 
     def testMatchGeneral1(self):
@@ -248,6 +248,12 @@ class TestTree(unittest.TestCase):
         self.assertEqual(
             [content[0].rightChild],
             matchPattern("(*|root|* nsubj *)", content[0]))
+
+        match1 = matchPattern("(case *|nmod|*)", content[1])
+
+        self.assertEqual(3, len(match1))
+        self.assertSequenceEqual(
+            [4, 14, 18], sorted([item.id for item in match1]))
         return
 
 
