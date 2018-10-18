@@ -19,9 +19,9 @@ from natlang.loader import DataLoader
 from natlang.format import conll
 
 
-# Patter specification
-# The pattern is a string with tree structure
-# Here are some examples
+# Pattern specification (Dependency Expression V0.1a)
+# The pattern is a string that works on a tree structure
+# Here are some examples:
 #
 #   ( * nsubj * | root | * advmod * )
 #   This matches any tree with a subtree, the root of which has a nsubj as
@@ -100,6 +100,22 @@ def _parseStage2(bPattern):
     return cPattern
 
 
+def matchPattern(pattern, node):
+    candidates = []
+    if node is None:
+        return candidates
+    if not isinstance(node, conll.Node):
+        raise ValueError(
+            "natlang.analysis.conllTransformer.matchPattern: node " +
+            "must be a natlang.format.conll.Node instance")
+    if matchPatternOnNode(pattern, node):
+        candidates += [node]
+    candidates += matchPattern(pattern, node.sibling)
+    candidates += matchPattern(pattern, node.leftChild)
+    candidates += matchPattern(pattern, node.rightChild)
+    return candidates
+
+
 def matchPatternOnNode(pattern, node):
     # Value check
     if not isinstance(pattern, str):
@@ -110,15 +126,9 @@ def matchPatternOnNode(pattern, node):
     if not isinstance(node, conll.Node):
         raise ValueError(
             "natlang.analysis.conllTransformer.matchPatternOnNode: pattern " +
-            "must be a natlang.format.conll.Node instance ")
+            "must be a natlang.format.conll.Node instance")
     cPattern = parsePattern(pattern)
-    if node.parent is None:
-        # node is upper root
-        candidates = _matchCPattern(cPattern, node.rightChild)
-    else:
-        candidates = _matchCPattern(cPattern, node)
-
-    return candidates
+    return _matchCPattern(cPattern, node)
 
 
 def _matchCPattern(cPattern, node):
@@ -207,24 +217,37 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual(content, answer)
         return
 
-    def testMatch1(self):
+    def testMatchNode1(self):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
         self.assertEqual(
-            True, matchPatternOnNode("(*|root|* nsubj *)", content[0]))
+            True,
+            matchPatternOnNode("(*|root|* nsubj *)", content[0].rightChild))
         return
 
-    def testMatch2(self):
+    def testMatchNode2(self):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
                              verbose=True)
         self.assertEqual(
-            False, matchPatternOnNode("(* nsubj *|root|*)", content[0]))
+            False, matchPatternOnNode("(* nsubj *|root|*)",
+            content[0].rightChild))
+        return
+
+    def testMatchGeneral1(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        self.assertEqual(
+            [content[0].rightChild],
+            matchPattern("(*|root|* nsubj *)", content[0]))
         return
 
 
