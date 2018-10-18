@@ -111,15 +111,54 @@ def matchPattern(pattern, node):
         raise ValueError(
             "natlang.analysis.conllTransformer.node: pattern must be a" +
             "natlang.format.conll.Node instance ")
-
     cPattern = parsePattern(pattern)
-    candidates = _matchCPattern(cPattern, node)
+    if node.parent is None:
+        # node is upper root
+        candidates = _matchCPattern(cPattern, node.rightChild)
+    else:
+        candidates = _matchCPattern(cPattern, node)
 
     return candidates
 
 
-def _matchCPattern():
-    raise NotImplementedError
+def _matchCPattern(cPattern, node):
+    if isinstance(cPattern, str):
+        if cPattern == '*' or (node is not None and cPattern == node.deprel):
+            return True
+        else:
+            print("root does not match", cPattern, node)
+            return False
+    # Match Root
+    if cPattern[0] == '*' or cPattern[0] == node.deprel:
+        if _matchCPatternChildren(cPattern[1], node.leftChild) and\
+                _matchCPatternChildren(cPattern[2], node.rightChild):
+            return True
+    print("root does not match", cPattern, node)
+    return False
+
+
+# Match Children
+def _matchCPatternChildren(childPattern, node):
+    if childPattern == ['*'] or (childPattern == [] and node is None):
+        return True
+    if node is None:
+        print("node is None", childPattern, node)
+        return False
+
+    # At this point, node is not None and childPattern has at least something
+    if childPattern[0] == '*':
+        if _matchCPatternChildren(childPattern[1:], node) or\
+                _matchCPatternChildren(childPattern[1:], node.sibling):
+            return True
+        else:
+            print("unable to match children", childPattern[1:], node)
+            return False
+    else:
+        if not _matchCPattern(childPattern[0], node):
+            print("unable to match entire node", childPattern[0], node)
+            return False
+        return _matchCPatternChildren(
+            childPattern[1:], node.sibling)
 
 
 class TestTree(unittest.TestCase):
@@ -157,20 +196,29 @@ class TestTree(unittest.TestCase):
         self.assertSequenceEqual(content, answer)
         return
 
-    def testParseStage21(self):
+    def testParseStage2A(self):
         content = _parseStage2(
             _parseStage1("( * nsubj * | root | * advmod * )"))
         answer = ['root', ['*', 'nsubj', '*'], ['*', 'advmod', '*']]
         self.assertSequenceEqual(content, answer)
         return
 
-    def testParseStage22(self):
+    def testParseStage2B(self):
         content = _parseStage2(
             _parseStage1("( * (*|nsubj|*) * | root | * advmod * )"))
         answer = ['root',
                   ['*', ['nsubj', ['*'], ['*']], '*'],
                   ['*', 'advmod', '*']]
         self.assertSequenceEqual(content, answer)
+        return
+
+    def testMatch(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        self.assertEqual(True, matchPattern("(* nsubj *|root|*)", content[0]))
         return
 
 

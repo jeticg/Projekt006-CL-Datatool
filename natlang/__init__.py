@@ -11,6 +11,7 @@ from natlang import loader
 from natlang import version
 
 testModules = {
+    analysis.conllTransformer,
     format.AMR,
     format.pyCode,
     format.semanticFrame,
@@ -19,7 +20,6 @@ testModules = {
     format.txtFiles,
     format.txtOrTree,
     format.conll,
-    analysis.conllTransformer
 }
 
 
