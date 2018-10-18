@@ -13,5 +13,6 @@ __version__ = "0.3a"
 
 
 def load(file, linesToLoad=sys.maxsize):
-    return [line.strip().split() for line in open(os.path.expanduser(file))][
-        :linesToLoad]
+    with open(os.path.expanduser(file)) as f:
+        content = [line.strip().split() for line in f][:linesToLoad]
+    return content
