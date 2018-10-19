@@ -79,30 +79,39 @@ class Node():
         This method prints the structure of the subtree with self as root.
         '''
         if self.leftChild is not None:
-            self.leftChild.__repr__(__spacing + [_lArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _lArrow and\
+                    self.parent is not None and self.parent.leftChild == self:
+                self.leftChild.__repr__(__spacing[:-1] + [' ', _lArrow], True)
+            else:
+                self.leftChild.__repr__(__spacing + [_lArrow], True)
 
-        last = _rArrow
         for i, entry in enumerate(__spacing):
             if i == 0:
                 print(' ', end='')
             if i == len(__spacing) - 1:
                 print(entry, end='')
-            elif (__spacing[i + 1] == _rArrow and entry == _lArrow) or\
-                    (__spacing[i + 1] == _lArrow and entry == _rArrow):
+            elif entry != " ":
                 print(_vArrow + "       ", end='')
             else:
                 print("        ", end='')
+
         if self.parent is None:
             print("ROOT")
         elif len(__spacing) == 0:
             print(self.value[0])
         else:
             print(_hArrow + self.deprel + _hArrow + self.value[0])
+
         if self.rightChild is not None:
-            self.rightChild.__repr__(__spacing + [_rArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _rArrow and\
+                    self.sibling is None:
+                self.rightChild.__repr__(__spacing[:-1] + [' ', _rArrow], True)
+            else:
+                self.rightChild.__repr__(__spacing + [_rArrow], True)
 
         if self.sibling is not None and __showSibling is True:
             self.sibling.__repr__(__spacing, True)
+
         return "\nRepresentation: " +\
             "conll.Node(\"" + str((self.id,) + self.value) + "\")\n" +\
             "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
