@@ -27,6 +27,10 @@ from natlang.format import conll
 #   This matches any tree with a subtree, the root of which has a nsubj as
 #   leftChild and an advmod as right child
 #
+#   ( * nsubj[UPOS=NN] * | root[UPOS!=VBZ] | * )
+#   This matches any tree with a subtree, the root of which has a universal POS
+#   tag that is not VBZ and a nsubj with universal POS tag NN as leftChild and
+#   arbitrary number/types of rightChild.
 def parsePattern(pattern):
     bPattern = _parseStage1(pattern)
     return _parseStage2(bPattern)
@@ -38,6 +42,25 @@ def _parseStage1(pattern):
         counter = 0
         i = startIndex
         while i < len(pattern):
+            # Process feature constraints
+            if pattern[i] == '[':
+                newEntry = ''
+                while i < len(pattern):
+                    newEntry += pattern[i]
+                    i += 1
+                    if i >= len(pattern):
+                        raise ValueError(
+                            "natlang.analysis.conllTransformer.closeBrackets" +
+                            ": invalid pattern, [ not closed")
+                    if pattern[i - 1] == ']':
+                        break
+                if len(entry) == 0 or not isinstance(entry[-1], str):
+                    raise ValueError(
+                        "natlang.analysis.conllTransformer.closeBrackets" +
+                        ": invalid pattern, feature constraints can only " +
+                        "follow dependency types (e.g. nsubj[UPOS=NN])")
+                entry[-1] += newEntry
+
             if pattern[i] == '(':
                 counter += 1
                 if counter > 1:
@@ -64,6 +87,8 @@ def _parseStage1(pattern):
     counter = 0
     pattern =\
         pattern.replace('(', " ( ").replace(')', " ) ").replace('|', " | ")
+    pattern =\
+        pattern.replace('[', " [ ").replace(']', " ] ").replace('*', " * ")
     pattern = pattern.strip().split()
     if pattern[0] != '(':
         pattern = ['('] + pattern
@@ -198,6 +223,18 @@ class TestTree(unittest.TestCase):
         content = _parseStage1(
             '( ( (10)  (7)  11  (19)  17  (1)  (3) )  16  2 )')
         answer = [[['10'], ['7'], '11', ['19'], '17', ['1'], ['3']], '16', '2']
+        self.assertSequenceEqual(content, answer)
+        return
+
+    def testParseStage1E(self):
+        answer = ['*', 'nsubj[POS=NN]', '*', 'cop', '*', '|', 'root[POS=VBZ]',
+                  '|', '*']
+        content = _parseStage1("(*nsubj[POS=NN]*cop*|root[POS=VBZ]|*)")
+        self.assertSequenceEqual(content, answer)
+        content = _parseStage1("(* nsubj[POS=NN] * cop * |root[POS=VBZ]|*)")
+        self.assertSequenceEqual(content, answer)
+        content = _parseStage1("(* nsubj [ POS = NN ] * cop * |root [ POS = " +
+                               "VBZ ]|*)")
         self.assertSequenceEqual(content, answer)
         return
 
