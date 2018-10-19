@@ -12,7 +12,7 @@ import sys
 import inspect
 import argparse
 
-from natlang.format.semanticFrame import load as loadSemFrame
+from natlang.loader import DataLoader
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(
@@ -22,7 +22,10 @@ if __name__ == '__main__':
         help="""AMR 2.0 frame file. Multiple files supported.
                 If bash reports argument list too long, use quotation marks""")
     args = ap.parse_args()
-    frames = loadSemFrame(args.filename)
+
+    loader = DataLoader("semanticFrame")
+    frames = loader.load(args.filename)
+
     print("----- Statistics -----")
     print("# of frames:          " + str(len(frames)))
     args = {}
