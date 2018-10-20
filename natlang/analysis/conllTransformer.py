@@ -194,6 +194,8 @@ def _matchFeatureConstraints(dPattern, node):
                 "natlang.analysis.conllTransformer._matchFeatureConstraints:" +
                 " invalid feature constraint")
         deprel, constraints = constraints[0], constraints[1]
+        if deprel != '*' and (node is None or deprel != node.deprel):
+            return False
         constraints = constraints.split(';')
         for constraint in constraints:
             if not constraintMet(constraint, node):
@@ -335,7 +337,7 @@ class TestPatternMatching(unittest.TestCase):
             [4, 14, 18], sorted([item.id for item in match1]))
         return
 
-    def testMatchFeatureConstraints(self):
+    def testMatchFeatureConstraints1(self):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
@@ -345,16 +347,83 @@ class TestPatternMatching(unittest.TestCase):
         self.assertEqual(
             True,
             _matchFeatureConstraints(
-                "[UPOS=VERB;XPOS=VBZ]",
+                "*[UPOS=VERB;XPOS=VBZ]",
                 x.rightChild))
         self.assertEqual(
             False,
             _matchFeatureConstraints(
-                "[UPOS!=VERB;XPOS=VBZ]",
+                "*[UPOS!=VERB;XPOS=VBZ]",
                 x.rightChild))
         return
+
+    def testMatchFeatureConstraints2(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        x, y = content[0], content[1]
+        self.assertEqual(
+            False,
+            _matchFeatureConstraints("nsubj[ID!=story]", x.rightChild))
+        return
+
+    """def testMatchGeneral2(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        self.assertEqual(
+            [content[0].rightChild],
+            matchPattern("(*|root|* nsubj[FORM=story] *)", content[0]))
+        self.assertEqual(
+            [],
+            matchPattern("(*|root|* nsubj[FORM!=story] *)", content[0]))
+
+        match1 = matchPattern("(case *|nmod|*)", content[1])
+
+        self.assertEqual(3, len(match1))
+        self.assertSequenceEqual(
+            [4, 14, 18], sorted([item.id for item in match1]))
+        return"""
 
 
 if __name__ == '__main__':
     if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
         unittest.main()
+    else:
+        constructFromText = conll.constructFromText
+        rawLine = [
+            "1	From	from	ADP	IN	_	3	case	_	_",
+            "2	the	the	DET	DT	Definite=Def|PronType=Art	3	det	_	_",
+            "3	AP	AP	PROPN	NNP	Number=Sing	4	nmod	_	_",
+            "4	comes	come	VERB	VBZ	" +
+            "Mood=Ind|Number=Sing|Person=3|Tense=Pres|VerbForm=Fin	0	root	_	_",
+            "5	this	this	DET	DT	Number=Sing|PronType=Dem	6	det	_	_",
+            "6	story	story	NOUN	NN	Number=Sing	4	nsubj	_	_",
+            "7	:	:	PUNCT	:	_	4	punct	_	_]"]
+        x = constructFromText(rawLine)
+        rawText = """1	President	President	PROPN	NNP	Number=Sing	2	compound	_	_
+        2	Bush	Bush	PROPN	NNP	Number=Sing	5	nsubj	_	_
+        3	on	on	ADP	IN	_	4	case	_	_
+        4	Tuesday	Tuesday	PROPN	NNP	Number=Sing	5	nmod	_	_
+        5	nominated	nominate	VERB	VBD	Mood=Ind|Tense=Past|VerbForm=Fin""" +\
+            """	0	root	_	_
+        6	two	two	NUM	CD	NumType=Card	7	nummod	_	_
+        7	individuals	individual	NOUN	NNS	Number=Plur	5	dobj	_	_
+        8	to	to	PART	TO	_	9	mark	_	_
+        9	replace	replace	VERB	VB	VerbForm=Inf	5	advcl	_	_
+        10	retiring	retire	VERB	VBG	VerbForm=Ger	11	amod	_	_
+        11	jurists	jurist	NOUN	NNS	Number=Plur	9	dobj	_	_
+        12	on	on	ADP	IN	_	14	case	_	_
+        13	federal	federal	ADJ	JJ	Degree=Pos	14	amod	_	_
+        14	courts	court	NOUN	NNS	Number=Plur	11	nmod	_	_
+        15	in	in	ADP	IN	_	18	case	_	_
+        16	the	the	DET	DT	Definite=Def|PronType=Art	18	det	_	_
+        17	Washington	Washington	PROPN	NNP	Number=Sing	18	compound	_	_
+        18	area	area	NOUN	NN	Number=Sing	14	nmod	_	SpaceAfter=No
+        19	.	.	PUNCT	.	_	5	punct	_	_"""
+        y = constructFromText(rawText.split('\n'))
+        print("Use the two Nodes x and y for testing new methods on Node.")
+        print("Use unittest.main() to start unit test")
