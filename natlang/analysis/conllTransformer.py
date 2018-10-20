@@ -372,7 +372,7 @@ class TestPatternMatching(unittest.TestCase):
             _matchFeatureConstraints("nsubj[ID!=story]", x.rightChild))
         return
 
-    """def testMatchGeneral2(self):
+    def testMatchGeneral2(self):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
@@ -390,7 +390,7 @@ class TestPatternMatching(unittest.TestCase):
         self.assertEqual(3, len(match1))
         self.assertSequenceEqual(
             [4, 14, 18], sorted([item.id for item in match1]))
-        return"""
+        return
 
 
 if __name__ == '__main__':
