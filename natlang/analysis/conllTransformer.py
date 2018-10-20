@@ -156,6 +156,51 @@ def matchPatternOnNode(pattern, node):
     return _matchCPattern(cPattern, node)
 
 
+def _matchFeatureConstraints(dPattern, node):
+    def constraintMet(constraint, node):
+        if "!=" in constraint:
+            constraint = constraint.split("!=").strip()
+            matchEqual = False
+        else:
+            constraint = constraint.split("=").strip()
+            matchEqual = True
+
+        if len(constraint) != 2:
+            raise ValueError(
+                "natlang.analysis.conllTransformer." +
+                "_matchFeatureConstraints:" +
+                " invalid feature constraint")
+        key, value = constraint[0], constraint[1]
+        if key not in node.format:
+            raise ValueError(
+                "natlang.analysis.conllTransformer." +
+                "_matchFeatureConstraints:" +
+                " invalid feature constraint: feature entry not found in" +
+                " node format")
+        if matchEqual:
+            return value != node.rawEntries[node.format[key]]
+        else:
+            return value == node.rawEntries[node.format[key]]
+
+    if '[' not in dPattern:
+        if dPattern == '*' or (node is not None and dPattern == node.deprel):
+            return True
+        else:
+            return False
+    else:
+        constraints = dPattern.replace('[', '°').replace(']', '').split('°')
+        if len(constraints) != 2:
+            raise ValueError(
+                "natlang.analysis.conllTransformer._matchFeatureConstraints:" +
+                " invalid feature constraint")
+        deprel, constraints = constraints[0], constraints[1]
+        constraints = constraints.split(';')
+        for constraint in constraints:
+            if not constraintMet(constraint, node):
+                return False
+        return True
+
+
 def _matchCPattern(cPattern, node):
     if isinstance(cPattern, str):
         if cPattern == '*' or (node is not None and cPattern == node.deprel):

@@ -71,7 +71,8 @@ class Node():
         self.rightChild = None
         self.sibling = None
         self.depth = -1
-        self.format = "Unspecified"
+        self.format = None
+        self.rawEntries = []
         return
 
     def __repr__(self, __spacing=[], __showSibling=False):
@@ -139,48 +140,23 @@ class Node():
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
 
-    def _exportSingleNode(self, entryIndex):
-        entry = ['_' for i in range(len(self.value) + 3)]
-        entry[entryIndex["ID"]] = str(self.id)
-        entry[entryIndex["HEAD"]] = str(self.parent.id)
-        entry[entryIndex["DEPREL"]] = self.deprel
-        entry[entryIndex["FORM"]] = self.value[0]
-
-        counter = 0
-        for value in self.value[1:]:
-            while entry[counter] != '_':
-                counter += 1
-                if counter >= len(entry):
-                    raise RuntimeError(
-                        "Invalid entryIndex format")
-            if value is not None:
-                entry[counter] = value
-            counter += 1
-        return "\t".join(entry)
-
-    def _exportSubTree(self, entryIndex):
+    def _exportSubTree(self):
         content = []
         if self.leftChild is not None:
-            content += self.leftChild._exportSubTree(entryIndex)
+            content += self.leftChild._exportSubTree()
         # If current node is root then does not output
         if self.parent is not None:
-            content.append(self._exportSingleNode(entryIndex))
+            content.append("\t".join(self.rawEntries))
         if self.rightChild is not None:
-            content += self.rightChild._exportSubTree(entryIndex)
+            content += self.rightChild._exportSubTree()
 
         if self.sibling is not None:
-            content += self.sibling._exportSubTree(entryIndex)
+            content += self.sibling._exportSubTree()
 
         return content
 
-    def export(self, entryIndex=defaultEntryIndex):
-        if self.format != "Unspecified":
-            if self.format != entryIndex["__name__"]:
-                raise RuntimeError(
-                    "Incorrect node format, please provide valid entryIndex " +
-                    "when exporting. " +
-                    "(instance.format != entryIndex['__name__'])")
-        content = self._exportSubTree(entryIndex) + [""]
+    def export(self):
+        content = self._exportSubTree() + [""]
 
         return "\n".join(content)
 
@@ -190,7 +166,7 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     # adding the root node
     nodes = [Node()]
     if "__name__" in entryIndex:
-        nodes[0].format = entryIndex["__name__"]
+        nodes[0].format = entryIndex
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
@@ -204,8 +180,8 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         # temporarily store parent id in node.parent
         # store everything else in node.value
         newNode = Node()
-        if "__name__" in entryIndex:
-            newNode.format = entryIndex["__name__"]
+        newNode.format = entryIndex
+        newNode.rawEntries = line
         newNode.id = i
         newNode.parent = int(line[entryIndex["HEAD"]])
         newNode.deprel = line[entryIndex["DEPREL"]]
