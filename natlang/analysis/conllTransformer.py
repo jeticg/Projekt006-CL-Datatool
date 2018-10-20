@@ -31,6 +31,10 @@ from natlang.format import conll
 #   This matches any tree with a subtree, the root of which has a universal POS
 #   tag that is not VBZ and a nsubj with universal POS tag NN as leftChild and
 #   arbitrary number/types of rightChild.
+#
+#   (|*[UPOS=NN;XPOS=NN]|)
+#   This example has a multiple feature constraint on a leafnode. The node can
+#   have deprel of any type but has to have UPOS and XPOS tag NN.
 def parsePattern(pattern):
     bPattern = _parseStage1(pattern)
     return _parseStage2(bPattern)
