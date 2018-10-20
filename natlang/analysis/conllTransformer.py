@@ -203,12 +203,9 @@ def _matchFeatureConstraints(dPattern, node):
 
 def _matchCPattern(cPattern, node):
     if isinstance(cPattern, str):
-        if cPattern == '*' or (node is not None and cPattern == node.deprel):
-            return True
-        else:
-            return False
+        return _matchFeatureConstraints(dPattern=cPattern, node=node)
     # Match Root
-    if cPattern[0] == '*' or cPattern[0] == node.deprel:
+    if _matchFeatureConstraints(dPattern=cPattern[0], node=node):
         if _matchCPatternChildren(cPattern[1], node.leftChild) and\
                 _matchCPatternChildren(cPattern[2], node.rightChild):
             return True
@@ -236,7 +233,7 @@ def _matchCPatternChildren(childPattern, node):
             childPattern[1:], node.sibling)
 
 
-class TestTree(unittest.TestCase):
+class TestPatternMatching(unittest.TestCase):
     def testParseStage1A(self):
         content = _parseStage1("(closeBrackets(pattern))")
         answer = ["closeBrackets", ["pattern"]]
@@ -355,7 +352,6 @@ class TestTree(unittest.TestCase):
             _matchFeatureConstraints(
                 "[UPOS!=VERB;XPOS=VBZ]",
                 x.rightChild))
-
         return
 
 
