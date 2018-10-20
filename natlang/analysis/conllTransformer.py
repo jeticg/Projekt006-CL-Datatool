@@ -159,10 +159,10 @@ def matchPatternOnNode(pattern, node):
 def _matchFeatureConstraints(dPattern, node):
     def constraintMet(constraint, node):
         if "!=" in constraint:
-            constraint = constraint.split("!=").strip()
+            constraint = constraint.split("!=")
             matchEqual = False
         else:
-            constraint = constraint.split("=").strip()
+            constraint = constraint.split("=")
             matchEqual = True
 
         if len(constraint) != 2:
@@ -178,9 +178,9 @@ def _matchFeatureConstraints(dPattern, node):
                 " invalid feature constraint: feature entry not found in" +
                 " node format")
         if matchEqual:
-            return value != node.rawEntries[node.format[key]]
-        else:
             return value == node.rawEntries[node.format[key]]
+        else:
+            return value != node.rawEntries[node.format[key]]
 
     if '[' not in dPattern:
         if dPattern == '*' or (node is not None and dPattern == node.deprel):
@@ -336,6 +336,26 @@ class TestTree(unittest.TestCase):
         self.assertEqual(3, len(match1))
         self.assertSequenceEqual(
             [4, 14, 18], sorted([item.id for item in match1]))
+        return
+
+    def testMatchFeatureConstraints(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        x, y = content[0], content[1]
+        self.assertEqual(
+            True,
+            _matchFeatureConstraints(
+                "[UPOS=VERB;XPOS=VBZ]",
+                x.rightChild))
+        self.assertEqual(
+            False,
+            _matchFeatureConstraints(
+                "[UPOS!=VERB;XPOS=VBZ]",
+                x.rightChild))
+
         return
 
 
