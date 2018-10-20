@@ -73,3 +73,12 @@ def loadSemFrameXML(filename, linesToLoad=sys.maxsize):
                 str(role.attributes['descr'].value)
         content.append((frame, args))
     return content
+
+
+def load(filename, linesToLoad=sys.maxsize):
+    content = []
+    if filename[-4:] == ".xml":
+        content += loadSemFrameXML(filename, linesToLoad=linesToLoad)
+    else:
+        content += loadAMRFrame(filename, linesToLoad=linesToLoad)
+    return content

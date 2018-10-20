@@ -71,7 +71,8 @@ class Node():
         self.rightChild = None
         self.sibling = None
         self.depth = -1
-        self.format = "Unspecified"
+        self.format = None
+        self.rawEntries = []
         return
 
     def __repr__(self, __spacing=[], __showSibling=False):
@@ -79,30 +80,39 @@ class Node():
         This method prints the structure of the subtree with self as root.
         '''
         if self.leftChild is not None:
-            self.leftChild.__repr__(__spacing + [_lArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _lArrow and\
+                    self.parent is not None and self.parent.leftChild == self:
+                self.leftChild.__repr__(__spacing[:-1] + [' ', _lArrow], True)
+            else:
+                self.leftChild.__repr__(__spacing + [_lArrow], True)
 
-        last = _rArrow
         for i, entry in enumerate(__spacing):
             if i == 0:
                 print(' ', end='')
             if i == len(__spacing) - 1:
                 print(entry, end='')
-            elif (__spacing[i + 1] == _rArrow and entry == _lArrow) or\
-                    (__spacing[i + 1] == _lArrow and entry == _rArrow):
+            elif entry != " ":
                 print(_vArrow + "       ", end='')
             else:
                 print("        ", end='')
+
         if self.parent is None:
             print("ROOT")
         elif len(__spacing) == 0:
             print(self.value[0])
         else:
             print(_hArrow + self.deprel + _hArrow + self.value[0])
+
         if self.rightChild is not None:
-            self.rightChild.__repr__(__spacing + [_rArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _rArrow and\
+                    self.sibling is None:
+                self.rightChild.__repr__(__spacing[:-1] + [' ', _rArrow], True)
+            else:
+                self.rightChild.__repr__(__spacing + [_rArrow], True)
 
         if self.sibling is not None and __showSibling is True:
             self.sibling.__repr__(__spacing, True)
+
         return "\nRepresentation: " +\
             "conll.Node(\"" + str((self.id,) + self.value) + "\")\n" +\
             "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
@@ -130,48 +140,23 @@ class Node():
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
 
-    def _exportSingleNode(self, entryIndex):
-        entry = ['_' for i in range(len(self.value) + 3)]
-        entry[entryIndex["ID"]] = str(self.id)
-        entry[entryIndex["HEAD"]] = str(self.parent.id)
-        entry[entryIndex["DEPREL"]] = self.deprel
-        entry[entryIndex["FORM"]] = self.value[0]
-
-        counter = 0
-        for value in self.value[1:]:
-            while entry[counter] != '_':
-                counter += 1
-                if counter >= len(entry):
-                    raise RuntimeError(
-                        "Invalid entryIndex format")
-            if value is not None:
-                entry[counter] = value
-            counter += 1
-        return "\t".join(entry)
-
-    def _exportSubTree(self, entryIndex):
+    def _exportSubTree(self):
         content = []
         if self.leftChild is not None:
-            content += self.leftChild._exportSubTree(entryIndex)
+            content += self.leftChild._exportSubTree()
         # If current node is root then does not output
         if self.parent is not None:
-            content.append(self._exportSingleNode(entryIndex))
+            content.append("\t".join(self.rawEntries))
         if self.rightChild is not None:
-            content += self.rightChild._exportSubTree(entryIndex)
+            content += self.rightChild._exportSubTree()
 
         if self.sibling is not None:
-            content += self.sibling._exportSubTree(entryIndex)
+            content += self.sibling._exportSubTree()
 
         return content
 
-    def export(self, entryIndex=defaultEntryIndex):
-        if self.format != "Unspecified":
-            if self.format != entryIndex["__name__"]:
-                raise RuntimeError(
-                    "Incorrect node format, please provide valid entryIndex " +
-                    "when exporting. " +
-                    "(instance.format != entryIndex['__name__'])")
-        content = self._exportSubTree(entryIndex) + [""]
+    def export(self):
+        content = self._exportSubTree() + [""]
 
         return "\n".join(content)
 
@@ -181,7 +166,7 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     # adding the root node
     nodes = [Node()]
     if "__name__" in entryIndex:
-        nodes[0].format = entryIndex["__name__"]
+        nodes[0].format = entryIndex
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
@@ -195,8 +180,8 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         # temporarily store parent id in node.parent
         # store everything else in node.value
         newNode = Node()
-        if "__name__" in entryIndex:
-            newNode.format = entryIndex["__name__"]
+        newNode.format = entryIndex
+        newNode.rawEntries = line
         newNode.id = i
         newNode.parent = int(line[entryIndex["HEAD"]])
         newNode.deprel = line[entryIndex["DEPREL"]]

@@ -25,7 +25,8 @@ supportedList = {
     "AMR": AMR,
     "txtOrTree": txtOrTree,
     "pyCode": pyCode,
-    "conll": conll
+    "conll": conll,
+    "semanticFrame": semanticFrame,
 }
 
 
@@ -46,7 +47,7 @@ class DataLoader():
                     "callable")
         return
 
-    def load(self, file, linesToLoad=sys.maxsize):
+    def load(self, file, linesToLoad=sys.maxsize, verbose=False):
         def matchPattern(pattern):
             return [filename
                     for filename in glob.glob(os.path.expanduser(pattern))
@@ -66,13 +67,27 @@ class DataLoader():
         if len(files) == 0:
             raise RuntimeError(
                 "natlang.dataLoader.load [ERROR]: Cannot find matching files")
-        for filename in files:
-            content += self.loader(filename, linesToLoad=linesToLoad)
+
+        if sys.version_info[0] < 3:
+            getSpec = inspect.getargspec
+        else:
+            getSpec = inspect.getfullargspec
+        if "verbose" in getSpec(self.loader)[0]:
+            for filename in files:
+                content += self.loader(filename,
+                                       linesToLoad=linesToLoad,
+                                       verbose=verbose)
+        else:
+            for filename in files:
+                content += self.loader(filename, linesToLoad=linesToLoad)
         return content
 
 
 class ParallelDataLoader():
-    def __init__(self, srcFormat="txtOrTree", tgtFormat="txtOrTree"):
+    def __init__(self,
+                 srcFormat="txtOrTree",
+                 tgtFormat="txtOrTree",
+                 verbose=False):
         self.srcLoader = DataLoader(srcFormat)
         self.tgtLoader = DataLoader(tgtFormat)
         return

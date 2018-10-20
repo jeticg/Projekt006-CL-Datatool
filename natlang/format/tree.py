@@ -408,7 +408,7 @@ class TestTree(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         loader = DataLoader("tree")
-        content = loader.load(parentdir + "/test/sampleTree.*")
+        content = loader.load(parentdir + "/test/sampleTree.*", verbose=True)
         A = content[0]
         B = content[1]
         self.testBuildTreeA(A)

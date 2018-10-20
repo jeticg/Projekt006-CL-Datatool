@@ -33,8 +33,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-          'jieba',
-          'progressbar'
+        'jieba',
+        'progressbar'
     ],
-    test_suite='natlang.format.testSuite'
+    test_suite='natlang.testSuite'
 )
