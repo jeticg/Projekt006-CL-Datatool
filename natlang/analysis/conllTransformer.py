@@ -35,6 +35,57 @@ from natlang.format import conll
 #   (|*[UPOS=NN;XPOS=NN]|)
 #   This example has a multiple feature constraint on a leafnode. The node can
 #   have deprel of any type but has to have UPOS and XPOS tag NN.
+#
+#   Feature constraints can also be more expressive. One could use logical
+#   operators to describe more detailed specifications.
+def closeBrackets(pattern, startIndex=0):
+    entry = []
+    counter = 0
+    i = startIndex
+    while i < len(pattern):
+        # Process feature constraints
+        if pattern[i] == '[':
+            newEntry = ''
+            while i < len(pattern):
+                newEntry += pattern[i]
+                i += 1
+                if i >= len(pattern):
+                    raise ValueError(
+                        "natlang.analysis.conllTransformer.closeBrackets" +
+                        ": invalid pattern, [ not closed")
+                if pattern[i - 1] == ']':
+                    break
+            if len(entry) == 0 or not isinstance(entry[-1], str):
+                raise ValueError(
+                    "natlang.analysis.conllTransformer.closeBrackets" +
+                    ": invalid pattern, feature constraints can only " +
+                    "follow dependency types (e.g. nsubj[UPOS=NN])")
+            entry[-1] += newEntry
+
+        if pattern[i] == '(':
+            counter += 1
+            if counter > 1:
+                subEntry, i = closeBrackets(pattern, i)
+                entry.append(subEntry)
+                continue
+        elif pattern[i] == ')':
+            counter -= 1
+            if counter < 0:
+                raise ValueError(
+                    "natlang.analysis.conllTransformer.closeBrackets: " +
+                    "invalid pattern, brackets not closed")
+            if counter == 0:
+                return entry, i
+        else:
+            entry.append(pattern[i])
+        i += 1
+    if counter != 0:
+        raise ValueError(
+            "natlang.analysis.conllTransformer.closeBrackets: invalid " +
+            "pattern, brackets not closed")
+    return entry, i
+
+
 def parsePattern(pattern):
     bPattern = _parseStage1(pattern)
     return _parseStage2(bPattern)
@@ -53,52 +104,6 @@ def _parseStage1(pattern):
     remain with their deprel at this stage.
     Here we refer to the pattern produced by this function bPattern.
     """
-    def closeBrackets(pattern, startIndex=0):
-        entry = []
-        counter = 0
-        i = startIndex
-        while i < len(pattern):
-            # Process feature constraints
-            if pattern[i] == '[':
-                newEntry = ''
-                while i < len(pattern):
-                    newEntry += pattern[i]
-                    i += 1
-                    if i >= len(pattern):
-                        raise ValueError(
-                            "natlang.analysis.conllTransformer.closeBrackets" +
-                            ": invalid pattern, [ not closed")
-                    if pattern[i - 1] == ']':
-                        break
-                if len(entry) == 0 or not isinstance(entry[-1], str):
-                    raise ValueError(
-                        "natlang.analysis.conllTransformer.closeBrackets" +
-                        ": invalid pattern, feature constraints can only " +
-                        "follow dependency types (e.g. nsubj[UPOS=NN])")
-                entry[-1] += newEntry
-
-            if pattern[i] == '(':
-                counter += 1
-                if counter > 1:
-                    subEntry, i = closeBrackets(pattern, i)
-                    entry.append(subEntry)
-                    continue
-            elif pattern[i] == ')':
-                counter -= 1
-                if counter < 0:
-                    raise ValueError(
-                        "natlang.analysis.conllTransformer.closeBrackets: " +
-                        "invalid pattern, brackets not closed")
-                if counter == 0:
-                    return entry, i
-            else:
-                entry.append(pattern[i])
-            i += 1
-        if counter != 0:
-            raise ValueError(
-                "natlang.analysis.conllTransformer.closeBrackets: invalid " +
-                "pattern, brackets not closed")
-        return entry, i
     result = []
     counter = 0
     pattern =\
@@ -185,7 +190,7 @@ def matchPatternOnNode(pattern, node):
 
 def _matchFeatureConstraints(dPattern, node):
     """
-    This function matches features contraints:
+    This function matches features constraints:
         DEPERL[CONSTRAINTS]
     For example:
         DEPERL[CONSTRAINT1, CONSTRAINT2]
@@ -213,12 +218,52 @@ def _matchFeatureConstraints(dPattern, node):
             raise ValueError(
                 "natlang.analysis.conllTransformer." +
                 "_matchFeatureConstraints:" +
-                " invalid feature constraint: feature entry not found in" +
-                " node format")
+                " invalid feature constraint: feature entry \"" + key +
+                "\" not found in node format")
         if matchEqual:
             return value == node.rawEntries[node.format[key]]
         else:
             return value != node.rawEntries[node.format[key]]
+
+    def constraintsMet(constraints, node):
+        # Step1: replace all constraints with Bool values, that includes
+        # subsequences
+        for i in range(len(constraints)):
+            if constraints[i] == "and" or constraints[i] == "or" or\
+                    constraints[i] == "not":
+                continue
+            if isinstance(constraints[i], list):
+                constraints[i] = constraintsMet(constraints[i], node)
+            elif isinstance(constraints[i], str):
+                constraints[i] = constraintMet(constraints[i], node)
+        # Step2: get rid of the "not"s
+        for i in reversed(list(range(1, len(constraints)))):
+            if constraints[i-1] == "not":
+                if not isinstance(constraints[i], bool):
+                    raise ValueError(
+                        "natlang.analysis.conllTransformer._matchFeatureCons" +
+                        "traints: invalid feature constraint")
+                constraints[i-1] = not constraints[i]
+                constraints[i] = None
+        constraints = [cons for cons in constraints if cons is not None]
+        # Step3: get rid of the "and"s
+        for i in reversed(list(range(1, len(constraints)))):
+            if constraints[i-1] == "and":
+                if (not isinstance(constraints[i], bool)) or (i-2 < 0) or\
+                        (not isinstance(constraints[i-2], bool)):
+                    raise ValueError(
+                        "natlang.analysis.conllTransformer._matchFeatureCons" +
+                        "traints: invalid feature constraint")
+                constraints[i-2] = constraints[i-2] and constraints[i]
+                constraints[i-1] = constraints[i] = None
+                i -= 1
+        constraints = [cons for cons in constraints if cons is not None]
+        # Step4: right now, it should all be "or"s
+        constraints = [cons for cons in constraints if cons != "or"]
+        for cons in constraints:
+            if cons is True:
+                return True
+        return False
 
     if '[' not in dPattern:
         # No constraint
@@ -227,6 +272,7 @@ def _matchFeatureConstraints(dPattern, node):
         else:
             return False
     else:
+        dPattern = dPattern.replace('(', " ( ").replace(')', " ) ")
         constraints = dPattern.replace('[', '°').replace(']', '').split('°')
         if len(constraints) != 2:
             raise ValueError(
@@ -235,11 +281,16 @@ def _matchFeatureConstraints(dPattern, node):
         deprel, constraints = constraints[0], constraints[1]
         if deprel != '*' and (node is None or deprel != node.deprel):
             return False
-        constraints = constraints.split(';')
-        for constraint in constraints:
-            if not constraintMet(constraint, node):
-                return False
-        return True
+
+        # Processing constraints
+        constraints = constraints.replace(';', " and ")
+        constraints = constraints.replace('&&', " and ")
+        constraints = constraints.replace('&', " and ")
+        constraints = constraints.replace('||', " or ")
+        constraints = constraints.replace('|', " or ").split()
+        constraints, _ = closeBrackets(['('] + constraints + [')'])
+
+        return constraintsMet(constraints, node)
 
 
 def _matchCPattern(cPattern, node):
@@ -432,6 +483,37 @@ class TestPatternMatching(unittest.TestCase):
         self.assertEqual(
             False,
             _matchFeatureConstraints("nsubj[ID!=story]", x.rightChild))
+        return
+
+    def testMatchFeatureConstraints2(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        x, y = content[0], content[1]
+        self.assertEqual(
+            True,
+            _matchFeatureConstraints("*[FORM=comes]", x.rightChild))
+        self.assertEqual(
+            False,
+            _matchFeatureConstraints("*[FORM!=comes]", x.rightChild))
+        self.assertEqual(
+            True,
+            _matchFeatureConstraints(
+                "*[FORM!=comes or LEMMA=come]",
+                x.rightChild))
+        self.assertEqual(
+            True,
+            _matchFeatureConstraints(
+                "*[(FORM!=comes or not LEMMA!=come)]",
+                x.rightChild))
+        self.assertEqual(
+            True,
+            _matchFeatureConstraints(
+                "*[(FORM!=comes or not LEMMA!=come) and (FORM!=comes or " +
+                "LEMMA=come)]",
+                x.rightChild))
         return
 
     def testMatchGeneral2(self):
