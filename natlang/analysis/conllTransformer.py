@@ -222,7 +222,7 @@ def _matchCPattern(cPattern, node):
 def _matchCPatternChildren(childPattern, node):
     if childPattern == ['*'] or (childPattern == [] and node is None):
         return True
-    if node is None:
+    if childPattern == [] or node is None:
         return False
 
     # At this point, node is not None and childPattern has at least something
@@ -322,6 +322,20 @@ class TestPatternMatching(unittest.TestCase):
         self.assertEqual(
             False,
             matchPatternOnNode("(* nsubj *|root|*)", content[0].rightChild))
+        return
+
+    def testMatchNode3(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
+                             verbose=True)
+        self.assertEqual(
+            False,
+            matchPatternOnNode("(* | root | nmod )", content[2].rightChild))
+        self.assertEqual(
+            True,
+            matchPatternOnNode("(*|root|nmod punct)", content[2].rightChild))
         return
 
     def testMatchGeneral1(self):
