@@ -1,0 +1,3 @@
+convert a DateTime string back to a DateTime object of format `'%Y-%m-%d %H:%M:%S.%f'`
+find maximum with `lookahead` = `4` in a list `arr`
+In Django, filter `Task.objects` based on all entities in `['A', 'P', 'F']`
