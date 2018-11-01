@@ -29,8 +29,11 @@ def load(file, linesToLoad=sys.maxsize):
                         tokens.append(word)
                         word = '<VAR>'
                 else:
+                    word = word.rstrip(',.')
                     word = word.lower()
-                words.append(word)
+
+                if word:
+                    words.append(word)
 
             data.append(words)
             copied_tokens.append(tokens)
