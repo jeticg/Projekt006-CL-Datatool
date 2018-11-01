@@ -10,10 +10,16 @@ from __future__ import absolute_import
 import ast
 import sys
 import os
+
 try:
-    from tree import Node
+    from tree import Node as TreeNode
 except ImportError:
-    from natlang.format.tree import Node
+    from natlang.format.tree import Node as TreeNode
+
+
+class AstNode(TreeNode):
+    def __repr__(self):
+        return 'AstNode({})'.format(repr(self.value))
 
 
 class _TmpNode:
@@ -69,10 +75,10 @@ def _restructure_rec(node, orig_children):
     """
     # edge case
     tag = node.value[0]
-    if (tag.endswith('_vec') or tag.endswith('_optional')) and\
+    if (tag.endswith('_vec') or tag.endswith('_optional')) and \
             not orig_children:
         # transformed grammar with no children
-        dummy = Node()
+        dummy = AstNode()
         dummy.value = ('DUMMY', None)
         node.child = dummy
         dummy.parent = node
@@ -80,7 +86,7 @@ def _restructure_rec(node, orig_children):
     # transform each child node
     child_nodes = []
     for orig_child in orig_children:
-        child_node = Node()
+        child_node = AstNode()
         if orig_child.value is None:
             # internal node
             child_node.value = (orig_child.tag,)
@@ -105,7 +111,7 @@ def _restructure_rec(node, orig_children):
 
 def _restructure(tmp_node):
     """transform the structure of TmpNode into Node"""
-    node = Node()
+    node = AstNode()
     if tmp_node.value is None:
         node.value = (tmp_node.tag,)
     else:
@@ -114,7 +120,7 @@ def _restructure(tmp_node):
     _restructure_rec(node, tmp_node.children)
 
     # append topmost root node
-    root = Node()
+    root = AstNode()
     root.value = ('ROOT',)
     root.child = node
     node.parent = root
@@ -166,6 +172,7 @@ if __name__ == '__main__':
         import os
         import errno
 
+
         def draw_tmp_tree(root, name='tmp'):
             try:
                 os.makedirs('figures')
@@ -187,8 +194,10 @@ if __name__ == '__main__':
 
             return g.render()
 
+
         def repr_n(node):
             return 'Node{}'.format(repr(node.value))
+
 
         def draw_res_tree(root, name='res'):
             try:
@@ -220,6 +229,7 @@ if __name__ == '__main__':
                     g.edge(str(id(node)), str(id(node.parent)), color='green')
 
             return g.render()
+
 
         # example data structures
         code = r"os.path.abspath('mydir/myfile.txt')"
