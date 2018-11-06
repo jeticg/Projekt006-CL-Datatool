@@ -6,7 +6,7 @@
 # Ruoyi Wang
 #
 #
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 import ast
 import sys
 import os
@@ -15,6 +15,41 @@ try:
     from tree import Node as TreeNode
 except ImportError:
     from natlang.format.tree import Node as TreeNode
+
+
+def export_tokens(node):
+    if node is None:
+        # guard against incomplete tree
+        return []
+    elif node.value[0] == 'LITERAL':
+        return [node.value[1]]
+    elif node.value[0] == 'DUMMY':
+        return []
+    elif node.value[0] == 'Attribute':
+        vec = []
+        vec.extend(export_tokens(node.child))
+        vec.append('.')
+        if node.child is not None:
+            vec.extend(export_tokens(node.child.sibling))
+        return vec
+    elif node.value[0] == 'Call':
+        vec = []
+        vec.extend(export_tokens(node.child))
+        vec.append('(')
+        if node.child is not None:
+            n = node.child.sibling
+            while n is not None:
+                vec.extend(export_tokens(n))
+                n = n.sibling
+        vec.append(')')
+        return vec
+    else:
+        vec = []
+        n = node.child
+        while n is not None:
+            vec.extend(export_tokens(n))
+            n = n.sibling
+        return vec
 
 
 class AstNode(TreeNode):
@@ -164,78 +199,79 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
 
 
 if __name__ == '__main__':
-    if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
-        pass
-    else:
-        # viz tools
-        from graphviz import Graph
-        import os
-        import errno
+    # if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
+    #     pass
+    # else:
+    # viz tools
+    from graphviz import Graph
+    import os
+    import errno
 
 
-        def draw_tmp_tree(root, name='tmp'):
-            try:
-                os.makedirs('figures')
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
+    def draw_tmp_tree(root, name='tmp'):
+        try:
+            os.makedirs('figures')
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
 
-            fname = 'figures/{}'.format(name + '.gv')
-            g = Graph(format='png', filename=fname)
+        fname = 'figures/{}'.format(name + '.gv')
+        g = Graph(format='png', filename=fname)
 
-            fringe = [root]
-            while fringe:
-                node = fringe.pop()
-                g.node(str(id(node)), repr(node))
-                for child in node.children:
-                    fringe.append(child)
-                    g.node(str(id(child)), repr(node))
-                    g.edge(str(id(node)), str(id(child)))
+        fringe = [root]
+        while fringe:
+            node = fringe.pop()
+            g.node(str(id(node)), repr(node))
+            for child in node.children:
+                fringe.append(child)
+                g.node(str(id(child)), repr(node))
+                g.edge(str(id(node)), str(id(child)))
 
-            return g.render()
-
-
-        def repr_n(node):
-            return 'Node{}'.format(repr(node.value))
+        return g.render()
 
 
-        def draw_res_tree(root, name='res'):
-            try:
-                os.makedirs('figures')
-            except OSError as exc:  # Guard against race condition
-                if exc.errno != errno.EEXIST:
-                    raise
-
-            fname = 'figures/{}'.format(name + '.gv')
-            g = Graph(format='png', filename=fname)
-
-            fringe = [root]
-            while fringe:
-                node = fringe.pop()
-                g.node(str(id(node)), repr_n(node))
-                if node.child is not None:
-                    child = node.child
-                    fringe.append(child)
-                    g.node(str(id(child)), repr_n(node))
-                    g.edge(str(id(node)), str(id(child)), color='red')
-
-                if node.sibling is not None:
-                    sibling = node.sibling
-                    fringe.append(sibling)
-                    g.node(str(id(sibling)), repr_n(node))
-                    g.edge(str(id(node)), str(id(sibling)), color='blue')
-
-                if node.parent is not None:
-                    g.edge(str(id(node)), str(id(node.parent)), color='green')
-
-            return g.render()
+    def repr_n(node):
+        return 'Node{}'.format(repr(node.value))
 
 
-        # example data structures
-        code = r"os.path.abspath('mydir/myfile.txt')"
-        py_ast = ast.parse(code)
-        root = _translate(py_ast)
-        res_root = _restructure(root)
+    def draw_res_tree(root, name='res'):
+        try:
+            os.makedirs('figures')
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
 
-        # draw_tmp_tree(root)
-        # draw_res_tree(res_root)
+        fname = 'figures/{}'.format(name + '.gv')
+        g = Graph(format='png', filename=fname)
+
+        fringe = [root]
+        while fringe:
+            node = fringe.pop()
+            g.node(str(id(node)), repr_n(node))
+            if node.child is not None:
+                child = node.child
+                fringe.append(child)
+                g.node(str(id(child)), repr_n(node))
+                g.edge(str(id(node)), str(id(child)), color='red')
+
+            if node.sibling is not None:
+                sibling = node.sibling
+                fringe.append(sibling)
+                g.node(str(id(sibling)), repr_n(node))
+                g.edge(str(id(node)), str(id(sibling)), color='blue')
+
+            if node.parent is not None:
+                g.edge(str(id(node)), str(id(node.parent)), color='green')
+
+        return g.render()
+
+
+    # example data structures
+    code = r"os.path.abspath('mydir/myfile.txt')"
+    py_ast = ast.parse(code)
+    root = _translate(py_ast)
+    res_root = _restructure(root)
+    print(export_tokens(res_root))
+
+    # draw_tmp_tree(root)
+    # draw_res_tree(res_root)
