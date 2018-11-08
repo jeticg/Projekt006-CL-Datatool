@@ -31,6 +31,26 @@ supportedList = {
 }
 
 
+def processOption(option, errorMessage):
+    if isinstance(option, str):
+        if '{' in option and '}' in option:
+            option = ast.literal_eval(option)
+        else:
+            option = option.split('=')
+            if len(option) == 1:
+                option = {option[0]: True}
+            elif len(option) == 2:
+                option = dict([option])
+            else:
+                raise ValueError(
+                    "natlang.dataLoader.load: invalid option")
+    if option is None:
+        option = {}
+    if not isinstance(option, dict):
+        raise ValueError(errorMessage)
+    return option
+
+
 class DataLoader():
     def __init__(self, format="txtOrTree"):
         if isinstance(format, str):
@@ -54,23 +74,8 @@ class DataLoader():
                     for filename in glob.glob(os.path.expanduser(pattern))
                     if os.path.isfile(filename)]
 
-        if isinstance(option, str):
-            if '{' in option and '}' in option:
-                option = ast.literal_eval(option)
-            else:
-                option = option.split('=')
-                if len(option) == 1:
-                    option = {option[0]: True}
-                elif len(option) == 2:
-                    option = dict([option])
-                else:
-                    raise ValueError(
-                        "natlang.dataLoader.load: invalid option")
-        if option is None:
-            option = {}
-        if not isinstance(option, dict):
-            raise ValueError(
-                "natlang.dataLoader.load: invalid option")
+        option = processOption(
+            option, errorMessage="natlang.dataLoader.load: invalid option")
 
         content = []
         if isinstance(file, list):
