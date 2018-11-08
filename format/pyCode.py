@@ -171,10 +171,37 @@ def python_to_tree(code):
     return res_root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+def _find_literal_nodes(ast_tree):
+    if ast_tree.value[0] == 'LITERAL':
+        return [ast_tree]
+    else:
+        nodes = []
+        node = ast_tree.child
+        while node is not None:
+            nodes.extend(_find_literal_nodes(node))
+            node = node.sibling
+        return nodes
+
+
+def load(fileName, linesToLoad=sys.maxsize, verbose=False, option=None):
+    """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
+    `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
     import progressbar
+    import cPickle as pickle
+    import itertools
+    orig_name = fileName
     fileName = os.path.expanduser(fileName)
-    content = []
+
+    if option is None:
+        option = {}
+        option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
+            orig_name.rstrip('.snippets.txt'))
+    print(option['mapping_path'])
+
+    with open(option['mapping_path']) as mapping_f:
+        token_maps = pickle.load(mapping_f)
+
+    roots = []
     i = 0
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
@@ -190,12 +217,20 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
         if verbose is False:
             loadProgressBar.update(i)
         code = eval(line)
-        content.append(python_to_tree(code))
+        roots.append(python_to_tree(code))
         if i == linesToLoad:
             break
+
+    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue=[]):
+        literal_nodes = _find_literal_nodes(root)
+        for node in literal_nodes:
+            if node.value[1] in tokens_map.values():
+                node.value = node.value[0], '<COPIED>'
+
     if verbose is False:
         loadProgressBar.finish()
-    return content
+
+    return roots
 
 
 if __name__ == '__main__':

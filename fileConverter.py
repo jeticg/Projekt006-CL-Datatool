@@ -12,6 +12,8 @@ from __future__ import absolute_import
 import io
 import os
 import sys
+import re
+import cPickle as pickle
 import xml.etree.ElementTree as ET
 
 import jieba
@@ -20,9 +22,56 @@ from natlang.format.tree import lexicaliseNode
 from natlang.format.tree import load as loadPennTree
 
 
+def procCoNaLa_cleaned_intent(intent_in,
+                              intent_out='rewritten_intent.txt',
+                              tokens_out='token_maps.pkl'):
+    nfa = re.compile(r'`[^`]+`|[^\s]+')
+
+    data = []
+    token_maps = []
+    with io.open(intent_in, encoding='utf8') as intent_f:
+        for i, line in enumerate(intent_f):
+            words = []
+            tokens_map = {}  # index to token mapping
+            for i, word in enumerate(nfa.findall(line)):
+                if word.startswith('`') and word.endswith('`'):
+                    # annotated content
+                    word = word.strip('`')
+                    if word.endswith('"') or word.endswith("'"):
+                        # string literal
+                        try:
+                            tokens_map[i] = eval(word)
+                        except SyntaxError:
+                            pass
+                        else:
+                            word = '<STR_LITERAL>'
+                    else:
+                        # variable name / other literal
+                        tokens_map[i] = word
+                        word = '<VAR>'
+                else:
+                    word = word.rstrip(',.')
+                    word = word.lower()
+
+                if word:
+                    words.append(word)
+
+            data.append(words)
+            token_maps.append(tokens_map)
+
+    with io.open(intent_out, 'w', encoding='utf8') as intent_out_f:
+        for d in data:
+            intent_out_f.write(u' '.join(d))
+            intent_out_f.write(u'\n')
+
+    with io.open(tokens_out, 'wb') as tokens_out_f:
+        pickle.dump(token_maps, tokens_out_f)
+
+
 def procCoNaLa_mined(filename,
                      intent_output='intent.txt',
                      snippet_output='snippets.txt'):
+    """mined data are in jsonl format, so we need a different function"""
     import json
     import ast
     data = []
