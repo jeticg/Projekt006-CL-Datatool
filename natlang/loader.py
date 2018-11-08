@@ -12,6 +12,7 @@ import sys
 import inspect
 import unittest
 import glob
+import ast
 import importlib
 
 from natlang.format import *
@@ -35,7 +36,7 @@ class DataLoader():
         if isinstance(format, str):
             if format not in supportedList:
                 raise ValueError(
-                    "natlang.dataLoader.load: invalid format selection")
+                    "natlang.dataLoader: invalid format selection")
             else:
                 self.loader = supportedList[format].load
         else:
@@ -43,11 +44,28 @@ class DataLoader():
                 self.loader = format
             else:
                 raise ValueError(
-                    "natlang.dataLoader.load: custom format selected not " +
+                    "natlang.dataLoader: custom format selected not " +
                     "callable")
         return
 
     def load(self, file, linesToLoad=sys.maxsize, verbose=True, option={}):
+        if isinstance(option, str):
+            if '{' in option and '}' in option:
+                option = ast.literal_eval(option)
+            else:
+                option = option.split('=')
+                if len(option) == 1:
+                    option = {option[0]:True}
+                elif len(option) == 2:
+                    option = dict([option])
+                else:
+                    raise ValueError(
+                        "natlang.dataLoader.load: invalid option")
+        if option is None:
+            option = {}
+        if not isinstance(option, dict):
+            raise ValueError(
+                "natlang.dataLoader.load: invalid option")
         def matchPattern(pattern):
             return [filename
                     for filename in glob.glob(os.path.expanduser(pattern))
