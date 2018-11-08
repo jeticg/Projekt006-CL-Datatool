@@ -47,7 +47,7 @@ class DataLoader():
                     "callable")
         return
 
-    def load(self, file, linesToLoad=sys.maxsize, verbose=False):
+    def load(self, file, linesToLoad=sys.maxsize, verbose=False, option={}):
         def matchPattern(pattern):
             return [filename
                     for filename in glob.glob(os.path.expanduser(pattern))
@@ -72,14 +72,28 @@ class DataLoader():
             getSpec = inspect.getargspec
         else:
             getSpec = inspect.getfullargspec
+
         if "verbose" in getSpec(self.loader)[0]:
-            for filename in files:
-                content += self.loader(filename,
-                                       linesToLoad=linesToLoad,
-                                       verbose=verbose)
+            if "option" in getSpec(self.loader)[0]:
+                load = lambda fileName: self.loader(filename,
+                                                    linesToLoad=linesToLoad,
+                                                    verbose=verbose,
+                                                    option=option)
+            else:
+                load = lambda fileName: self.loader(filename,
+                                                    linesToLoad=linesToLoad,
+                                                    verbose=verbose)
         else:
-            for filename in files:
-                content += self.loader(filename, linesToLoad=linesToLoad)
+            if "option" in getSpec(self.loader)[0]:
+                load = lambda fileName: self.loader(filename,
+                                                    linesToLoad=linesToLoad,
+                                                    option=option)
+            else:
+                load = lambda fileName: self.loader(filename,
+                                                    linesToLoad=linesToLoad)
+
+        for filename in files:
+            content += load(filename)
         return content
 
 
@@ -92,9 +106,12 @@ class ParallelDataLoader():
         self.tgtLoader = DataLoader(tgtFormat)
         return
 
-    def load(self, fFile, eFile, linesToLoad=sys.maxsize):
-        data = zip(self.srcLoader.load(fFile, linesToLoad),
-                   self.tgtLoader.load(eFile, linesToLoad))
+    def load(self, fFile, eFile,
+             linesToLoad=sys.maxsize, verbose=False, option={}):
+        data = zip(self.srcLoader.load(fFile, linesToLoad,
+                                       verbose=verbose, option=option),
+                   self.tgtLoader.load(eFile, linesToLoad,
+                                       verbose=verbose, option=option))
         # Remove incomplete or invalid entries
         data = [(f, e) for f, e in data if f is not None and e is not None]
         data = [(f, e) for f, e in data if len(f) > 0 and len(e) > 0]
