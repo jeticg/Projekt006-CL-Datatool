@@ -3,3 +3,4 @@ find maximum with `lookahead` = `4` in a list `arr`
 In Django, filter `Task.objects` based on all entities in `['A', 'P', 'F']`
 join multiple dataframes `d1`, `d2`, and `d3` on column `'name'`
 using python's datetime module, get the year that utc-11 is currently in
+get the ASCII value of a character `u'あ'` as an int
