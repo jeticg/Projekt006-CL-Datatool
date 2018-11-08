@@ -130,7 +130,7 @@ def python_to_tree(code):
     return res_root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     import progressbar
     fileName = os.path.expanduser(fileName)
     content = []
@@ -138,7 +138,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                    '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is False:
+    if verbose is True:
         loadProgressBar = \
             progressbar.ProgressBar(widgets=widgets,
                                     maxval=min(
@@ -146,13 +146,13 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
                                         linesToLoad)).start()
     for line in open(fileName):
         i += 1
-        if verbose is False:
+        if verbose is True:
             loadProgressBar.update(i)
         code = eval(line)
         content.append(python_to_tree(code))
         if i == linesToLoad:
             break
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
     return content
 

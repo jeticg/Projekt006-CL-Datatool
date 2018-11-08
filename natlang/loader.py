@@ -47,7 +47,7 @@ class DataLoader():
                     "callable")
         return
 
-    def load(self, file, linesToLoad=sys.maxsize, verbose=False, option={}):
+    def load(self, file, linesToLoad=sys.maxsize, verbose=True, option={}):
         def matchPattern(pattern):
             return [filename
                     for filename in glob.glob(os.path.expanduser(pattern))
@@ -101,13 +101,13 @@ class ParallelDataLoader():
     def __init__(self,
                  srcFormat="txtOrTree",
                  tgtFormat="txtOrTree",
-                 verbose=False):
+                 verbose=True):
         self.srcLoader = DataLoader(srcFormat)
         self.tgtLoader = DataLoader(tgtFormat)
         return
 
     def load(self, fFile, eFile,
-             linesToLoad=sys.maxsize, verbose=False, option={}):
+             linesToLoad=sys.maxsize, verbose=True, option={}):
         data = zip(self.srcLoader.load(fFile, linesToLoad,
                                        verbose=verbose, option=option),
                    self.tgtLoader.load(eFile, linesToLoad,
