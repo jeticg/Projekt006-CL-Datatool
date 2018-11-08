@@ -31,7 +31,7 @@ supportedList = {
 }
 
 
-def processOption(option, errorMessage):
+def processOption(option, errorMessage="invalid option"):
     if isinstance(option, str):
         if '{' in option and '}' in option:
             option = ast.literal_eval(option)
@@ -42,8 +42,7 @@ def processOption(option, errorMessage):
             elif len(option) == 2:
                 option = dict([option])
             else:
-                raise ValueError(
-                    "natlang.dataLoader.load: invalid option")
+                raise ValueError(errorMessage)
     if option is None:
         option = {}
     if not isinstance(option, dict):
@@ -139,3 +138,20 @@ class ParallelDataLoader():
         data = [(f, e) for f, e in data if f is not None and e is not None]
         data = [(f, e) for f, e in data if len(f) > 0 and len(e) > 0]
         return data
+
+
+class TestPatternMatching(unittest.TestCase):
+    def testProcessOption(self):
+        self.assertDictEqual(supportedList, processOption(supportedList, ""))
+        testDict = {'a': '1', 'b': '2', 'c': '3'}
+        self.assertDictEqual(testDict, processOption(str(testDict), ""))
+        testDict = {'cheese': True}
+        self.assertDictEqual(testDict, processOption('cheese', ""))
+        testDict = {'cheese': '2'}
+        self.assertDictEqual(testDict, processOption('cheese=2', ""))
+        return
+
+
+if __name__ == '__main__':
+    if not bool(getattr(sys, 'ps1', sys.flags.interactive)):
+        unittest.main()
