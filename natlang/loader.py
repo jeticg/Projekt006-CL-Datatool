@@ -49,13 +49,18 @@ class DataLoader():
         return
 
     def load(self, file, linesToLoad=sys.maxsize, verbose=True, option={}):
+        def matchPattern(pattern):
+            return [filename
+                    for filename in glob.glob(os.path.expanduser(pattern))
+                    if os.path.isfile(filename)]
+
         if isinstance(option, str):
             if '{' in option and '}' in option:
                 option = ast.literal_eval(option)
             else:
                 option = option.split('=')
                 if len(option) == 1:
-                    option = {option[0]:True}
+                    option = {option[0]: True}
                 elif len(option) == 2:
                     option = dict([option])
                 else:
@@ -66,10 +71,6 @@ class DataLoader():
         if not isinstance(option, dict):
             raise ValueError(
                 "natlang.dataLoader.load: invalid option")
-        def matchPattern(pattern):
-            return [filename
-                    for filename in glob.glob(os.path.expanduser(pattern))
-                    if os.path.isfile(filename)]
 
         content = []
         if isinstance(file, list):
@@ -93,22 +94,21 @@ class DataLoader():
 
         if "verbose" in getSpec(self.loader)[0]:
             if "option" in getSpec(self.loader)[0]:
-                load = lambda fileName: self.loader(filename,
-                                                    linesToLoad=linesToLoad,
-                                                    verbose=verbose,
-                                                    option=option)
+                def load(fileName):
+                    return self.loader(filename, linesToLoad=linesToLoad,
+                                       verbose=verbose, option=option)
             else:
-                load = lambda fileName: self.loader(filename,
-                                                    linesToLoad=linesToLoad,
-                                                    verbose=verbose)
+                def load(fileName):
+                    return self.loader(filename, linesToLoad=linesToLoad,
+                                       verbose=verbose)
         else:
             if "option" in getSpec(self.loader)[0]:
-                load = lambda fileName: self.loader(filename,
-                                                    linesToLoad=linesToLoad,
-                                                    option=option)
+                def load(fileName):
+                    return self.loader(filename, linesToLoad=linesToLoad,
+                                       option=option)
             else:
-                load = lambda fileName: self.loader(filename,
-                                                    linesToLoad=linesToLoad)
+                def load(fileName):
+                    return self.loader(filename, linesToLoad=linesToLoad)
 
         for filename in files:
             content += load(filename)
