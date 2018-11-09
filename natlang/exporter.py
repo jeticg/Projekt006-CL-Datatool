@@ -18,9 +18,9 @@ __version__ = "0.3a"
 def exportToFile(result, fileName):
     with open(fileName, "w") as outputFile:
         for sent in result:
-            if isinstance(sent, Node):
+            try:
                 line = sent.export()
-            else:
+            except AttributeError:
                 line = " ".join(sent)
             outputFile.write(line + "\n")
     return

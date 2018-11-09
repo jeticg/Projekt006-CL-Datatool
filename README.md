@@ -1,5 +1,8 @@
-# Datatool
-Jetic's repo for NLP data loader/common data structures and other tools
+# natlang: Natural Language Data Loading Tools
+master: [![Build Status](https://travis-ci.com/jeticg/datatool.svg?branch=master)](https://travis-ci.com/jeticg/datatool)
+dev: [![Build Status](https://travis-ci.com/jeticg/datatool.svg?branch=dev)](https://travis-ci.com/jeticg/datatool)
+
+Data loader/common data structures and other tools
 
 Most of the code are Python2/3 compatible.
 For the version of python for specific modules, please check the second line of
@@ -7,8 +10,13 @@ each source file.
 
 ## 0. Usage
 
-Place this entire repo somewhere in your project, or add it to your python
-library.
+Install using pip will get you the latest tested version of `natlang`.
+
+    > pip install natlang
+
+Alternatively, you can also install from source using the following command:
+
+    > python setup.py install
 
 ## 1. Format
 
@@ -26,6 +34,9 @@ for analysis.
 
 4. `AMR`: Abstract Meaning Representation. Run `python -i format/AMR.py` to
 play around.
+
+5. `conll`: General CoNLL format loader. Default is CoNLL_U. Run
+`python -i format/conll.py` to play around.
 
 ### 1.1 Recommended Functions
 

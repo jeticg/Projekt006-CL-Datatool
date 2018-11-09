@@ -386,7 +386,7 @@ def get_column_format(root):
             has_left_child, has_right_child, has_sib)
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     # todo: requires pb_frames as additional information
     raise NotImplementedError
 

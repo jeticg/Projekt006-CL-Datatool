@@ -15,6 +15,8 @@ import inspect
 import unittest
 import progressbar
 
+from natlang.exporter import exportToFile
+
 
 defaultEntryIndex = {
     # This is taken from http://universaldependencies.org/format.html
@@ -69,7 +71,8 @@ class Node():
         self.rightChild = None
         self.sibling = None
         self.depth = -1
-        self.format = "Unspecified"
+        self.format = None
+        self.rawEntries = []
         return
 
     def __repr__(self, __spacing=[], __showSibling=False):
@@ -77,30 +80,39 @@ class Node():
         This method prints the structure of the subtree with self as root.
         '''
         if self.leftChild is not None:
-            self.leftChild.__repr__(__spacing + [_lArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _lArrow and\
+                    self.parent is not None and self.parent.leftChild == self:
+                self.leftChild.__repr__(__spacing[:-1] + [' ', _lArrow], True)
+            else:
+                self.leftChild.__repr__(__spacing + [_lArrow], True)
 
-        last = _rArrow
         for i, entry in enumerate(__spacing):
             if i == 0:
                 print(' ', end='')
             if i == len(__spacing) - 1:
                 print(entry, end='')
-            elif (__spacing[i + 1] == _rArrow and entry == _lArrow) or\
-                    (__spacing[i + 1] == _lArrow and entry == _rArrow):
+            elif entry != " ":
                 print(_vArrow + "       ", end='')
             else:
                 print("        ", end='')
+
         if self.parent is None:
             print("ROOT")
         elif len(__spacing) == 0:
             print(self.value[0])
         else:
             print(_hArrow + self.deprel + _hArrow + self.value[0])
+
         if self.rightChild is not None:
-            self.rightChild.__repr__(__spacing + [_rArrow], True)
+            if len(__spacing) != 0 and __spacing[-1] == _rArrow and\
+                    self.sibling is None:
+                self.rightChild.__repr__(__spacing[:-1] + [' ', _rArrow], True)
+            else:
+                self.rightChild.__repr__(__spacing + [_rArrow], True)
 
         if self.sibling is not None and __showSibling is True:
             self.sibling.__repr__(__spacing, True)
+
         return "\nRepresentation: " +\
             "conll.Node(\"" + str((self.id,) + self.value) + "\")\n" +\
             "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
@@ -128,14 +140,33 @@ class Node():
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
 
+    def _exportSubTree(self):
+        content = []
+        if self.leftChild is not None:
+            content += self.leftChild._exportSubTree()
+        # If current node is root then does not output
+        if self.parent is not None:
+            content.append("\t".join(self.rawEntries))
+        if self.rightChild is not None:
+            content += self.rightChild._exportSubTree()
+
+        if self.sibling is not None:
+            content += self.sibling._exportSubTree()
+
+        return content
+
     def export(self):
-        raise NotImplementedError
+        content = self._exportSubTree() + [""]
+
+        return "\n".join(content)
 
 
 def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     content = [line.strip().split('\t') for line in rawContent]
     # adding the root node
     nodes = [Node()]
+    if "__name__" in entryIndex:
+        nodes[0].format = entryIndex
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
@@ -149,8 +180,8 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         # temporarily store parent id in node.parent
         # store everything else in node.value
         newNode = Node()
-        if "__name__" in entryIndex:
-            newNode.format = entryIndex["__name__"]
+        newNode.format = entryIndex
+        newNode.rawEntries = line
         newNode.id = i
         newNode.parent = int(line[entryIndex["HEAD"]])
         newNode.deprel = line[entryIndex["DEPREL"]]
@@ -192,13 +223,13 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
 def load(fileName,
          linesToLoad=sys.maxsize,
          entryIndex=defaultEntryIndex, commentMark=defaultCommentMark,
-         verbose=False):
+         verbose=True):
     fileName = os.path.expanduser(fileName)
     content = []
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                '; Total: %(value)d lines (in: %(elapsed)s)')]
-    if verbose is False:
+    if verbose is True:
         loadProgressBar =\
             progressbar.ProgressBar(widgets=widgets,
                                     maxval=min(
@@ -209,7 +240,7 @@ def load(fileName,
     with open(fileName) as file:
         for rawLine in file:
             i += 1
-            if verbose is False:
+            if verbose is True:
                 loadProgressBar.update(i)
             line = rawLine.strip()
 
@@ -224,7 +255,7 @@ def load(fileName,
     if len(entry) > 0:
         content.append(constructFromText(entry))
 
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
     return content
 
@@ -312,11 +343,22 @@ class TestTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=True)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=False)
         A = content[0]
         B = content[1]
         self.testBuildTreeA(A)
         self.testBuildTreeB(B)
+
+    def testExporter(self):
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=False)
+        exportToFile(content, parentdir + "/test/.sampleCoNLLU.conll.tmp")
+        exportedContent = load(
+            parentdir + "/test/.sampleCoNLLU.conll.tmp", verbose=False)
+        self.testBuildTreeA(exportedContent[0])
+        self.testBuildTreeB(exportedContent[1])
 
 
 if __name__ == '__main__':

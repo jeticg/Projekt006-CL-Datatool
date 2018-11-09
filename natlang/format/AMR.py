@@ -13,6 +13,7 @@ import sys
 import os
 import unittest
 import inspect
+import progressbar
 from copy import deepcopy
 from six import string_types
 
@@ -143,15 +144,14 @@ def constructAMRFromStr(string):
     return root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False):
-    import progressbar
+def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     fileName = os.path.expanduser(fileName)
     content = []
     i = 0
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is False:
+    if verbose is True:
         loadProgressBar =\
             progressbar.ProgressBar(widgets=widgets,
                                     maxval=min(
@@ -159,12 +159,12 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
                                         linesToLoad)).start()
     for line in open(fileName):
         i += 1
-        if verbose is False:
+        if verbose is True:
             loadProgressBar.update(i)
         content.append(constructAMRFromStr(line))
         if i == linesToLoad:
             break
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
     return content
 
@@ -207,7 +207,7 @@ class TestAMR(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         warnings.simplefilter("ignore")
-        content = load(parentdir + "/test/sampleAMR.amr", verbose=True)
+        content = load(parentdir + "/test/sampleAMR.amr", verbose=False)
         rawText = list(open(parentdir + "/test/sampleAMR.amr"))
         for amr, str in zip(content, rawText):
             self.assertEqual(str.split(), amr.export().split())

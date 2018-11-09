@@ -266,7 +266,7 @@ def constructTreeFromRNNGAction(actions):
     return root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False):
+def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     import progressbar
     fileName = os.path.expanduser(fileName)
     content = []
@@ -275,7 +275,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
                progressbar.FormatLabel(
                '; Total: %(value)d sents (in: %(elapsed)s)')]
     with open(fileName) as file:
-        if verbose is False:
+        if verbose is True:
             loadProgressBar =\
                 progressbar.ProgressBar(widgets=widgets,
                                         maxval=min(
@@ -284,13 +284,13 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False):
             file.seek(0)
         for line in file:
             i += 1
-            if verbose is False:
+            if verbose is True:
                 loadProgressBar.update(i)
             content.append(constructTreeFromStr(line))
             if i == linesToLoad:
                 break
 
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
     return content
 
@@ -395,7 +395,20 @@ class TestTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleTree.txt", verbose=True)
+        content = load(parentdir + "/test/sampleTree.txt", verbose=False)
+        A = content[0]
+        B = content[1]
+        self.testBuildTreeA(A)
+        self.testBuildTreeB(B)
+        return
+
+    def testLoadTreeFromLoader(self):
+        from natlang.loader import DataLoader
+        currentdir = os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe())))
+        parentdir = os.path.dirname(currentdir)
+        loader = DataLoader("tree")
+        content = loader.load(parentdir + "/test/sampleTree.*", verbose=False)
         A = content[0]
         B = content[1]
         self.testBuildTreeA(A)

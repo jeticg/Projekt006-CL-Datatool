@@ -183,7 +183,7 @@ def _find_literal_nodes(ast_tree):
         return nodes
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=False, option=None):
+def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
     """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
     `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
     import progressbar
@@ -206,7 +206,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False, option=None):
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                    '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is False:
+    if verbose is True:
         loadProgressBar = \
             progressbar.ProgressBar(widgets=widgets,
                                     maxval=min(
@@ -214,12 +214,13 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=False, option=None):
                                         linesToLoad)).start()
     for line in open(fileName):
         i += 1
-        if verbose is False:
+        if verbose is True:
             loadProgressBar.update(i)
         code = eval(line)
         roots.append(python_to_tree(code))
         if i == linesToLoad:
             break
+    if verbose is True:
 
     for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue=[]):
         literal_nodes = _find_literal_nodes(root)
