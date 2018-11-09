@@ -59,7 +59,7 @@ class DataLoader():
             else:
                 self.loader = supportedList[format].load
         else:
-            if hasattr(obj, '__call__'):
+            if hasattr(format, '__call__'):
                 self.loader = format
             else:
                 raise ValueError(
@@ -149,6 +149,22 @@ class TestPatternMatching(unittest.TestCase):
         self.assertDictEqual(testDict, processOption('cheese', ""))
         testDict = {'cheese': '2'}
         self.assertDictEqual(testDict, processOption('cheese=2', ""))
+        return
+
+    def testLoaderOption(self):
+        def load(fileName, linesToLoad=0, option={}):
+            return [option]
+
+        loader = DataLoader(load)
+        testDict = {'a': '1', 'b': '2', 'c': '3'}
+        self.assertDictEqual(testDict,
+                             loader.load("/*", option=str(testDict))[0])
+        testDict = {'cheese': True}
+        self.assertDictEqual(testDict,
+                             loader.load("/*", option='cheese')[0])
+        testDict = {'cheese': '2'}
+        self.assertDictEqual(testDict,
+                             loader.load("/*", option='cheese=2')[0])
         return
 
 
