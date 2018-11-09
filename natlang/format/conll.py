@@ -223,13 +223,13 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
 def load(fileName,
          linesToLoad=sys.maxsize,
          entryIndex=defaultEntryIndex, commentMark=defaultCommentMark,
-         verbose=False):
+         verbose=True):
     fileName = os.path.expanduser(fileName)
     content = []
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
                progressbar.FormatLabel(
                '; Total: %(value)d lines (in: %(elapsed)s)')]
-    if verbose is False:
+    if verbose is True:
         loadProgressBar =\
             progressbar.ProgressBar(widgets=widgets,
                                     maxval=min(
@@ -240,7 +240,7 @@ def load(fileName,
     with open(fileName) as file:
         for rawLine in file:
             i += 1
-            if verbose is False:
+            if verbose is True:
                 loadProgressBar.update(i)
             line = rawLine.strip()
 
@@ -255,7 +255,7 @@ def load(fileName,
     if len(entry) > 0:
         content.append(constructFromText(entry))
 
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
     return content
 
@@ -343,7 +343,7 @@ class TestTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=True)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=False)
         A = content[0]
         B = content[1]
         self.testBuildTreeA(A)
@@ -353,10 +353,10 @@ class TestTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=True)
+        content = load(parentdir + "/test/sampleCoNLLU.conll", verbose=False)
         exportToFile(content, parentdir + "/test/.sampleCoNLLU.conll.tmp")
         exportedContent = load(
-            parentdir + "/test/.sampleCoNLLU.conll.tmp", verbose=True)
+            parentdir + "/test/.sampleCoNLLU.conll.tmp", verbose=False)
         self.testBuildTreeA(exportedContent[0])
         self.testBuildTreeB(exportedContent[1])
 

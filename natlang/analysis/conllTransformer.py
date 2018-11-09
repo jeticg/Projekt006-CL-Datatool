@@ -406,7 +406,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         self.assertEqual(
             True,
             matchPatternOnNode("(*|root|* nsubj *)", content[0].rightChild))
@@ -417,7 +417,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         self.assertEqual(
             False,
             matchPatternOnNode("(* nsubj *|root|*)", content[0].rightChild))
@@ -428,7 +428,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         self.assertEqual(
             False,
             matchPatternOnNode("(* | root | nmod )", content[2].rightChild))
@@ -442,7 +442,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         self.assertEqual(
             [content[0].rightChild],
             matchPattern("(*|root|* nsubj *)", content[0]))
@@ -459,7 +459,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         x, y = content[0], content[1]
         self.assertEqual(
             True,
@@ -478,7 +478,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         x, y = content[0], content[1]
         self.assertEqual(
             False,
@@ -490,7 +490,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         x, y = content[0], content[1]
         self.assertEqual(
             True,
@@ -521,7 +521,7 @@ class TestPatternMatching(unittest.TestCase):
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
         content = conll.load(parentdir + "/test/sampleCoNLLU.conll",
-                             verbose=True)
+                             verbose=False)
         self.assertEqual(
             [content[0].rightChild],
             matchPattern("(*|root|* nsubj[FORM=story] *)", content[0]))

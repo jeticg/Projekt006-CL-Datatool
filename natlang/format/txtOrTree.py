@@ -20,7 +20,7 @@ except ImportError:
 __version__ = "0.3a"
 
 
-def load(file, linesToLoad=sys.maxsize, verbose=False):
+def load(file, linesToLoad=sys.maxsize, verbose=True):
     try:
         contents = loadTree(file, linesToLoad, verbose=verbose)
         contentsTxt = loadTxt(file, linesToLoad)
@@ -49,8 +49,8 @@ class TestTxtOrTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleTree.txt", verbose=True)
-        gContent = loadTree(parentdir + "/test/sampleTree.txt", verbose=True)
+        content = load(parentdir + "/test/sampleTree.txt", verbose=False)
+        gContent = loadTree(parentdir + "/test/sampleTree.txt", verbose=False)
         for x, y in zip(content, gContent):
             compare(x, y)
         return
@@ -59,7 +59,7 @@ class TestTxtOrTree(unittest.TestCase):
         currentdir = os.path.dirname(
             os.path.abspath(inspect.getfile(inspect.currentframe())))
         parentdir = os.path.dirname(currentdir)
-        content = load(parentdir + "/test/sampleDepTree.txt", verbose=True)
+        content = load(parentdir + "/test/sampleDepTree.txt", verbose=False)
         gContent = loadTxt(parentdir + "/test/sampleDepTree.txt")
         for x, y in zip(content, gContent):
             self.assertSequenceEqual(x, y)
