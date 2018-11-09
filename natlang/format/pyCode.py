@@ -189,7 +189,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
     import progressbar
     import cPickle as pickle
     import itertools
-    orig_name = fileName
+    orig_name = os.path.basename(fileName)
     fileName = os.path.expanduser(fileName)
 
     if option is None:
