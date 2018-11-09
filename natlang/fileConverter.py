@@ -13,7 +13,12 @@ import io
 import os
 import sys
 import re
-import cPickle as pickle
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 import xml.etree.ElementTree as ET
 
 import jieba
