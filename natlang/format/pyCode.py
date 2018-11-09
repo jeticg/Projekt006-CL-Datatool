@@ -220,7 +220,6 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
         roots.append(python_to_tree(code))
         if i == linesToLoad:
             break
-    if verbose is True:
 
     for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue=[]):
         literal_nodes = _find_literal_nodes(root)
@@ -228,7 +227,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
             if node.value[1] in tokens_map.values():
                 node.value = node.value[0], '<COPIED>'
 
-    if verbose is False:
+    if verbose is True:
         loadProgressBar.finish()
 
     return roots

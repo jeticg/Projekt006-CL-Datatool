@@ -32,7 +32,7 @@ def procCoNaLa_cleaned_intent(intent_in,
     with io.open(intent_in, encoding='utf8') as intent_f:
         for i, line in enumerate(intent_f):
             words = []
-            tokens_map = {}  # index to token mapping
+            token_map = {}  # index to token mapping
             for i, word in enumerate(nfa.findall(line)):
                 if word.startswith('`') and word.endswith('`'):
                     # annotated content
@@ -40,15 +40,21 @@ def procCoNaLa_cleaned_intent(intent_in,
                     if word.endswith('"') or word.endswith("'"):
                         # string literal
                         try:
-                            tokens_map[i] = eval(word)
+                            token_map[i] = eval(word)
                         except SyntaxError:
                             pass
                         else:
                             word = '<STR_LITERAL>'
                     else:
                         # variable name / other literal
-                        tokens_map[i] = word
-                        word = '<VAR>'
+                        token_map[i] = word
+                        try:
+                            num = float(word)
+                        except ValueError:
+                            word = '<VAR>'
+                        else:
+                            word = '<NUM>'
+                            token_map[i] = num
                 else:
                     word = word.rstrip(',.')
                     word = word.lower()
@@ -57,7 +63,7 @@ def procCoNaLa_cleaned_intent(intent_in,
                     words.append(word)
 
             data.append(words)
-            token_maps.append(tokens_map)
+            token_maps.append(token_map)
 
     with io.open(intent_out, 'w', encoding='utf8') as intent_out_f:
         for d in data:
@@ -225,7 +231,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
-        :linesToLoad]
+              :linesToLoad]
     return content
 
 
