@@ -11,10 +11,7 @@ import ast
 import sys
 import os
 
-try:
-    from tree import Node as TreeNode
-except ImportError:
-    from natlang.format.tree import Node as TreeNode
+from natlang.format.tree import Node as TreeNode
 
 
 def export_tokens(node):
@@ -184,8 +181,11 @@ def _find_literal_nodes(ast_tree):
 
 
 def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
-    """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
-    `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
+    """
+    WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
+    directory as the code file `token_maps.pkl` should be a {int->[str]}
+    mapping of copied words
+    """
     import progressbar
     import cPickle as pickle
     import itertools
@@ -194,8 +194,9 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
 
     if option is None:
         option = {}
-        option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
-            orig_name.rstrip('.snippets.txt'))
+        option['mapping_path'] =\
+            os.path.dirname(os.path.abspath(fileName)) +\
+            '/{}.token_maps.pkl'.format(orig_name.rstrip('.snippets.txt'))
     print(option['mapping_path'])
 
     with open(option['mapping_path']) as mapping_f:
@@ -221,7 +222,9 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
         if i == linesToLoad:
             break
 
-    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue=[]):
+    for root, tokens_map in itertools.izip_longest(roots,
+                                                   token_maps,
+                                                   fillvalue=[]):
         literal_nodes = _find_literal_nodes(root)
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
@@ -241,7 +244,6 @@ if __name__ == '__main__':
     from graphviz import Graph
     import os
     import errno
-
 
     def draw_tmp_tree(root, name='tmp'):
         try:
@@ -264,10 +266,8 @@ if __name__ == '__main__':
 
         return g.render()
 
-
     def repr_n(node):
         return 'Node{}'.format(repr(node.value))
-
 
     def draw_res_tree(root, name='res'):
         try:
@@ -299,7 +299,6 @@ if __name__ == '__main__':
                 g.edge(str(id(node)), str(id(node.parent)), color='green')
 
         return g.render()
-
 
     # example data structures
     code = r"os.path.abspath('mydir/myfile.txt')"
