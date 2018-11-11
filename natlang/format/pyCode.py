@@ -192,11 +192,14 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
     orig_name = os.path.basename(fileName)
     fileName = os.path.expanduser(fileName)
 
+    if option == {}:
+        option = None
+
     if option is None:
         option = {}
         option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
-            orig_name.rstrip('.snippets.txt'))
-    print(option['mapping_path'])
+            orig_name[-13:])
+    # print(option['mapping_path'])
 
     with open(option['mapping_path']) as mapping_f:
         token_maps = pickle.load(mapping_f)
