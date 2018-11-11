@@ -224,7 +224,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
         if i == linesToLoad:
             break
 
-    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue=[]):
+    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue={}):
         literal_nodes = _find_literal_nodes(root)
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
