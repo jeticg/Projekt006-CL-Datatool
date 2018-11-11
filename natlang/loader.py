@@ -67,7 +67,7 @@ class DataLoader():
                     "callable")
         return
 
-    def load(self, file, linesToLoad=sys.maxsize, verbose=True, option={}):
+    def load(self, file, linesToLoad=sys.maxsize, verbose=True, option=None):
         def matchPattern(pattern):
             return [filename
                     for filename in glob.glob(os.path.expanduser(pattern))
@@ -129,7 +129,7 @@ class ParallelDataLoader():
         return
 
     def load(self, fFile, eFile,
-             linesToLoad=sys.maxsize, verbose=True, option={}):
+             linesToLoad=sys.maxsize, verbose=True, option=None):
         data = zip(self.srcLoader.load(fFile, linesToLoad,
                                        verbose=verbose, option=option),
                    self.tgtLoader.load(eFile, linesToLoad,
