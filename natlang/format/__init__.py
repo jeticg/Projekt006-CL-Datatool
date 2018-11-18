@@ -9,3 +9,4 @@ from natlang.format import txt
 from natlang.format import txtFiles
 from natlang.format import txtOrTree
 from natlang.format import conll
+from natlang.format import django

@@ -28,6 +28,7 @@ supportedList = {
     "pyCode": pyCode,
     "conll": conll,
     "semanticFrame": semanticFrame,
+    'django': django
 }
 
 
