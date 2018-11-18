@@ -1,4 +1,4 @@
-import ast
+from __future__ import print_function
 import sys
 import re
 import os
@@ -62,7 +62,8 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
         i += 1
         if verbose is True:
             loadProgressBar.update(i)
-
+        if not line:
+            print('line {} is empty'.format(i))
         code = line2code(line)
         roots.append(python_to_tree(code))
         if i == linesToLoad:
@@ -116,4 +117,4 @@ if __name__ == '__main__':
         return g.render()
 
 
-    roots = load('/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments/data/django/all.code')
+    roots = load('/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments/data/django/test.code')
