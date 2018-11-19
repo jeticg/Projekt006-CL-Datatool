@@ -10,6 +10,9 @@ from __future__ import absolute_import, print_function
 import ast
 import sys
 import os
+import astor
+import tokenize
+from StringIO import StringIO
 
 try:
     from tree import Node as TreeNode
@@ -17,39 +20,62 @@ except ImportError:
     from natlang.format.tree import Node as TreeNode
 
 
-def export_tokens(node):
-    if node is None:
-        # guard against incomplete tree
-        return []
-    elif node.value[0] == 'LITERAL':
-        return [node.value[1]]
-    elif node.value[0] == 'DUMMY':
-        return []
-    elif node.value[0] == 'Attribute':
-        vec = []
-        vec.extend(export_tokens(node.child))
-        vec.append('.')
-        if node.child is not None:
-            vec.extend(export_tokens(node.child.sibling))
-        return vec
-    elif node.value[0] == 'Call':
-        vec = []
-        vec.extend(export_tokens(node.child))
-        vec.append('(')
-        if node.child is not None:
-            n = node.child.sibling
-            while n is not None:
-                vec.extend(export_tokens(n))
-                n = n.sibling
-        vec.append(')')
-        return vec
-    else:
-        vec = []
-        n = node.child
+def tree2ast(root):
+    require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript', 'Attribute')
+
+    if root.value[0] == 'LITERAL':
+        return root.value[1]
+    elif root.value[0] == 'DUMMY':
+        return None
+    elif root.value[0] == 'ROOT':
+        return tree2ast(root.child)
+    elif root.value[0].endswith('_vec'):
+        children = []
+        n = root.child
         while n is not None:
-            vec.extend(export_tokens(n))
+            ast_node = tree2ast(n)
             n = n.sibling
-        return vec
+            if ast_node is not None:
+                children.append(ast_node)
+        return children
+    elif root.value[0].endswith('_optional'):
+        return tree2ast(root.child)
+    else:
+        try:
+            Class = ast.__dict__[root.value[0]]
+        except KeyError:
+            print('[WARNING] AST class {} not found'.format(root.value[0]))
+            return None
+        else:
+            children = []
+            n = root.child
+            while n is not None:
+                ast_node = tree2ast(n)
+                n = n.sibling
+                if ast_node is not None:
+                    children.append(ast_node)
+            if root.value[0] in require_ctx:
+                children.append(ast.Load)
+            elif root.value[0] == 'Call':
+                if len(children) == 3:
+                    children.append(None)
+                    children.append(None)
+                elif len(children) == 4:
+                    children.append(None)
+            try:
+                root_ast_node = Class(*children)
+            except:
+                print('[WARNING] wrong parameters for AST class {}'.format(root.value[0]))
+                return None
+            else:
+                return root_ast_node
+
+
+def export_tokens(root):
+    py_ast = tree2ast(root)
+    code = astor.to_source(py_ast)
+    tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
+    return tokens
 
 
 class AstNode(TreeNode):
@@ -309,7 +335,8 @@ if __name__ == '__main__':
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root)
-    print(export_tokens(res_root))
+    ast2 = tree2ast(res_root)
+    # print(export_tokens(res_root))
 
     # draw_tmp_tree(root)
     # draw_res_tree(res_root)
