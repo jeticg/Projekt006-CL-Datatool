@@ -20,53 +20,64 @@ except ImportError:
     from natlang.format.tree import Node as TreeNode
 
 
-def tree2ast(root):
+def tree2ast(root, suppress=False):
     require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript', 'Attribute')
 
-    if root.value[0] == 'LITERAL':
+    if root is None:
+        return None
+    elif root.value[0] == 'LITERAL':
         return root.value[1]
     elif root.value[0] == 'DUMMY':
         return None
     elif root.value[0] == 'ROOT':
-        return tree2ast(root.child)
+        return tree2ast(root.child, suppress)
     elif root.value[0].endswith('_vec'):
         children = []
         n = root.child
         while n is not None:
-            ast_node = tree2ast(n)
+            ast_node = tree2ast(n, suppress)
             n = n.sibling
             if ast_node is not None:
                 children.append(ast_node)
         return children
     elif root.value[0].endswith('_optional'):
-        return tree2ast(root.child)
+        return tree2ast(root.child, suppress)
     else:
         try:
             Class = ast.__dict__[root.value[0]]
         except KeyError:
-            print('[WARNING] AST class {} not found'.format(root.value[0]))
-            return None
+            if suppress:
+                print('[WARNING] AST class {} not found'.format(root.value[0]))
+                return None
+            else:
+                raise
         else:
             children = []
             n = root.child
             while n is not None:
-                ast_node = tree2ast(n)
+                ast_node = tree2ast(n, suppress)
                 n = n.sibling
                 if ast_node is not None:
                     children.append(ast_node)
+            # special treatments
             if root.value[0] in require_ctx:
                 children.append(ast.Load)
             elif root.value[0] == 'Call':
-                if len(children) == 3:
-                    children.append(None)
-                    children.append(None)
-                elif len(children) == 4:
-                    children.append(None)
+                children += (5 - len(children)) * [None]
+            elif root.value[0] == 'arguments':
+                children += (4 - len(children)) * [None]
+            elif root.value[0] == 'Print':
+                if len(children) == 2:
+                    children[-1] = bool(children[-1])
+                    children.insert(0, None)
             try:
                 root_ast_node = Class(*children)
             except:
-                print('[WARNING] wrong parameters for AST class {}'.format(root.value[0]))
-                return None
+                if suppress:
+                    print('[WARNING] wrong parameters for AST class {}'.format(root.value[0]))
+                    return None
+                else:
+                    raise
             else:
                 return root_ast_node
 
