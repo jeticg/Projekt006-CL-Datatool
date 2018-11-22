@@ -57,19 +57,19 @@ def tree2ast(root, suppress=False):
             while n is not None:
                 ast_node = tree2ast(n, suppress)
                 n = n.sibling
-                if ast_node is not None:
-                    children.append(ast_node)
+                children.append(ast_node)
             # special treatments
             if root.value[0] in require_ctx:
                 children.append(ast.Load)
-            elif root.value[0] == 'Call':
-                children += (5 - len(children)) * [None]
-            elif root.value[0] == 'arguments':
-                children += (4 - len(children)) * [None]
             elif root.value[0] == 'Print':
                 if len(children) == 2:
                     children[-1] = bool(children[-1])
-                    children.insert(0, None)
+            elif root.value[0] == 'Num':
+                if len(children) == 1:
+                    # todo: temporary workaround, remove
+                    if children[0] == '<COPIED>':
+                        children[0] = 42.1337
+                    children[0] = float(children[0])
             try:
                 root_ast_node = Class(*children)
             except:
