@@ -235,7 +235,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
     if option is None:
         option = {}
         option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
-            orig_name[-13:])
+            orig_name[:-13])
     # print(option['mapping_path'])
 
     with open(option['mapping_path']) as mapping_f:
