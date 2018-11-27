@@ -66,10 +66,11 @@ def tree2ast(root, suppress=False):
                     children[-1] = bool(children[-1])
             elif root.value[0] == 'Num':
                 if len(children) == 1:
-                    # todo: temporary workaround, remove
-                    if children[0] == '<COPIED>':
+                    # todo: temporary workaround
+                    try:
+                        children[0] = float(children[0])
+                    except:
                         children[0] = 42.1337
-                    children[0] = float(children[0])
             try:
                 root_ast_node = Class(*children)
             except:
@@ -220,7 +221,7 @@ def _find_literal_nodes(ast_tree):
         return nodes
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
+def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_process=False):
     """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
     `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
     import progressbar
@@ -238,8 +239,11 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
             orig_name[:-13])
     # print(option['mapping_path'])
 
-    with open(option['mapping_path']) as mapping_f:
-        token_maps = pickle.load(mapping_f)
+    if no_process:
+        token_maps = []
+    else:
+        with open(option['mapping_path']) as mapping_f:
+            token_maps = pickle.load(mapping_f)
 
     roots = []
     i = 0
