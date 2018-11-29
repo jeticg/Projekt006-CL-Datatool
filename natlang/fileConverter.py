@@ -113,6 +113,36 @@ def procCoNaLa_mined(filename,
     print('transformation complete. {} entries skipped.'.format(skipped))
 
 
+def procCoNaLa_test_best_effort(filename,
+                                intent_output='intent.txt',
+                                snippet_output='snippets.txt'):
+    import json
+    import ast
+    with io.open(filename, encoding='utf8') as f:
+        data = json.load(f, encoding='utf8')
+
+    syntax_err_indices = []
+    with io.open(intent_output, 'w', encoding='utf8') as intent_file, \
+            io.open(snippet_output, 'w', encoding='utf8') as snippet_file:
+        for i, entry in enumerate(data):
+            rewritten_intent = entry['rewritten_intent']
+            snippet = entry['snippet']
+            if rewritten_intent is None:
+                rewritten_intent = entry['intent']
+            try:
+                ast.parse(snippet)
+            except SyntaxError:
+                syntax_err_indices.append(i)
+            x = rewritten_intent.replace(u'\r', u' ')
+            y = x.replace(u'\n', u' ')
+            intent_file.write(y)
+            intent_file.write(u'\n')
+            snippet_file.write(unicode(repr(snippet)))
+            snippet_file.write(u'\n')
+    print('transformation complete.')
+    print('syntax error indices: {}'.format(syntax_err_indices))
+
+
 def procCoNaLa(filename,
                intent_output='intent.txt',
                snippet_output='snippets.txt'):
@@ -122,9 +152,10 @@ def procCoNaLa(filename,
         data = json.load(f, encoding='utf8')
 
     skipped = 0
+    skipped_indices = []
     with io.open(intent_output, 'w', encoding='utf8') as intent_file, \
             io.open(snippet_output, 'w', encoding='utf8') as snippet_file:
-        for entry in data:
+        for i, entry in enumerate(data):
             rewritten_intent = entry['rewritten_intent']
             snippet = entry['snippet']
             if rewritten_intent is None:
@@ -134,6 +165,7 @@ def procCoNaLa(filename,
                     ast.parse(snippet)
                 except SyntaxError:
                     skipped += 1
+                    skipped_indices.append(i)
                 else:
                     x = rewritten_intent.replace(u'\r', u' ')
                     y = x.replace(u'\n', u' ')
@@ -142,6 +174,7 @@ def procCoNaLa(filename,
                     snippet_file.write(unicode(repr(snippet)))
                     snippet_file.write(u'\n')
     print('transformation complete. {} entries skipped.'.format(skipped))
+    print('skipped indices: {}'.format(skipped_indices))
 
 
 def procXML(filename, jieba=False):
