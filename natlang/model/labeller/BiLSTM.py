@@ -36,6 +36,13 @@ def extractData(files):
     return data
 
 
+def batcher(batch):
+    result = []
+    for sentence in batch:
+        result.append(convert2Index(sentence))
+    return torch.tensor(result)
+
+
 trainData = extractData("~/Daten/syntactic-data/Penn_Treebank/train.tree.en")
 valData = extractData("~/Daten/syntactic-data/Penn_Treebank/test1.tree.en")
 testData = extractData("~/Daten/syntactic-data/Penn_Treebank/test2.tree.en")
