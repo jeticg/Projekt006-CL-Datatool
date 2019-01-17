@@ -12,6 +12,7 @@ import sys
 import inspect
 import unittest
 import glob
+import six
 import ast
 import importlib
 
@@ -54,7 +55,7 @@ def processOption(option, errorMessage="invalid option"):
 class DataLoader():
     def __init__(self, format="txtOrTree"):
         # Added unicode for python2 compatibility
-        if isinstance(format, str) or isinstance(format, unicode):
+        if isinstance(format, six.string_types):
             if format not in supportedList:
                 raise ValueError(
                     "natlang.dataLoader: invalid format selection")
@@ -83,7 +84,7 @@ class DataLoader():
             files = []
             for filePattern in file:
                 files += matchPattern(filePattern)
-        elif isinstance(file, str) or isinstance(file, unicode):
+        elif isinstance(file, six.string_types):
             files = matchPattern(file)
         else:
             raise RuntimeError("natlang.dataLoader.load [ERROR]: parameter " +
