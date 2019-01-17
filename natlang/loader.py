@@ -53,7 +53,8 @@ def processOption(option, errorMessage="invalid option"):
 
 class DataLoader():
     def __init__(self, format="txtOrTree"):
-        if isinstance(format, str):
+        # Added unicode for python2 compatibility
+        if isinstance(format, str) or isinstance(format, unicode):
             if format not in supportedList:
                 raise ValueError(
                     "natlang.dataLoader: invalid format selection")
