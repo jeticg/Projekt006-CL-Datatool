@@ -21,7 +21,7 @@ class Node:
     '''
     This is the main data structure of a tree, a Node instance is a node on the
     tree. The structure of the subtree with node x as root can be viewed by
-    calling x.__repr__()
+    calling x.printToScreen()
     '''
     def __init__(self, parent=None):
         self.value = ()
@@ -33,18 +33,18 @@ class Node:
         self.depth = -1
         return
 
-    def __repr__(self, __spacing="", __showSibling=False):
+    def printToScreen(self, __spacing="", __showSibling=False):
         '''
         This method prints the structure of the subtree with self as root.
         '''
         if self.child is not None:
             print(__spacing + str((self.id,) + self.value)[:-1])
-            self.child.__repr__(__spacing + "  ", True)
+            self.child.printToScreen(__spacing + "  ", True)
             print(__spacing + ")")
         else:
             print(__spacing + str((self.id,) + self.value))
         if self.sibling is not None and __showSibling is True:
-            self.sibling.__repr__(__spacing, True)
+            self.sibling.printToScreen(__spacing, True)
         return "\nRepresentation: " +\
             "Node(\"" + str((self.id,) + self.value) + "\")\n" +\
             "Leafnode Label: " + str(self.phrase) + "\n"
@@ -361,7 +361,7 @@ class TestTree(unittest.TestCase):
                     ")"]
         if x is None:
             x = constructTree(elements)
-        # print x.__repr__()
+        # print x.printToScreen()
         anc, fra, val, child, sibl = x.columnFormat()
         ancG = [0, 0, 1, 2, 2, 4, 4]
         fraG = [0, 0, 0, 0, 3, 0, 5]
@@ -378,7 +378,7 @@ class TestTree(unittest.TestCase):
             " PP ( IN of ) ( NP ( NN order ) ) ) ) ) ( . . ) ) )"
         if x is None:
             x = constructTreeFromStr(elements)
-        # print x.__repr__()
+        # print x.printToScreen()
         anc, fra, val, child, sibl = x.columnFormat()
         ancG = [0, 0, 1, 2, 2, 2, 2, 3, 3, 5, 5, 10, 10, 11, 11, 12, 12, 16]
         fraG = [0, 0, 0, 0, 3, 4, 5, 0, 7, 0, 9, 0, 11, 0, 13, 0, 15, 0]
@@ -427,12 +427,12 @@ class TestTree(unittest.TestCase):
         x = constructTree(elements)
         w2int = {'<UNK>': 0, 'likes': 1, 'cheese': 2, 'Andrei': 3}
         y = lexicaliseNode(x, w2int)
-        # print y.__repr__()
+        # print y.printToScreen()
         self.assertSequenceEqual(y.phrase, [('NP', 3), ('VP', 1), ('NP', 2)])
 
         int2w = {0: '<UNK>', 1: 'likes', 2: 'cheese', 3: 'Andrei'}
         z = lexicaliseNode(y, int2w)
-        # print y.__repr__()
+        # print y.printToScreen()
         self.assertSequenceEqual(
             z.phrase, [('NP', "Andrei"), ('VP', "likes"), ('NP', "cheese")])
         return
@@ -462,7 +462,7 @@ class TestTree(unittest.TestCase):
                     ")"]
         if x is None:
             x = constructTree(elements)
-        # print x.__repr__()
+        # print x.printToScreen()
         anc, fra, val, child, sibl = x.columnFormat(LM=True)
         ancG = [0, 0, 1, 2, 2, 4, 4]
         fraG = [0, 0, 0, 0, 3, 3, 5]

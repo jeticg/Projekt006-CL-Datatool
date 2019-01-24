@@ -28,14 +28,6 @@ class Node(Base):
         Base.__init__(self, parent)
         return
 
-    def __repr__(self, __spacing="", __showSibling=False):
-        '''
-        This method prints the structure of the subtree with self as root.
-        '''
-        return "\nRepresentation: " +\
-            "Node(\"" + str((self.id,) + self.value) + "\")\n" +\
-            "Leafnode Label: " + str(self.phrase) + "\n"
-
 
 def constructTreeFromStr(string, rootLabel="ROOT"):
     '''
