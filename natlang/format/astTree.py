@@ -130,6 +130,33 @@ def constructTreeFromRNNGAction(actions):
     return root
 
 
+def createSketch(node, sketchLabels, placeHolderGenerator):
+    # Let's say all values are considered here.
+    if not isinstance(node, Node):
+        raise ValueError("Incorrect argument type: has to be astTree Node")
+    result = deepcopy(node)
+
+    def _lexicaliseUsingSketchLabels(node):
+        if node.child is None:
+            v1, v2 = node.value
+            if v1 not in sketchLabels:
+                node.value = (placeHolderGenerator(v1), v2)
+            if v2 not in sketchLabels:
+                node.value = (v1, placeHolderGenerator(v2))
+        else:
+            v1, = node.value
+            if v1 not in sketchLabels:
+                node.value = (placeHolderGenerator(v1), )
+            _lexicaliseUsingSketchLabels(node.child)
+        if node.sibling is not None:
+            _lexicaliseUsingSketchLabels(node.sibling)
+        return
+
+    _lexicaliseUsingSketchLabels(result)
+    result.calcPhrase(force=True)
+    return
+
+
 def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     import progressbar
     fileName = os.path.expanduser(fileName)
