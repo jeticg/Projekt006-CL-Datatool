@@ -130,7 +130,7 @@ def constructTreeFromRNNGAction(actions):
     return root
 
 
-def createSketch(node, sketchLabels, placeHolderGenerator):
+def createSketch(node, sketchLabels, phGenerator):
     # Let's say all values are considered here.
     if not isinstance(node, Node):
         raise ValueError("Incorrect argument type: has to be astTree Node")
@@ -140,13 +140,13 @@ def createSketch(node, sketchLabels, placeHolderGenerator):
         if node.child is None:
             v1, v2 = node.value
             if v1 not in sketchLabels:
-                node.value = (placeHolderGenerator(v1), v2)
+                node.value = (phGenerator(v1), v2)
             if v2 not in sketchLabels:
-                node.value = (v1, placeHolderGenerator(v2))
+                node.value = (v1, phGenerator(v2))
         else:
             v1, = node.value
             if v1 not in sketchLabels:
-                node.value = (placeHolderGenerator(v1), )
+                node.value = (phGenerator(v1), )
             _lexicaliseUsingSketchLabels(node.child)
         if node.sibling is not None:
             _lexicaliseUsingSketchLabels(node.sibling)
