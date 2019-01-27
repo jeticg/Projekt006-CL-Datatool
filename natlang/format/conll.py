@@ -151,6 +151,19 @@ class Node():
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
 
+    def calcValue(self):
+        self.value = (self.rawEntries[self.format["FORM"]], )
+        for i, item in enumerate(self.rawEntries):
+            if ("ID" not in self.format or i != self.format["ID"]) and\
+                    ("HEAD" not in self.format or
+                     i != self.format["HEAD"]) and\
+                    ("DEPREL" not in self.format or
+                     i != self.format["DEPREL"]) and\
+                    i != self.format["FORM"]:
+                self.value += (self.rawEntries[i]
+                               if self.rawEntries[i] != '_' else None, )
+        return
+
     def _exportSubTree(self):
         content = []
         if self.leftChild is not None:
@@ -205,14 +218,7 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
             newNode.parent = 0
             newNode.deprel = "root"
 
-        newNode.value = (line[entryIndex["FORM"]], )
-        for i, item in enumerate(line):
-            if ("ID" not in entryIndex or i != entryIndex["ID"]) and\
-                    ("HEAD" not in entryIndex or i != entryIndex["HEAD"]) and\
-                    ("DEPREL" not in entryIndex or
-                     i != entryIndex["DEPREL"]) and\
-                    i != entryIndex["FORM"]:
-                newNode.value += (line[i] if line[i] != '_' else None, )
+        newNode.calcValue()
 
         nodes.append(newNode)
 
