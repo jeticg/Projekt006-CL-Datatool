@@ -35,7 +35,10 @@ setuptools.setup(
     install_requires=[
         'jieba',
         'progressbar',
-        'six'
+        'six',
+        'tqdm',
+        'torch',
+        'torchvision'
     ],
     test_suite='natlang.testSuite'
 )
