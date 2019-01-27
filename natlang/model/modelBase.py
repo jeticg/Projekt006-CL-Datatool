@@ -13,9 +13,7 @@ import errno
 import gzip
 import pickle as pickle
 
-from natlang.support.logger import logging
 from natlang.format.conll import Node
-logger = logging.getLogger("MODEL")
 
 
 class ModelBase:
@@ -50,15 +48,10 @@ class ModelBase:
         for sample in dataset:
             if not isinstance(sample, Node):
                 raise RuntimeError("Invalid data type: must be conll node")
-                for node in sample.phrase:
-                    if entry not in node.format:
-                        raise RuntimeError("entry not covered in data format")
-                    word = node.rawEntries[node.format[entry]]
-                    if word not in w2int:
-                        w2int[word] = 0
-                    w2int[word] += 1
-                continue
-            for word in sample[index]:
+            for node in sample.phrase:
+                if entry not in node.format:
+                    raise RuntimeError("entry not covered in data format")
+                word = node.rawEntries[node.format[entry]]
                 if word not in w2int:
                     w2int[word] = 0
                 w2int[word] += 1
@@ -72,7 +65,7 @@ class ModelBase:
             int2w.append(key)
         return w2int, int2w
 
-    def convertDataset(self, dataset, entry="FORM", w2int):
+    def convertDataset(self, dataset, entry, w2int):
         for sample in dataset:
             if not isinstance(sample, Node):
                 raise RuntimeError("Invalid data type: must be conll node")
@@ -88,8 +81,6 @@ class ModelBase:
 
     def saveModel(self, fileName=""):
         if fileName == "":
-            logger.warning("Destination not specified, components will not" +
-                           " be saved")
             return
         entity = vars(self)
         if fileName.endswith("pklz"):
@@ -127,18 +118,17 @@ def saveModel(path, pc, encoder, decoder):
         os.makedirs(path)
     except OSError as e:
         if e.errno != errno.EEXIST:
-            logger.warning("{} already exist, will be overwritten".format(
+            print("[WARN]: {} already exist, will be overwritten".format(
                 path))
     encoder.saveModel(path + "/encoder.pkl")
     decoder.saveModel(path + "/decoder.pkl")
     pc.save(path + "/params.dynet")
-    logger.debug("Model saved to " + str(path))
     return
 
 
 def loadModel(path, pc, encoder, decoder, params):
     pass
-    logger.info("Loading model from " + str(path))
+    print("[INFO]: Loading model from " + str(path))
     encoder.loadModel(path + "/encoder.pkl")
     decoder.loadModel(path + "/decoder.pkl")
     encoder.buildModel(
@@ -148,5 +138,5 @@ def loadModel(path, pc, encoder, decoder, params):
         params, pc, decoder.inDim, decoder.hidDim,
         decoder.layers)
     pc.populate(path + "/params.dynet")
-    logger.debug("Loaded")
+    print("[INFO]: Loaded")
     return
