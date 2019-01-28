@@ -225,7 +225,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
     """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
     `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
     import progressbar
-    import cPickle as pickle
+    import pickle
     import itertools
     orig_name = os.path.basename(fileName)
     fileName = os.path.expanduser(fileName)
@@ -322,6 +322,7 @@ if __name__ == '__main__':
 
         fname = 'figures/{}'.format(name + '.gv')
         g = Graph(format='png', filename=fname)
+        g.attr(rankdir='BT')
 
         fringe = [root]
         while fringe:
@@ -331,13 +332,13 @@ if __name__ == '__main__':
                 child = node.child
                 fringe.append(child)
                 g.node(str(id(child)), repr_n(node))
-                g.edge(str(id(node)), str(id(child)), color='red')
+                # g.edge(str(id(node)), str(id(child)), color='red')
 
             if node.sibling is not None:
                 sibling = node.sibling
                 fringe.append(sibling)
-                g.node(str(id(sibling)), repr_n(node))
-                g.edge(str(id(node)), str(id(sibling)), color='blue')
+                # g.node(str(id(sibling)), repr_n(node))
+                # g.edge(str(id(node)), str(id(sibling)), color='blue')
 
             if node.parent is not None:
                 g.edge(str(id(node)), str(id(node.parent)), color='green')
@@ -346,7 +347,7 @@ if __name__ == '__main__':
 
 
     # example data structures
-    code = r"os.path.abspath('mydir/myfile.txt')"
+    code = r"if s[:4].lower() == 'http':    pass"
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root)
