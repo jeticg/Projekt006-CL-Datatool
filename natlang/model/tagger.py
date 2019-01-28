@@ -46,7 +46,7 @@ class Tagger(ModelBase):
         return
 
     def BuildModel(self, inDim, hidDim):
-        self.model = BiLSTM_CRF(len(self.int2w), self.t2int, inDim, hidDim)
+        self.model = BiLSTM_CRF(self.w2int, self.t2int, inDim, hidDim)
         return
 
 
@@ -61,14 +61,14 @@ def logSumExp(vec):
 
 class BiLSTM_CRF(nn.Module):
 
-    def __init__(self, vocab_size, t2int, inDim, hidDim):
+    def __init__(self, w2int, t2int, inDim, hidDim):
         super(BiLSTM_CRF, self).__init__()
         self.inDim = inDim
         self.hidDim = hidDim
-        self.vocab_size = vocab_size
+        self.w2int = w2int
         self.t2int = t2int
 
-        self.wordEmbedding = nn.Embedding(vocab_size, inDim)
+        self.wordEmbedding = nn.Embedding(len(self.w2int), inDim)
         self.lstm = nn.LSTM(inDim, hidDim // 2,
                             num_layers=1, bidirectional=True)
 
@@ -201,7 +201,7 @@ def test(tagger, testDataset):
     total = 0
     results = []
     with torch.no_grad():
-        for words, refTags in testDataset:
+        for words, refTags in tqdm(testDataset):
             tags = tagger.model(words)[1]
             results.append(tags)
             for t, ref in zip(tags, refTags):
@@ -221,15 +221,19 @@ if __name__ == "__main__":
         option={"entryIndex": format})
     valDataset = loader.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testb",
-        option={"entryIndex": format})[:100]
+        option={"entryIndex": format})
     testDataset = loader.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testa",
         option={"entryIndex": format})
 
     tagger = Tagger()
-    tagger.buildLexicon(valDataset)
+    tagger.buildLexicon(trainDataset)
+    tagger.convertDataset(trainDataset)
     tagger.convertDataset(valDataset)
     tagger.convertDataset(testDataset)
     tagger.BuildModel(inDim=256, hidDim=256)
     train(tagger, valDataset, epochs=5)
-    results = test(tagger, valDataset)
+    print("Testing with validation dataset")
+    resultsVal = test(tagger, valDataset)
+    print("Testing with test dataset")
+    resultsTest = test(tagger, testDataset)
