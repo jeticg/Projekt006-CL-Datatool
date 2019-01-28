@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 # Python version: 2/3
 #
-# Constituency Tree class
+# AST Tree class
 # Simon Fraser University
 # Jetic Gu
 #
 # This module contains functions and classes necessary for loading single lined
-# penn treebank format sentences with constituency information. 2 examples are
-# provided in TestTree.
+# penn treebank format AST Trees.
 #
 from __future__ import absolute_import
 import sys
@@ -16,153 +15,18 @@ import unittest
 import inspect
 from copy import deepcopy
 
+from natlang.format.tree import Node as Base
 
-class Node:
+
+class Node(Base):
     '''
     This is the main data structure of a tree, a Node instance is a node on the
     tree. The structure of the subtree with node x as root can be viewed by
-    calling x.printToScreen()
+    calling x.__repr__()
     '''
     def __init__(self, parent=None):
-        self.value = ()
-        self.phrase = []
-        self.id = 0
-        self.parent = parent
-        self.sibling = None
-        self.child = None
-        self.depth = -1
+        Base.__init__(self, parent)
         return
-
-    def printToScreen(self, __spacing="", __showSibling=False):
-        '''
-        This method prints the structure of the subtree with self as root.
-        '''
-        if self.child is not None:
-            print(__spacing + str((self.id,) + self.value)[:-1])
-            self.child.printToScreen(__spacing + "  ", True)
-            print(__spacing + ")")
-        else:
-            print(__spacing + str((self.id,) + self.value))
-        if self.sibling is not None and __showSibling is True:
-            self.sibling.printToScreen(__spacing, True)
-        return "\nRepresentation: " +\
-            "Node(\"" + str((self.id,) + self.value) + "\")\n" +\
-            "Leafnode Label: " + str(self.phrase) + "\n"
-
-    def __len__(self):
-        return len(self.phrase)
-
-    def export(self):
-        result = "("
-        if self.child is None:
-            result += str(self.value[0]) + " " + str(self.value[1]) + ")"
-        else:
-            result += str(self.value[0]) + " " + self.child.export() + ")"
-        if self.sibling is not None:
-            result += " " + self.sibling.export()
-        return result
-
-    def calcId(self, id):
-        '''
-        This method calculates the ids of all nodes in the subtree using
-        breadth-first search.
-        @param id: id of self, also the starting point
-        '''
-        self.id = id
-        queue = [self]
-        while len(queue) != 0:
-            newQueue = []
-            for node in queue:
-                tmp = node.child
-                if tmp is None and len(node.value) != 2:
-                    node.value += node.value
-                    if len(node.value) != 2:
-                        raise RuntimeError
-                if tmp is not None and len(node.value) != 1:
-                    raise RuntimeError
-                if tmp is not None and "-" in node.value[0]:
-                    newClauseType = node.value[0].split("-")[0]
-                    node.value = (newClauseType,)
-                while tmp is not None:
-                    newQueue.append(tmp)
-                    tmp.id = id + 1
-                    id += 1
-                    tmp = tmp.sibling
-            queue = newQueue
-        return
-
-    def calcPhrase(self, force=False):
-        if self.phrase == [] or self.depth <= 0 or force is True:
-            self.phrase = []
-            self.depth = 1
-            if self.child is not None:
-                self.child.calcPhrase(force)
-                self.depth = max(self.depth, self.child.depth + 1)
-            if self.sibling is not None:
-                self.sibling.calcPhrase(force)
-                self.depth = max(self.depth, self.sibling.depth)
-        if self.child is None:
-            self.phrase = [self.value]
-        else:
-            tmp = self.child
-            while tmp is not None:
-                self.phrase += tmp.phrase
-                tmp = tmp.sibling
-        return
-
-    def columnFormat(self, parColumn=None, sibColumn=None,
-                     valColumn=None, hasChild=None, hasSibl=None, LM=False):
-        '''
-        This method returns the fraternal info and ancestral info columns.
-        @return anc, fra: lists
-            anc[i] is the id of ancester of node i,
-            fra[i] is the id of previous sibling of node i,
-            val[i] is the label of node i,
-        '''
-        if parColumn is None or sibColumn is None or valColumn is None or\
-                hasChild is None or hasSibl is None:
-            parColumn = []
-            sibColumn = []
-            valColumn = []
-            hasChild = []
-            hasSibl = []
-        while len(parColumn) <= self.id:
-            parColumn.append(0)
-            sibColumn.append(0)
-            hasChild.append(0)
-            hasSibl.append(0)
-            valColumn.append(("NULL",))
-        valColumn[self.id] = self.value
-
-        if self.parent is not None:
-            parColumn[self.id] = self.parent.id
-            if self.parent.child != self:
-                sibColumn[self.id] = self.id - 1
-            else:
-                if LM is True:
-                    sibColumn[self.id] = sibColumn[self.parent.id]
-
-        if self.child is not None:
-            hasChild[self.id] = 1
-            self.child.columnFormat(
-                parColumn, sibColumn, valColumn, hasChild, hasSibl, LM)
-        if self.sibling is not None:
-            hasSibl[self.id] = 1
-            self.sibling.columnFormat(
-                parColumn, sibColumn, valColumn, hasChild, hasSibl, LM)
-        return parColumn, sibColumn, valColumn, hasChild, hasSibl
-
-    def columnFormatWordIndex(self, column=None, start=0):
-        if column is None:
-            column = []
-        while len(column) <= self.id:
-            column.append(0)
-        column[self.id] = start
-        if self.child is not None:
-            self.child.columnFormatWordIndex(column, start=start)
-        if self.sibling is not None:
-            self.sibling.columnFormatWordIndex(column, start=start + len(self))
-        return column
 
 
 def constructTreeFromStr(string, rootLabel="ROOT"):
@@ -266,6 +130,33 @@ def constructTreeFromRNNGAction(actions):
     return root
 
 
+def createSketch(node, sketchLabels, phGenerator):
+    # Let's say all values are considered here.
+    if not isinstance(node, Node):
+        raise ValueError("Incorrect argument type: has to be astTree Node")
+    result = deepcopy(node)
+
+    def _lexicaliseUsingSketchLabels(node):
+        if node.child is None:
+            v1, v2 = node.value
+            if v1 not in sketchLabels:
+                node.value = (phGenerator(v1), v2)
+            if v2 not in sketchLabels:
+                node.value = (v1, phGenerator(v2))
+        else:
+            v1, = node.value
+            if v1 not in sketchLabels:
+                node.value = (phGenerator(v1), )
+            _lexicaliseUsingSketchLabels(node.child)
+        if node.sibling is not None:
+            _lexicaliseUsingSketchLabels(node.sibling)
+        return
+
+    _lexicaliseUsingSketchLabels(result)
+    result.calcPhrase(force=True)
+    return
+
+
 def load(fileName, linesToLoad=sys.maxsize, verbose=True):
     import progressbar
     fileName = os.path.expanduser(fileName)
@@ -361,7 +252,7 @@ class TestTree(unittest.TestCase):
                     ")"]
         if x is None:
             x = constructTree(elements)
-        # print x.printToScreen()
+        # print x.__repr__()
         anc, fra, val, child, sibl = x.columnFormat()
         ancG = [0, 0, 1, 2, 2, 4, 4]
         fraG = [0, 0, 0, 0, 3, 0, 5]
@@ -378,7 +269,7 @@ class TestTree(unittest.TestCase):
             " PP ( IN of ) ( NP ( NN order ) ) ) ) ) ( . . ) ) )"
         if x is None:
             x = constructTreeFromStr(elements)
-        # print x.printToScreen()
+        # print x.__repr__()
         anc, fra, val, child, sibl = x.columnFormat()
         ancG = [0, 0, 1, 2, 2, 2, 2, 3, 3, 5, 5, 10, 10, 11, 11, 12, 12, 16]
         fraG = [0, 0, 0, 0, 3, 4, 5, 0, 7, 0, 9, 0, 11, 0, 13, 0, 15, 0]
@@ -427,12 +318,12 @@ class TestTree(unittest.TestCase):
         x = constructTree(elements)
         w2int = {'<UNK>': 0, 'likes': 1, 'cheese': 2, 'Andrei': 3}
         y = lexicaliseNode(x, w2int)
-        # print y.printToScreen()
+        # print y.__repr__()
         self.assertSequenceEqual(y.phrase, [('NP', 3), ('VP', 1), ('NP', 2)])
 
         int2w = {0: '<UNK>', 1: 'likes', 2: 'cheese', 3: 'Andrei'}
         z = lexicaliseNode(y, int2w)
-        # print y.printToScreen()
+        # print y.__repr__()
         self.assertSequenceEqual(
             z.phrase, [('NP', "Andrei"), ('VP', "likes"), ('NP', "cheese")])
         return
@@ -462,7 +353,7 @@ class TestTree(unittest.TestCase):
                     ")"]
         if x is None:
             x = constructTree(elements)
-        # print x.printToScreen()
+        # print x.__repr__()
         anc, fra, val, child, sibl = x.columnFormat(LM=True)
         ancG = [0, 0, 1, 2, 2, 4, 4]
         fraG = [0, 0, 0, 0, 3, 3, 5]

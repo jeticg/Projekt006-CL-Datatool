@@ -12,6 +12,7 @@ import sys
 import inspect
 import unittest
 import glob
+import six
 import ast
 import importlib
 
@@ -28,6 +29,7 @@ supportedList = {
     "pyCode": pyCode,
     "conll": conll,
     "semanticFrame": semanticFrame,
+    "astTree": astTree,
     'django': django
 }
 
@@ -53,7 +55,8 @@ def processOption(option, errorMessage="invalid option"):
 
 class DataLoader():
     def __init__(self, format="txtOrTree"):
-        if isinstance(format, str):
+        # Added unicode for python2 compatibility
+        if isinstance(format, six.string_types):
             if format not in supportedList:
                 raise ValueError(
                     "natlang.dataLoader: invalid format selection")
@@ -82,7 +85,7 @@ class DataLoader():
             files = []
             for filePattern in file:
                 files += matchPattern(filePattern)
-        elif isinstance(file, str):
+        elif isinstance(file, six.string_types):
             files = matchPattern(file)
         else:
             raise RuntimeError("natlang.dataLoader.load [ERROR]: parameter " +

@@ -269,7 +269,7 @@ def removeEmptyLines(fileName, linesToLoad=sys.maxsize):
     result = []
     fileName = os.path.expanduser(fileName)
     content = [line.split() for line in open(fileName) if line.strip() != ""][
-              :linesToLoad]
+        :linesToLoad]
     return content
 
 
