@@ -12,7 +12,7 @@ import sys
 import os
 import astor
 import tokenize
-from StringIO import StringIO
+from io import StringIO
 
 try:
     from tree import Node as TreeNode
