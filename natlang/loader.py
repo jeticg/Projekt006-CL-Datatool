@@ -30,7 +30,7 @@ supportedList = {
     "conll": conll,
     "semanticFrame": semanticFrame,
     "astTree": astTree,
-    'django': django
+    'django_ast': django_ast
 }
 
 
