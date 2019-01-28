@@ -226,13 +226,20 @@ if __name__ == "__main__":
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testa",
         option={"entryIndex": format})
 
+    trainDataset = [sample for sample in trainDataset
+                    if sample is not None and len(sample) != 0]
+    valDataset = [sample for sample in valDataset
+                  if sample is not None and len(sample) != 0]
+    testDataset = [sample for sample in testDataset
+                   if sample is not None and len(sample) != 0]
+
     tagger = Tagger()
     tagger.buildLexicon(trainDataset)
     tagger.convertDataset(trainDataset)
     tagger.convertDataset(valDataset)
     tagger.convertDataset(testDataset)
     tagger.BuildModel(inDim=256, hidDim=256)
-    train(tagger, valDataset, epochs=5)
+    train(tagger, trainDataset, epochs=5)
     print("Testing with validation dataset")
     resultsVal = test(tagger, valDataset)
     print("Testing with test dataset")
