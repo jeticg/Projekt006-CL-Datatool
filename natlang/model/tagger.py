@@ -1,4 +1,5 @@
-from tqdm import tqdm
+import random
+import progressbar
 
 import torch
 import torch.autograd as autograd
@@ -6,7 +7,9 @@ import torch.nn as nn
 import torch.optim as optim
 
 import natlang as nl
+from natlang._support.logger import logging, initialiseLogger, getCommitHash
 from modelBase import ModelBase
+__version__ = "0.1b"
 
 
 class Tagger(ModelBase):
@@ -45,8 +48,8 @@ class Tagger(ModelBase):
             dataset[i] = torch.LongTensor(words), torch.LongTensor(tags)
         return
 
-    def BuildModel(self, inDim, hidDim):
-        self.model = BiLSTM_CRF(self.w2int, self.t2int, inDim, hidDim)
+    def BuildModel(self, inDim, hidDim, layers):
+        self.model = BiLSTM_CRF(self.w2int, self.t2int, inDim, hidDim, layers)
         return
 
 
@@ -61,16 +64,17 @@ def logSumExp(vec):
 
 class BiLSTM_CRF(nn.Module):
 
-    def __init__(self, w2int, t2int, inDim, hidDim):
+    def __init__(self, w2int, t2int, inDim, hidDim, layers):
         super(BiLSTM_CRF, self).__init__()
         self.inDim = inDim
         self.hidDim = hidDim
+        self.layers = layers
         self.w2int = w2int
         self.t2int = t2int
 
         self.wordEmbedding = nn.Embedding(len(self.w2int), inDim)
         self.lstm = nn.LSTM(inDim, hidDim // 2,
-                            num_layers=1, bidirectional=True)
+                            num_layers=layers, bidirectional=True)
 
         # Maps the output of the LSTM into tag space.
         self.affineLayer = nn.Linear(hidDim, len(self.t2int))
@@ -88,8 +92,8 @@ class BiLSTM_CRF(nn.Module):
         self.hiddenRep = self.initHiddenRep()
 
     def initHiddenRep(self):
-        return (torch.randn(2, 1, self.hidDim // 2),
-                torch.randn(2, 1, self.hidDim // 2))
+        return (torch.randn(2 * self.layers, 1, self.hidDim // 2),
+                torch.randn(2 * self.layers, 1, self.hidDim // 2))
 
     def encode(self, words):
         self.hiddenRep = self.initHiddenRep()
@@ -175,33 +179,72 @@ class BiLSTM_CRF(nn.Module):
         referenceScore = self.calcScore(probs, tags)
         return outputScore - referenceScore
 
+    def computeBatchLoss(self, batchOfSamples):
+        loss = []
+        for sample in batchOfSamples:
+            loss.append(self.computeSampleLoss(sample))
+        return sum(loss)
+
     def forward(self, words):
         probs = self.encode(words)
         score, output = self.decode(probs)
         return score, output
 
 
-def train(tagger, trainDataset, epochs):
+def train(tagger, dataset, epochs, batchSize):
+    logger = logging.getLogger('TRAIN')
     model = tagger.model
     optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-4)
 
-    for epoch in range(epochs):
-        print("Training epoch %s" % (epoch))
-        for sample in tqdm(trainDataset):
-            model.zero_grad()
-            loss = model.computeSampleLoss(sample)
-            loss.backward()
-            optimizer.step()
+    trainOrder =\
+        [x * batchSize for x in range(len(dataset) // batchSize + 1)]
+    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
+               progressbar.FormatLabel(
+               '; Total: %(value)d batches (in: %(elapsed)s)')]
+    trainProgressBar =\
+        progressbar.ProgressBar(widgets=widgets,
+                                maxval=epochs * len(trainOrder)).start()
 
+    # prepare batching
+    if batchSize != 1:
+        dataset.sort(key=lambda sample: -len(sample[0]))
+        totalBatches = 0
+        for epoch in range(epochs):
+            logger.info("Training epoch %s" % (epoch))
+            random.shuffle(trainOrder)
+            for i, index in enumerate(trainOrder, start=1):
+                batch = dataset[index:index + batchSize]
+                if len(batch) == 0:
+                    continue
+                model.zero_grad()
+                loss = model.computeBatchLoss(batch)
+                loss.backward()
+                optimizer.step()
+                totalBatches += 1
+                trainProgressBar.update(totalBatches)
+    else:
+        totalBatches = 0
+        for epoch in range(epochs):
+            logger.info("Training epoch %s" % (epoch))
+            for sample in dataset:
+                model.zero_grad()
+                loss = model.computeSampleLoss(sample)
+                loss.backward()
+                optimizer.step()
+                totalBatches += 1
+                trainProgressBar.update(totalBatches)
+
+    trainProgressBar.finish()
     return
 
 
 def test(tagger, testDataset):
+    logger = logging.getLogger('EVALUATOR')
     correct = 0
     total = 0
     results = []
     with torch.no_grad():
-        for words, refTags in tqdm(testDataset):
+        for words, refTags in testDataset:
             tags = tagger.model(words)[1]
             results.append(tags)
             for t, ref in zip(tags, refTags):
@@ -209,11 +252,24 @@ def test(tagger, testDataset):
                 if t == ref:
                     correct += 1
 
-    print("Evaluation: precision = %s" % (correct * 1.0 / total,))
+    logger.info("Evaluation: precision = %s" % (correct * 1.0 / total,))
     return results
 
 
 if __name__ == "__main__":
+    config = {
+        "epochs": 5,
+        "inDim": 256,
+        "hidDim": 256,
+        "layers": 1,
+        "batchSize": 1
+    }
+    initialiseLogger('tagger.log')
+    logger = logging.getLogger('MAIN')
+    logger.info("""Natlang toolkit Universal Tagger %s""" % __version__)
+    logger.debug("--Commit#: {}".format(getCommitHash()))
+
+    logger.info("Experimenting on CONLL2003 NER Task")
     loader = nl.loader.DataLoader("conll")
     format = nl.format.conll.conll2003
     trainDataset = loader.load(
@@ -233,14 +289,25 @@ if __name__ == "__main__":
     testDataset = [sample for sample in testDataset
                    if sample is not None and len(sample) != 0]
 
+    logger.info("Initialising Model")
     tagger = Tagger()
     tagger.buildLexicon(trainDataset)
     tagger.convertDataset(trainDataset)
     tagger.convertDataset(valDataset)
     tagger.convertDataset(testDataset)
-    tagger.BuildModel(inDim=256, hidDim=256)
-    train(tagger, trainDataset, epochs=5)
-    print("Testing with validation dataset")
+    logger.info("Model inDim=%s, hidDim=%s, layser=%s" %
+                (config["inDim"], config["hidDim"], config["layers"]))
+    tagger.BuildModel(inDim=config["inDim"],
+                      hidDim=config["hidDim"],
+                      layers=config["layers"])
+    logger.info("Training with %s epochs, batch size %s" %
+                (config["epochs"], config["batchSize"]))
+    train(tagger,
+          trainDataset,
+          epochs=config["epochs"],
+          batchSize=config["batchSize"])
+
+    logger.info("Testing with validation dataset")
     resultsVal = test(tagger, valDataset)
-    print("Testing with test dataset")
+    logger.info("Testing with test dataset")
     resultsTest = test(tagger, testDataset)
