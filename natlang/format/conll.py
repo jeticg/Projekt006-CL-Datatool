@@ -43,10 +43,11 @@ defaultEntryIndex = {
 conllu = defaultEntryIndex
 
 conll2003 = {
+    # Description found on http://aclweb.org/anthology/W03-0419
     # CoNLL-2003
-    "FORM": 0,  # Word form or punctuation symbol.
+    "FORM": 0,  # Word FORM or punctuation symbol.
     "UPOS": 1,  # Universal part-of-speech tag.
-    "PHRASE": 2,  # phrase tag in IO_Type form
+    "CHUNK": 2,  # CHUNK tag in IO_Type form
     "NER": 3,  # NER tag in IO_Type form
     "__name__": "CoNLL 2003",
     "__splitter__": ' ',

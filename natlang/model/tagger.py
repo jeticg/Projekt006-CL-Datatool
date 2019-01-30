@@ -242,18 +242,62 @@ def test(tagger, testDataset):
     logger = logging.getLogger('EVALUATOR')
     correct = 0
     total = 0
-    results = []
+    output = []
+    reference = []
     with torch.no_grad():
         for words, refTags in testDataset:
             tags = tagger.model(words)[1]
-            results.append(tags)
+            output.append([tagger.int2t[tag] for tag in tags])
+            reference.append([tagger.int2t[tag] for tag in refTags])
             for t, ref in zip(tags, refTags):
                 total += 1
                 if t == ref:
                     correct += 1
+    logger.info("  Accuracy = %s" % (correct * 1.0 / total,))
+    scores = evaluatorNER(output, reference)
+    for key in scores:
+        logger.info("  %s = %s" % (key, scores[key]))
+    return output
 
-    logger.info("Evaluation: precision = %s" % (correct * 1.0 / total,))
+
+def getBIOSpans(tags):
+    tags = tags + ['O']
+    results = []
+    previous = 'O'
+    for i in range(len(tags)):
+        if tags[i] == previous:
+            continue
+        if previous[0] == 'B' and tags[i][0] == 'i' and\
+                tags[i][1:] == previous[1:]:
+            previous = tags[i]
+            continue
+        elif tags[i] == 'O':
+            if len(results) != 0 and len(results[-1]) == 2:
+                results[-1] += (i-1,)
+        else:
+            if len(results) != 0 and len(results[-1]) == 2:
+                results[-1] += (i-1,)
+            results.append((tags[i][2:], i, ))
+        previous = tags[i]
     return results
+
+
+def evaluatorNER(output, reference):
+    correct = 0.0
+    totalRef = 0.0
+    totalOut = 0.0
+    for tags, refTags in zip(output, reference):
+        out = getBIOSpans(tags)
+        ref = getBIOSpans(refTags)
+        correct += len([item for item in out if item in ref])
+        totalOut += len(out)
+        totalRef += len(ref)
+    precision = 1. * correct / totalOut
+    recall = 1. * correct / totalRef
+    F1 = 2. * precision * recall / (precision + recall)
+    return {"Precision": precision,
+            "Recall": recall,
+            "F1": F1}
 
 
 if __name__ == "__main__":
