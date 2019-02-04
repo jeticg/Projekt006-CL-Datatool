@@ -2,7 +2,7 @@ from __future__ import print_function
 import sys
 import re
 import os
-from pyCode import python_to_tree
+from natlang.format.pyCode import python_to_tree
 
 
 def line2code(l):

@@ -35,7 +35,8 @@ setuptools.setup(
     install_requires=[
         'jieba',
         'progressbar',
-        'six'
+        'six',
+        'astor'
     ],
     test_suite='natlang.testSuite'
 )
