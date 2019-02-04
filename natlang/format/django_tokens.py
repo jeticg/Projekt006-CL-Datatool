@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# Django Dataset Code Loader class
+# Simon Fraser University
+# Ruoyi Wang
+#
+# For loading the code as a sequence of tokens
 import tokenize as tk
 import keyword
 from io import StringIO
@@ -33,5 +41,6 @@ def load(file, linesToLoad=sys.maxsize):
 
 
 if __name__ == '__main__':
-    loaded = load('/Users/ruoyi/Projects/PycharmProjects/datatool/simple_code.txt')
+    loaded = load(
+        '/Users/ruoyi/Projects/PycharmProjects/datatool/simple_code.txt')
     tokens = createSketch(loaded[0], None, None)

@@ -31,7 +31,8 @@ supportedList = {
     "semanticFrame": semanticFrame,
     "astTree": astTree,
     'django_ast': django_ast,
-    'django_tokens': django_tokens
+    'django_tokens': django_tokens,
+    'django_nl': django_nl
 }
 
 

@@ -5,7 +5,7 @@ import os
 from natlang.format.pyCode import python_to_tree
 
 
-def line2code(l):
+def line2code(line):
     p_elif = re.compile(r'^elif\s?')
     p_else = re.compile(r'^else\s?')
     p_try = re.compile(r'^try\s?')
@@ -13,29 +13,29 @@ def line2code(l):
     p_finally = re.compile(r'^finally\s?')
     p_decorator = re.compile(r'^@.*')
 
-    l = l.strip()
-    if not l:
-        return l
+    line = line.strip()
+    if not line:
+        return line
 
-    if p_elif.match(l):
-        l = 'if True: pass\n' + l
-    if p_else.match(l):
-        l = 'if True: pass\n' + l
+    if p_elif.match(line):
+        line = 'if True: pass\n' + line
+    if p_else.match(line):
+        line = 'if True: pass\n' + line
 
-    if p_try.match(l):
-        l = l + 'pass\nexcept: pass'
-    elif p_except.match(l):
-        l = 'try: pass\n' + l
+    if p_try.match(line):
+        line = line + 'pass\nexcept: pass'
+    elif p_except.match(line):
+        line = 'try: pass\n' + line
     elif p_finally.match(l):
-        l = 'try: pass\n' + l
+        line = 'try: pass\n' + line
 
-    if p_decorator.match(l):
-        l = l + '\ndef dummy(): pass'
+    if p_decorator.match(line):
+        line = line + '\ndef dummy(): pass'
     if l[-1] == ':':
-        l = l + 'pass'
+        line = line + 'pass'
 
-    # parse = ast.parse(l)
-    return l
+    # parse = ast.parse(line)
+    return line
 
 
 def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
@@ -80,10 +80,8 @@ if __name__ == '__main__':
     import os
     import errno
 
-
     def repr_n(node):
         return 'Node{}'.format(repr(node.value))
-
 
     def draw_res_tree(root, name='res'):
         try:
@@ -116,5 +114,5 @@ if __name__ == '__main__':
 
         return g.render()
 
-
-    roots = load('/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments/data/django/test.code')
+    roots = load('/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments' +
+                 '/data/django/test.code')

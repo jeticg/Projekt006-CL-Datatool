@@ -1,4 +1,14 @@
-import re, sys, os
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# Django Dataset Intention Loader class
+# Simon Fraser University
+# Ruoyi Wang
+#
+# For loading the intentions as a sequence of natural language tokens
+import re
+import sys
+import os
 
 str_nfa = re.compile(r'''
 (?<=\W)("[^"]*")(?=\W)|(?<=\W)('([^'])*')(?=\W)|    # str
@@ -35,7 +45,7 @@ def load(file, linesToLoad=sys.maxsize):
 
 
 if __name__ == '__main__':
-    results = load('/Users/ruoyi/Projects/PycharmProjects/datatool/natlang/test/sampleDjangoAnno.txt')
-    f = open('/Users/ruoyi/Projects/PycharmProjects/datatool/natlang/test/sampleDjangoAnno.txt')
+    results = load('test/sampleDjangoAnno.txt')
+    f = open('test/sampleDjangoAnno.txt')
     lines = list(f)
     r2 = proc_line(lines[-1])
