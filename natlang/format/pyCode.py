@@ -10,6 +10,9 @@ from __future__ import absolute_import, print_function
 import ast
 import sys
 import os
+import astor
+import tokenize
+from io import StringIO
 
 try:
     from tree import Node as TreeNode
@@ -17,39 +20,76 @@ except ImportError:
     from natlang.format.tree import Node as TreeNode
 
 
-def export_tokens(node):
-    if node is None:
-        # guard against incomplete tree
-        return []
-    elif node.value[0] == 'LITERAL':
-        return [node.value[1]]
-    elif node.value[0] == 'DUMMY':
-        return []
-    elif node.value[0] == 'Attribute':
-        vec = []
-        vec.extend(export_tokens(node.child))
-        vec.append('.')
-        if node.child is not None:
-            vec.extend(export_tokens(node.child.sibling))
-        return vec
-    elif node.value[0] == 'Call':
-        vec = []
-        vec.extend(export_tokens(node.child))
-        vec.append('(')
-        if node.child is not None:
-            n = node.child.sibling
-            while n is not None:
-                vec.extend(export_tokens(n))
-                n = n.sibling
-        vec.append(')')
-        return vec
-    else:
-        vec = []
-        n = node.child
+def tree2ast(root, suppress=False):
+    require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript',
+                   'Attribute')
+
+    if root is None:
+        return None
+    elif root.value[0] == 'LITERAL':
+        return root.value[1]
+    elif root.value[0] == 'DUMMY':
+        return None
+    elif root.value[0] == 'ROOT':
+        return tree2ast(root.child, suppress)
+    elif root.value[0].endswith('_vec'):
+        children = []
+        n = root.child
         while n is not None:
-            vec.extend(export_tokens(n))
+            ast_node = tree2ast(n, suppress)
             n = n.sibling
-        return vec
+            if ast_node is not None:
+                children.append(ast_node)
+        return children
+    elif root.value[0].endswith('_optional'):
+        return tree2ast(root.child, suppress)
+    else:
+        try:
+            Class = ast.__dict__[root.value[0]]
+        except KeyError:
+            if suppress:
+                print('[WARNING] AST class {} not found'.format(root.value[0]))
+                return None
+            else:
+                raise
+        else:
+            children = []
+            n = root.child
+            while n is not None:
+                ast_node = tree2ast(n, suppress)
+                n = n.sibling
+                children.append(ast_node)
+            # special treatments
+            if root.value[0] in require_ctx:
+                children.append(ast.Load)
+            elif root.value[0] == 'Print':
+                if len(children) == 2:
+                    children[-1] = bool(children[-1])
+            elif root.value[0] == 'Num':
+                if len(children) == 1:
+                    # todo: temporary workaround
+                    try:
+                        children[0] = float(children[0])
+                    except:
+                        children[0] = 42.1337
+            try:
+                root_ast_node = Class(*children)
+            except:
+                if suppress:
+                    print('[WARNING] wrong parameters for AST class {}'.format(
+                        root.value[0]))
+                    return None
+                else:
+                    raise
+            else:
+                return root_ast_node
+
+
+def export_tokens(root):
+    py_ast = tree2ast(root)
+    code = astor.to_source(py_ast)
+    tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
+    return tokens
 
 
 class AstNode(TreeNode):
@@ -183,14 +223,15 @@ def _find_literal_nodes(ast_tree):
         return nodes
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
+def load(fileName,
+         linesToLoad=sys.maxsize, verbose=True, option=None, no_process=False):
     """
     WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
     directory as the code file `token_maps.pkl` should be a {int->[str]}
     mapping of copied words
     """
     import progressbar
-    import cPickle as pickle
+    import pickle
     import itertools
     orig_name = os.path.basename(fileName)
     fileName = os.path.expanduser(fileName)
@@ -200,13 +241,15 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
 
     if option is None:
         option = {}
-        option['mapping_path'] =\
-            os.path.dirname(os.path.abspath(fileName)) +\
-            '/{}.token_maps.pkl'.format(orig_name[-13:])
+        option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) +\
+            '/{}.token_maps.pkl'.format(orig_name[:-13])
     # print(option['mapping_path'])
 
-    with open(option['mapping_path']) as mapping_f:
-        token_maps = pickle.load(mapping_f)
+    if no_process:
+        token_maps = []
+    else:
+        with open(option['mapping_path']) as mapping_f:
+            token_maps = pickle.load(mapping_f)
 
     roots = []
     i = 0
@@ -228,9 +271,8 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
         if i == linesToLoad:
             break
 
-    for root, tokens_map in itertools.izip_longest(roots,
-                                                   token_maps,
-                                                   fillvalue={}):
+    for root, tokens_map in itertools.izip_longest(
+            roots, token_maps, fillvalue={}):
         literal_nodes = _find_literal_nodes(root)
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
@@ -250,7 +292,6 @@ if __name__ == '__main__':
     from graphviz import Graph
     import os
     import errno
-
 
     def draw_tmp_tree(root, name='tmp'):
         try:
@@ -273,10 +314,8 @@ if __name__ == '__main__':
 
         return g.render()
 
-
     def repr_n(node):
         return 'Node{}'.format(repr(node.value))
-
 
     def draw_res_tree(root, name='res'):
         try:
@@ -287,6 +326,7 @@ if __name__ == '__main__':
 
         fname = 'figures/{}'.format(name + '.gv')
         g = Graph(format='png', filename=fname)
+        g.attr(rankdir='BT')
 
         fringe = [root]
         while fringe:
@@ -296,26 +336,26 @@ if __name__ == '__main__':
                 child = node.child
                 fringe.append(child)
                 g.node(str(id(child)), repr_n(node))
-                g.edge(str(id(node)), str(id(child)), color='red')
+                # g.edge(str(id(node)), str(id(child)), color='red')
 
             if node.sibling is not None:
                 sibling = node.sibling
                 fringe.append(sibling)
-                g.node(str(id(sibling)), repr_n(node))
-                g.edge(str(id(node)), str(id(sibling)), color='blue')
+                # g.node(str(id(sibling)), repr_n(node))
+                # g.edge(str(id(node)), str(id(sibling)), color='blue')
 
             if node.parent is not None:
                 g.edge(str(id(node)), str(id(node.parent)), color='green')
 
         return g.render()
 
-
     # example data structures
-    code = r"os.path.abspath('mydir/myfile.txt')"
+    code = r"if s[:4].lower() == 'http':    pass"
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root)
-    print(export_tokens(res_root))
+    ast2 = tree2ast(res_root)
+    # print(export_tokens(res_root))
 
     # draw_tmp_tree(root)
     # draw_res_tree(res_root)

@@ -16,13 +16,3 @@ def load(file, linesToLoad=sys.maxsize):
     with open(os.path.expanduser(file)) as f:
         content = [line.strip().split() for line in f][:linesToLoad]
     return content
-
-
-def createSketch(txt, sketchLabels, phGenerator):
-    result = []
-    for token in txt:
-        if token in sketchLabels:
-            result.append(token)
-        else:
-            result.append(phGenerator(token))
-    return result
