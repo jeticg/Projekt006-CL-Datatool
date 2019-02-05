@@ -30,9 +30,9 @@ supportedList = {
     "conll": conll,
     "semanticFrame": semanticFrame,
     "astTree": astTree,
-    'django_ast': django_ast,
-    'django_tokens': django_tokens,
-    'django_nl': django_nl
+    #    'django_ast': django_ast,
+    'django': django,
+    'intent': intent
 }
 
 
@@ -72,6 +72,13 @@ class DataLoader():
                     "natlang.dataLoader: custom format selected not " +
                     "callable")
         return
+
+    def __call__(self,
+                 file, linesToLoad=sys.maxsize, verbose=True, option=None):
+        return load(file,
+                    linesToLoad=linesToLoad,
+                    verbose=verbose,
+                    option=option)
 
     def load(self, file, linesToLoad=sys.maxsize, verbose=True, option=None):
         def matchPattern(pattern):

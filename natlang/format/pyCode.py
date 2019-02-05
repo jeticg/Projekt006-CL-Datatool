@@ -21,7 +21,8 @@ except ImportError:
 
 
 def tree2ast(root, suppress=False):
-    require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript', 'Attribute')
+    require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript',
+                   'Attribute')
 
     if root is None:
         return None

@@ -44,8 +44,8 @@ def load(file, linesToLoad=sys.maxsize):
     return [proc_line(line) for line in lines]
 
 
-if __name__ == '__main__':
-    results = load('test/sampleDjangoAnno.txt')
-    f = open('test/sampleDjangoAnno.txt')
-    lines = list(f)
-    r2 = proc_line(lines[-1])
+# if __name__ == '__main__':
+#     results = load('test/sampleDjangoAnno.txt')
+#     f = open('test/sampleDjangoAnno.txt')
+#     lines = list(f)
+#     r2 = proc_line(lines[-1])
