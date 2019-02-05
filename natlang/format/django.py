@@ -16,7 +16,8 @@ import sys
 class Code:
     def __init__(self, string):
         self.value = list(tk.generate_tokens(StringIO(string).readline))[:-1]
-        self.createSketch()
+        self.sketch = []
+        self.createSketch()  # writes to self.sketch
         self._iterCount = 0
         return
 
