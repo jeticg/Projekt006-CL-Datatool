@@ -75,10 +75,10 @@ class DataLoader():
 
     def __call__(self,
                  file, linesToLoad=sys.maxsize, verbose=True, option=None):
-        return load(file,
-                    linesToLoad=linesToLoad,
-                    verbose=verbose,
-                    option=option)
+        return self.load(file,
+                         linesToLoad=linesToLoad,
+                         verbose=verbose,
+                         option=option)
 
     def load(self, file, linesToLoad=sys.maxsize, verbose=True, option=None):
         def matchPattern(pattern):
