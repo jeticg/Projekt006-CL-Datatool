@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import unittest
+import sys
 
 from natlang import format
 from natlang import analysis
@@ -36,3 +37,13 @@ def testSuite():
 
 
 name = "natlang"
+
+
+# Functions
+def load(filePattern,
+         format='txt', linesToLoad=sys.maxsize, verbose=True, option=None):
+    lad = loader.DataLoader(format)
+    return lad(filePattern,
+               linesToLoad=linesToLoad,
+               verbose=verbose,
+               option=option)
