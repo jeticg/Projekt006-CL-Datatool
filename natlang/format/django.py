@@ -33,11 +33,11 @@ class Code:
         self.sketch = []
         for x in self.value:
             if x[0] == tk.NAME and not keyword.iskeyword(x[1]):
-                x = 'NAME'
+                x = '<SKETCH_NAME>'
             elif x[0] == tk.STRING:
-                x = 'STRING'
+                x = '<SKETCH_STRING>'
             elif x[0] == tk.NUMBER:
-                x = 'NUMBER'
+                x = '<SKETCH_NUMBER>'
             else:
                 x = x[1]
             self.sketch.append(x)
