@@ -18,11 +18,9 @@ class Code:
         self.value = list(tk.generate_tokens(StringIO(string).readline))[:-1]
         self.sketch = []
         self.createSketch()  # writes to self.sketch
-        self._iterCount = 0
         return
 
     def __iter__(self):
-        self._iterCount = 0
         return iter([t[1] for t in self.value])
 
     def __len__(self):
