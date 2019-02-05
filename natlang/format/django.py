@@ -24,6 +24,9 @@ class Code:
         self._iterCount = 0
         return iter([t[1] for t in self.value])
 
+    def __len__(self):
+        return len(self.value)
+
     def __repr__(self):
         return "<DjangoCode: " + str([t[1] for t in self.value]) + ">"
 
