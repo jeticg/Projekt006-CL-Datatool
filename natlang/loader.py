@@ -135,11 +135,18 @@ class DataLoader():
 class ParallelDataLoader():
     def __init__(self,
                  srcFormat="txtOrTree",
-                 tgtFormat="txtOrTree",
-                 verbose=True):
+                 tgtFormat="txtOrTree"):
         self.srcLoader = DataLoader(srcFormat)
         self.tgtLoader = DataLoader(tgtFormat)
         return
+
+    def __call__(self,
+                 fFile, eFile,
+                 linesToLoad=sys.maxsize, verbose=True, option=None):
+        return self.load(fFile, eFile,
+                         linesToLoad=linesToLoad,
+                         verbose=verbose,
+                         option=option)
 
     def load(self, fFile, eFile,
              linesToLoad=sys.maxsize, verbose=True, option=None):
