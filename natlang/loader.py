@@ -31,8 +31,10 @@ supportedList = {
     "semanticFrame": semanticFrame,
     "astTree": astTree,
     #    'django_ast': django_ast,
-    'django': django,
-    'intent': intent
+    'django_raw': django_raw,
+    'intent': intent,
+    'django_intent': django_intent,
+    'django_code': django_code
 }
 
 
