@@ -29,6 +29,9 @@ class Code:
     def __repr__(self):
         return "<DjangoCode: " + str(self.value) + ">"
 
+    def __getitem__(self, key):
+        return self.value[key]
+
     def createSketch(self):
         self.sketch = []
         for tk, ty in zip(self.value, self.ty_list):

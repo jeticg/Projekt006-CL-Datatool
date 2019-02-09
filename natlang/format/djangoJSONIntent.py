@@ -27,6 +27,9 @@ class Intent:
     def __repr__(self):
         return "<Intent: " + str(self.value) + ">"
 
+    def __getitem__(self, key):
+        return self.value[key]
+
     def export(self):
         return " ".join(self.value)
 
