@@ -11,7 +11,7 @@ from natlang.format import txtFiles
 from natlang.format import txtOrTree
 from natlang.format import conll
 # from natlang.format import django_ast
-from natlang.format import django_raw
+from natlang.format import django
 from natlang.format import intent
-from natlang.format import django_code
-from natlang.format import django_intent
+from natlang.format import djangoJSONCode
+from natlang.format import djangoJSONIntent
