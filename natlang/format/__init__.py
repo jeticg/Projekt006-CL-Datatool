@@ -13,3 +13,5 @@ from natlang.format import conll
 # from natlang.format import django_ast
 from natlang.format import django
 from natlang.format import intent
+from natlang.format import djangoJSONCode
+from natlang.format import djangoJSONIntent
