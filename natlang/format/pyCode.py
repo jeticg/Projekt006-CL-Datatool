@@ -183,9 +183,10 @@ def _restructure_rec(node, orig_children):
         _restructure_rec(child_node, orig_child.children)
 
 
-def _restructure(tmp_node):
-    """transform the structure of TmpNode into Node"""
-    node = AstNode()
+def _restructure(tmp_node, node_cls=AstNode):
+    """transform the structure of TmpNode into Custom node class
+    node_cls should be a subclass of AstNode"""
+    node = node_cls()
     if tmp_node.value is None:
         node.value = (tmp_node.tag,)
     else:
@@ -194,17 +195,17 @@ def _restructure(tmp_node):
     _restructure_rec(node, tmp_node.children)
 
     # append topmost root node
-    root = AstNode()
+    root = node_cls()
     root.value = ('ROOT',)
     root.child = node
     node.parent = root
     return root
 
 
-def python_to_tree(code):
+def python_to_tree(code, node_cls=AstNode):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
-    res_root = _restructure(root)
+    res_root = _restructure(root, node_cls)
     res_root.calcId(1)
     res_root.calcPhrase(force=True)
     return res_root

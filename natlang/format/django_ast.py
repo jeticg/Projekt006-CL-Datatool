@@ -1,89 +1,68 @@
 from __future__ import print_function
 import sys
 import re
-import os
-from natlang.format.pyCode import python_to_tree
+import astor
+from natlang.format.pyCode import AstNode, python_to_tree, tree2ast
+import tokenize
+from io import StringIO
+import os, json
+
+p_elif = re.compile(r'^elif\s?')
+p_else = re.compile(r'^else\s?')
+p_try = re.compile(r'^try\s?')
+p_except = re.compile(r'^except\s?')
+p_finally = re.compile(r'^finally\s?')
+p_decorator = re.compile(r'^@.*')
 
 
-def line2code(line):
-    p_elif = re.compile(r'^elif\s?')
-    p_else = re.compile(r'^else\s?')
-    p_try = re.compile(r'^try\s?')
-    p_except = re.compile(r'^except\s?')
-    p_finally = re.compile(r'^finally\s?')
-    p_decorator = re.compile(r'^@.*')
+def de_canonicalize_code(code, ref_raw_code):
+    if code.endswith('def dummy():\n    pass'):
+        code = code.replace('def dummy():\n    pass', '').strip()
 
-    line = line.strip()
-    if not line:
-        return line
+    if p_elif.match(ref_raw_code):
+        # remove leading if true
+        code = code.replace('if True:\n    pass', '').strip()
+    elif p_else.match(ref_raw_code):
+        # remove leading if true
+        code = code.replace('if True:\n    pass', '').strip()
 
-    if p_elif.match(line):
-        line = 'if True: pass\n' + line
-    if p_else.match(line):
-        line = 'if True: pass\n' + line
+    # try/catch/except stuff
+    if p_try.match(ref_raw_code):
+        code = code.replace('except:\n    pass', '').strip()
+    elif p_except.match(ref_raw_code):
+        code = code.replace('try:\n    pass', '').strip()
+    elif p_finally.match(ref_raw_code):
+        code = code.replace('try:\n    pass', '').strip()
 
-    if p_try.match(line):
-        line = line + 'pass\nexcept: pass'
-    elif p_except.match(line):
-        line = 'try: pass\n' + line
-    elif p_finally.match(l):
-        line = 'try: pass\n' + line
+    # remove ending pass
+    if code.endswith(':\n    pass'):
+        code = code[:-len('\n    pass')]
 
-    if p_decorator.match(line):
-        line = line + '\ndef dummy(): pass'
-    if l[-1] == ':':
-        line = line + 'pass'
-
-    # parse = ast.parse(line)
-    return line
+    return code
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None):
-    """
-    WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
-    directory as the code file `token_maps.pkl` should be a {int->[str]}
-    mapping of copied words
-    """
-    import progressbar
-    fileName = os.path.expanduser(fileName)
+class DjangoAst(AstNode):
+    def __init__(self):
+        super(DjangoAst, self).__init__()
+        self.raw_code = ''
 
-    roots = []
-    i = 0
-    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
-               progressbar.FormatLabel(
-                   '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is True:
-        loadProgressBar = \
-            progressbar.ProgressBar(widgets=widgets,
-                                    maxval=min(
-                                        sum(1 for line in open(fileName)),
-                                        linesToLoad)).start()
-    for line in open(fileName):
-        i += 1
-        if verbose is True:
-            loadProgressBar.update(i)
-        if not line:
-            print('line {} is empty'.format(i))
-        code = line2code(line)
-        roots.append(python_to_tree(code))
-        if i == linesToLoad:
-            break
+    def export_for_eval(self):
+        assert self.raw_code != ''
+        py_ast = tree2ast(self)
+        code = astor.to_source(py_ast).strip()
+        decano_code = de_canonicalize_code(code, self.raw_code)
+        tokens = [x[1] for x in tokenize.generate_tokens(StringIO(decano_code).readline)]
+        # todo: replace special tokens?
+        return tokens[:-1]
 
-    if verbose is True:
-        loadProgressBar.finish()
+    def visualize(self, name='res'):
+        from graphviz import Graph
+        import os
+        import errno
 
-    return roots
+        def repr_n(node):
+            return 'Node{}'.format(repr(node.value))
 
-
-if __name__ == '__main__':
-    from graphviz import Graph
-    import os
-    import errno
-
-    def repr_n(node):
-        return 'Node{}'.format(repr(node.value))
-
-    def draw_res_tree(root, name='res'):
         try:
             os.makedirs('figures')
         except OSError as exc:  # Guard against race condition
@@ -92,8 +71,9 @@ if __name__ == '__main__':
 
         fname = 'figures/{}'.format(name + '.gv')
         g = Graph(format='png', filename=fname)
+        g.attr(rankdir='BT')
 
-        fringe = [root]
+        fringe = [self]
         while fringe:
             node = fringe.pop()
             g.node(str(id(node)), repr_n(node))
@@ -101,18 +81,33 @@ if __name__ == '__main__':
                 child = node.child
                 fringe.append(child)
                 g.node(str(id(child)), repr_n(node))
-                g.edge(str(id(node)), str(id(child)), color='red')
 
             if node.sibling is not None:
                 sibling = node.sibling
                 fringe.append(sibling)
                 g.node(str(id(sibling)), repr_n(node))
-                g.edge(str(id(node)), str(id(sibling)), color='blue')
 
             if node.parent is not None:
-                g.edge(str(id(node)), str(id(node.parent)), color='green')
+                g.edge(str(id(node)), str(id(node.parent)))
 
         return g.render()
 
-    roots = load('/Users/ruoyi/Projects/PycharmProjects/NMT-Experiments' +
-                 '/data/django/test.code')
+
+def load(file, linesToLoad=sys.maxsize):
+    with open(os.path.expanduser(file)) as f:
+        content = [line.strip() for line in f][:linesToLoad]
+    roots = []
+    for line in content:
+        entry = json.loads(line)
+        raw_code = entry['raw_code']
+        cano_code = entry['cano_code']
+        root = python_to_tree(cano_code, DjangoAst)
+        root.raw_code = raw_code
+        roots.append(root)
+
+    return roots
+
+
+if __name__ == '__main__':
+    loaded = load(
+        '/Users/ruoyi/Projects/PycharmProjects/data_fixer/django_exported/dev.jsonl')
