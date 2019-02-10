@@ -52,4 +52,4 @@ def load(file, linesToLoad=sys.maxsize):
 
 if __name__ == '__main__':
     loaded = load(
-        '/Users/ruoyi/Projects/PycharmProjects/data_fixer/django/dev.jsonl')
+        '/Users/ruoyi/Projects/PycharmProjects/data_fixer/django_exported/dev.jsonl')
