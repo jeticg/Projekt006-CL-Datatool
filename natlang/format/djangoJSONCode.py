@@ -2,6 +2,7 @@
 # Python version: 3
 #
 # Django Dataset Code Loader class
+# For django code stored in JSON format as provided by Yin et Neubig, 2017
 # Simon Fraser University
 # Ruoyi Wang, Jetic Gū
 #

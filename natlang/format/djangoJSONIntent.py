@@ -2,10 +2,11 @@
 # Python version: 3
 #
 # Django Dataset Code Loader class
+# For django intent stored in JSON format as provided by Yin et Neubig, 2017
 # Simon Fraser University
 # Ruoyi Wang, Jetic Gū
 #
-# For loading the code as a sequence of tokens
+# For loading the intent as a sequence of tokens
 import tokenize as tk
 import keyword
 import json
