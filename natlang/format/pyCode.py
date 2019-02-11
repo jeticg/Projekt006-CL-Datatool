@@ -95,6 +95,17 @@ class AstNode(TreeNode):
     def __repr__(self):
         return 'AstNode({})'.format(repr(self.value))
 
+    def find_literal_nodes(self):
+        if self.value[0] == 'LITERAL':
+            return [self]
+        else:
+            nodes = []
+            node = self.child
+            while node is not None:
+                nodes.extend(node.find_literal_nodes())
+                node = node.sibling
+            return nodes
+
 
 class _TmpNode:
     def __init__(self, tag, value):
@@ -211,18 +222,6 @@ def python_to_tree(code, node_cls=AstNode):
     return res_root
 
 
-def _find_literal_nodes(ast_tree):
-    if ast_tree.value[0] == 'LITERAL':
-        return [ast_tree]
-    else:
-        nodes = []
-        node = ast_tree.child
-        while node is not None:
-            nodes.extend(_find_literal_nodes(node))
-            node = node.sibling
-        return nodes
-
-
 def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_process=False):
     """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
     `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
@@ -268,7 +267,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
             break
 
     for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue={}):
-        literal_nodes = _find_literal_nodes(root)
+        literal_nodes = root.find_literal_nodes()
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
                 node.value = node.value[0], '<COPIED>'

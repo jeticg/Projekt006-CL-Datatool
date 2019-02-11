@@ -6,6 +6,17 @@ from natlang.format.pyCode import AstNode, python_to_tree, tree2ast
 import tokenize
 from io import StringIO
 import os, json
+import copy
+import keyword
+import numbers
+
+builtin_fns = ('abs', 'delattr', 'hash', 'memoryview', 'set', 'all', 'dict', 'help', 'min', 'setattr', 'any',
+               'dir', 'hex', 'next', 'slice', 'ascii', 'divmod', 'id', 'object', 'sorted', 'bin', 'enumerate', 'input',
+               'oct', 'staticmethod', 'bool', 'eval', 'int', 'open', 'str', 'breakpoint', 'exec', 'isinstance', 'ord',
+               'sum', 'bytearray', 'filter', 'issubclass', 'pow', 'super', 'bytes', 'float', 'iter', 'print', 'tuple',
+               'callable', 'format', 'len', 'property', 'type', 'chr', 'frozenset', 'list', 'range', 'vars',
+               'classmethod', 'getattr', 'locals', 'repr', 'zip', 'compile', 'globals', 'map', 'reversed', '__import__',
+               'complex', 'hasattr', 'max', 'round')
 
 p_elif = re.compile(r'^elif\s?')
 p_else = re.compile(r'^else\s?')
@@ -41,6 +52,9 @@ def de_canonicalize_code(code, ref_raw_code):
     return code
 
 
+masked_str = re.compile(r'''^_STR:\d+_$''')
+
+
 class DjangoAst(AstNode):
     def __init__(self):
         super(DjangoAst, self).__init__()
@@ -54,6 +68,24 @@ class DjangoAst(AstNode):
         tokens = [x[1] for x in tokenize.generate_tokens(StringIO(decano_code).readline)]
         # todo: replace special tokens?
         return tokens[:-1]
+
+    def createSketch(self):
+        """return the root of a new tree with sketches
+        the sketch tree cannot be converted back to python unless all sketch holes are filled"""
+        assert self.raw_code != ''
+        root = copy.deepcopy(self)
+        leaves = root.find_literal_nodes()
+        for leaf in leaves:
+            if isinstance(leaf.value[1], numbers.Number):
+                leaf.value = leaf.value[0], 'NUMBER'
+            else:
+                if masked_str.match(leaf.value[1]):
+                    leaf.value = leaf.value[0], 'STRING'
+                elif keyword.iskeyword(leaf.value[1]) or leaf.value[1] in builtin_fns:
+                    continue
+                else:
+                    leaf.value = leaf.value[0], 'NAME'
+        return root
 
     def visualize(self, name='res'):
         from graphviz import Graph
