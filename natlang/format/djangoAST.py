@@ -5,7 +5,8 @@ import astor
 from natlang.format.pyCode import AstNode, python_to_tree, tree2ast
 import tokenize
 from io import StringIO
-import os, json
+import os
+import json
 import copy
 import keyword
 import numbers

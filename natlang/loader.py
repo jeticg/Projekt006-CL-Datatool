@@ -34,7 +34,8 @@ supportedList = {
     'django': django,
     'intent': intent,
     'djangoJSONIntent': djangoJSONIntent,
-    'djangoJSONCode': djangoJSONCode
+    'djangoJSONCode': djangoJSONCode,
+    'djangoAST': djangoAST
 }
 
 
