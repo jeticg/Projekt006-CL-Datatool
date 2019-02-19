@@ -70,13 +70,14 @@ def tree2ast(root, suppress=False):
                     # todo: temporary workaround
                     try:
                         children[0] = float(children[0])
-                    except:
+                    except ValueError:
                         children[0] = 42.1337
             try:
                 root_ast_node = Class(*children)
-            except:
+            except ValueError:
                 if suppress:
-                    print('[WARNING] wrong parameters for AST class {}'.format(root.value[0]))
+                    print('[WARNING] wrong parameters for AST class {}'.format(
+                        root.value[0]))
                     return None
                 else:
                     raise
@@ -227,8 +228,11 @@ def python_to_tree(code, node_cls=AstNode):
     return res_root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_process=False):
-    """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
+def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
+         no_process=False):
+    """
+    WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
+    directory as the code file
     `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
     import progressbar
     import pickle
@@ -241,8 +245,9 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
 
     if option is None:
         option = {}
-        option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
-            orig_name[:-13])
+        option['mapping_path'] =\
+            os.path.dirname(os.path.abspath(fileName)) +\
+            '/{}.token_maps.pkl'.format(orig_name[:-13])
     # print(option['mapping_path'])
 
     if no_process:
@@ -271,7 +276,8 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
         if i == linesToLoad:
             break
 
-    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue={}):
+    for root, tokens_map in itertools.izip_longest(roots, token_maps,
+                                                   fillvalue={}):
         literal_nodes = root.find_literal_nodes()
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
@@ -291,7 +297,6 @@ if __name__ == '__main__':
     from graphviz import Graph
     import os
     import errno
-
 
     def draw_tmp_tree(root, name='tmp'):
         try:
@@ -314,10 +319,8 @@ if __name__ == '__main__':
 
         return g.render()
 
-
     def repr_n(node):
         return 'Node{}'.format(repr(node.value))
-
 
     def draw_res_tree(root, name='res'):
         try:
@@ -350,7 +353,6 @@ if __name__ == '__main__':
                 g.edge(str(id(node)), str(id(node.parent)), color='green')
 
         return g.render()
-
 
     # example data structures
     code = r"if s[:4].lower() == 'http':    pass"
