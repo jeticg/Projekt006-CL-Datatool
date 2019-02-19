@@ -15,25 +15,31 @@ import unittest
 import inspect
 from copy import deepcopy
 
-from natlang.format.tree import Node as Base
+from natlang.format.tree import Node as BaseNode
 
 
-class Node(Base):
+class AstNode(BaseNode):
     '''
-    This is the main data structure of a tree, a Node instance is a node on the
-    tree. The structure of the subtree with node x as root can be viewed by
+    This is the main data structure of a tree, an AstNode instance is a node on
+    the tree. The structure of the subtree with node x as root can be viewed by
     calling x.__repr__()
     '''
     def __init__(self, parent=None):
-        Base.__init__(self, parent)
+        BaseNode.__init__(self, parent)
         return
+
+    def __repr__(self):
+        return 'AstNode({})'.format(repr(self.value))
+
+    def export(self):
+        raise NotImplementedError
 
 
 def constructTreeFromStr(string, rootLabel="ROOT"):
     '''
     This method constructs a tree from a string.
     @param string: str, in Penn Treebank format
-    @return root: Node, the root node.
+    @return root: AstNode, the root node.
     '''
     if string.strip() == "(())":
         return None
@@ -49,7 +55,7 @@ def constructTree(elements, rootLabel="ROOT"):
     This method constructs a tree from a list of elements. Each bracket is
     considered an independent element.
     @param elements: list of str, in Penn Treebank format
-    @return root: Node, the root node.
+    @return root: AstNode, the root node.
     '''
     root = None
     currentParent = None
@@ -57,7 +63,7 @@ def constructTree(elements, rootLabel="ROOT"):
     for element in elements:
         if element == "(":
             currentParent = current
-            current = Node(parent=currentParent)
+            current = AstNode(parent=currentParent)
             if currentParent is not None:
                 if currentParent.child is not None:
                     tmp = currentParent.child
@@ -93,34 +99,34 @@ def constructTreeFromRNNGAction(actions):
     for action in actions:
         if action[0] == "GEN":
             if root is None:
-                root = Node()
+                root = AstNode()
                 root.value = ("NaN", "NaN")
                 return root
             if openClauses == 1:
                 openClauses = 0
-                tmp = Node(current)
+                tmp = AstNode(current)
                 current.child = tmp
             else:
-                tmp = Node(current.parent)
+                tmp = AstNode(current.parent)
                 current.sibling = tmp
             tmp.value = ('NaN', action[1])
             current = tmp
         elif action[0] == "NT":
             if root is None:
-                tmp = Node()
+                tmp = AstNode()
                 root = tmp
             elif openClauses == 1:
-                tmp = Node(current)
+                tmp = AstNode(current)
                 current.child = tmp
             else:
-                tmp = Node(current.parent)
+                tmp = AstNode(current.parent)
                 current.sibling = tmp
             tmp.value = (action[1],)
             current = tmp
             openClauses = 1
         else:
             if root is None:
-                root = Node()
+                root = AstNode()
                 root.value = ("NaN", "NaN")
                 return root
             current = current.parent
@@ -132,8 +138,8 @@ def constructTreeFromRNNGAction(actions):
 
 def createSketch(node, sketchLabels, phGenerator):
     # Let's say all values are considered here.
-    if not isinstance(node, Node):
-        raise ValueError("Incorrect argument type: has to be astTree Node")
+    if not isinstance(node, AstNode):
+        raise ValueError("Incorrect argument type: has to be an AstNode")
     result = deepcopy(node)
 
     def _lexicaliseUsingSketchLabels(node):

@@ -14,13 +14,10 @@ import astor
 import tokenize
 from io import StringIO
 
-from natlang.format.tree import Node as TreeNode
+from natlang.format.astTree import AstNode as BaseNode
 
 
-class AstNode(TreeNode):
-    def __repr__(self):
-        return 'AstNode({})'.format(repr(self.value))
-
+class AstNode(BaseNode):
     def find_literal_nodes(self):
         if self.value[0] == 'LITERAL':
             return [self]
@@ -111,13 +108,6 @@ def tree2ast(root, suppress=False):
                     raise
             else:
                 return root_ast_node
-
-
-def export_tokens(root):
-    py_ast = tree2ast(root)
-    code = astor.to_source(py_ast)
-    tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
-    return tokens[:-1]
 
 
 def _translate(py_ast):
@@ -230,7 +220,8 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
     """
     WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
     directory as the code file
-    `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
+    `token_maps.pkl` should be a {int->[str]} mapping of copied words
+    """
     import progressbar
     import pickle
     import itertools
