@@ -14,10 +14,7 @@ import astor
 import tokenize
 from io import StringIO
 
-try:
-    from tree import Node as TreeNode
-except ImportError:
-    from natlang.format.tree import Node as TreeNode
+from natlang.format.tree import Node as TreeNode
 
 
 def tree2ast(root, suppress=False):
