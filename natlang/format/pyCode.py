@@ -17,6 +17,37 @@ from io import StringIO
 from natlang.format.tree import Node as TreeNode
 
 
+class AstNode(TreeNode):
+    def __repr__(self):
+        return 'AstNode({})'.format(repr(self.value))
+
+    def find_literal_nodes(self):
+        if self.value[0] == 'LITERAL':
+            return [self]
+        else:
+            nodes = []
+            node = self.child
+            while node is not None:
+                nodes.extend(node.find_literal_nodes())
+                node = node.sibling
+            return nodes
+
+    def export(self):
+        py_ast = tree2ast(self)
+        code = astor.to_source(py_ast)
+        return code.strip()
+
+
+class _TmpNode:
+    def __init__(self, tag, value):
+        self.tag = tag
+        self.value = value
+        self.children = []
+
+    def __repr__(self):
+        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
+
+
 def tree2ast(root, suppress=False):
     require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript',
                    'Attribute')
@@ -87,37 +118,6 @@ def export_tokens(root):
     code = astor.to_source(py_ast)
     tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
     return tokens[:-1]
-
-
-class AstNode(TreeNode):
-    def __repr__(self):
-        return 'AstNode({})'.format(repr(self.value))
-
-    def find_literal_nodes(self):
-        if self.value[0] == 'LITERAL':
-            return [self]
-        else:
-            nodes = []
-            node = self.child
-            while node is not None:
-                nodes.extend(node.find_literal_nodes())
-                node = node.sibling
-            return nodes
-
-    def export_to_code(self):
-        py_ast = tree2ast(self)
-        code = astor.to_source(py_ast)
-        return code.strip()
-
-
-class _TmpNode:
-    def __init__(self, tag, value):
-        self.tag = tag
-        self.value = value
-        self.children = []
-
-    def __repr__(self):
-        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
 
 
 def _translate(py_ast):
@@ -216,7 +216,7 @@ def _restructure(tmp_node, node_cls=AstNode):
     return root
 
 
-def python_to_tree(code, node_cls=AstNode):
+def python2astTree(code, node_cls=AstNode):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root, node_cls)
@@ -269,7 +269,7 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
         if verbose is True:
             loadProgressBar.update(i)
         code = eval(line)
-        roots.append(python_to_tree(code))
+        roots.append(python2astTree(code))
         if i == linesToLoad:
             break
 

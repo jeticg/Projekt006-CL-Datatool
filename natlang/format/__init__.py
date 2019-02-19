@@ -15,4 +15,3 @@ from natlang.format import django
 from natlang.format import intent
 from natlang.format import djangoJSONCode
 from natlang.format import djangoJSONIntent
-from natlang.format import djangoAST
