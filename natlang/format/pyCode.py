@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+python2tree# -*- coding: utf-8 -*-
 # Python version: 2/3
 #
 # Python format Code (CoNaLa) loader
@@ -213,7 +213,7 @@ def _restructure(tmp_node, node_cls=AstNode):
     return root
 
 
-def python_to_tree(code, node_cls=AstNode):
+def python2tree(code, node_cls=AstNode):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root, node_cls)

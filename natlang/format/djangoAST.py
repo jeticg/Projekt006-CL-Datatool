@@ -2,7 +2,6 @@ from __future__ import print_function
 import sys
 import re
 import astor
-from natlang.format.pyCode import AstNode, python_to_tree, tree2ast
 import tokenize
 from io import StringIO
 import os
@@ -11,13 +10,19 @@ import copy
 import keyword
 import numbers
 
-builtin_fns = ('abs', 'delattr', 'hash', 'memoryview', 'set', 'all', 'dict', 'help', 'min', 'setattr', 'any',
-               'dir', 'hex', 'next', 'slice', 'ascii', 'divmod', 'id', 'object', 'sorted', 'bin', 'enumerate', 'input',
-               'oct', 'staticmethod', 'bool', 'eval', 'int', 'open', 'str', 'breakpoint', 'exec', 'isinstance', 'ord',
-               'sum', 'bytearray', 'filter', 'issubclass', 'pow', 'super', 'bytes', 'float', 'iter', 'print', 'tuple',
-               'callable', 'format', 'len', 'property', 'type', 'chr', 'frozenset', 'list', 'range', 'vars',
-               'classmethod', 'getattr', 'locals', 'repr', 'zip', 'compile', 'globals', 'map', 'reversed', '__import__',
-               'complex', 'hasattr', 'max', 'round')
+from natlang.format.pyCode import AstNode, python2tree, tree2ast
+
+
+builtin_fns = (
+    'abs', 'delattr', 'hash', 'memoryview', 'set', 'all', 'dict', 'help',
+    'min', 'setattr', 'any', 'dir', 'hex', 'next', 'slice', 'ascii', 'divmod',
+    'id', 'object', 'sorted', 'bin', 'enumerate', 'input', 'oct',
+    'staticmethod', 'bool', 'eval', 'int', 'open', 'str', 'breakpoint', 'exec',
+    'isinstance', 'ord', 'sum', 'bytearray', 'filter', 'issubclass', 'pow',
+    'super', 'bytes', 'float', 'iter', 'print', 'tuple', 'callable', 'format',
+    'len', 'property', 'type', 'chr', 'frozenset', 'list', 'range', 'vars',
+    'classmethod', 'getattr', 'locals', 'repr', 'zip', 'compile', 'globals',
+    'map', 'reversed', '__import__', 'complex', 'hasattr', 'max', 'round')
 
 p_elif = re.compile(r'^elif\s?')
 p_else = re.compile(r'^else\s?')
@@ -66,13 +71,17 @@ class DjangoAst(AstNode):
         py_ast = tree2ast(self)
         code = astor.to_source(py_ast).strip()
         decano_code = de_canonicalize_code(code, self.raw_code)
-        tokens = [x[1] for x in tokenize.generate_tokens(StringIO(decano_code).readline)]
+        tokens = [x[1] for x in
+                  tokenize.generate_tokens(StringIO(decano_code).readline)]
         # todo: replace special tokens?
         return tokens[:-1]
 
     def createSketch(self):
-        """return the root of a new tree with sketches
-        the sketch tree cannot be converted back to python unless all sketch holes are filled"""
+        """
+        return the root of a new tree with sketches
+        the sketch tree cannot be converted back to python unless all sketch
+        holes are filled
+        """
         assert self.raw_code != ''
         root = copy.deepcopy(self)
         leaves = root.find_literal_nodes()
@@ -82,7 +91,8 @@ class DjangoAst(AstNode):
             else:
                 if masked_str.match(leaf.value[1]):
                     leaf.value = leaf.value[0], 'STRING'
-                elif keyword.iskeyword(leaf.value[1]) or leaf.value[1] in builtin_fns:
+                elif keyword.iskeyword(leaf.value[1]) or\
+                        leaf.value[1] in builtin_fns:
                     continue
                 else:
                     leaf.value = leaf.value[0], 'NAME'
@@ -134,7 +144,7 @@ def load(file, linesToLoad=sys.maxsize):
         entry = json.loads(line)
         raw_code = entry['raw_code']
         cano_code = entry['cano_code']
-        root = python_to_tree(cano_code, DjangoAst)
+        root = python2tree(cano_code, DjangoAst)
         root.raw_code = raw_code
         roots.append(root)
 
@@ -142,5 +152,4 @@ def load(file, linesToLoad=sys.maxsize):
 
 
 if __name__ == '__main__':
-    loaded = load(
-        '/Users/ruoyi/Projects/PycharmProjects/data_fixer/django_exported/dev.jsonl')
+    pass
