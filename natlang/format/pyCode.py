@@ -88,7 +88,7 @@ def export_tokens(root):
     py_ast = tree2ast(root)
     code = astor.to_source(py_ast)
     tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
-    return tokens
+    return tokens[:-1]
 
 
 class AstNode(TreeNode):
@@ -105,6 +105,11 @@ class AstNode(TreeNode):
                 nodes.extend(node.find_literal_nodes())
                 node = node.sibling
             return nodes
+
+    def export_to_code(self):
+        py_ast = tree2ast(self)
+        code = astor.to_source(py_ast)
+        return code.strip()
 
 
 class _TmpNode:
