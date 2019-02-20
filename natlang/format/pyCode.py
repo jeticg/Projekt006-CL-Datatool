@@ -14,10 +14,35 @@ import astor
 import tokenize
 from io import StringIO
 
-try:
-    from tree import Node as TreeNode
-except ImportError:
-    from natlang.format.tree import Node as TreeNode
+from natlang.format.astTree import AstNode as BaseNode
+
+
+class AstNode(BaseNode):
+    def find_literal_nodes(self):
+        if self.value[0] == 'LITERAL':
+            return [self]
+        else:
+            nodes = []
+            node = self.child
+            while node is not None:
+                nodes.extend(node.find_literal_nodes())
+                node = node.sibling
+            return nodes
+
+    def export(self):
+        py_ast = tree2ast(self)
+        code = astor.to_source(py_ast)
+        return code.strip()
+
+
+class _TmpNode:
+    def __init__(self, tag, value):
+        self.tag = tag
+        self.value = value
+        self.children = []
+
+    def __repr__(self):
+        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
 
 
 def tree2ast(root, suppress=False):
@@ -70,56 +95,19 @@ def tree2ast(root, suppress=False):
                     # todo: temporary workaround
                     try:
                         children[0] = float(children[0])
-                    except:
+                    except ValueError:
                         children[0] = 42.1337
             try:
                 root_ast_node = Class(*children)
-            except:
+            except ValueError:
                 if suppress:
-                    print('[WARNING] wrong parameters for AST class {}'.format(root.value[0]))
+                    print('[WARNING] wrong parameters for AST class {}'.format(
+                        root.value[0]))
                     return None
                 else:
                     raise
             else:
                 return root_ast_node
-
-
-def export_tokens(root):
-    py_ast = tree2ast(root)
-    code = astor.to_source(py_ast)
-    tokens = [x[1] for x in tokenize.generate_tokens(StringIO(code).readline)]
-    return tokens[:-1]
-
-
-class AstNode(TreeNode):
-    def __repr__(self):
-        return 'AstNode({})'.format(repr(self.value))
-
-    def find_literal_nodes(self):
-        if self.value[0] == 'LITERAL':
-            return [self]
-        else:
-            nodes = []
-            node = self.child
-            while node is not None:
-                nodes.extend(node.find_literal_nodes())
-                node = node.sibling
-            return nodes
-
-    def export_to_code(self):
-        py_ast = tree2ast(self)
-        code = astor.to_source(py_ast)
-        return code.strip()
-
-
-class _TmpNode:
-    def __init__(self, tag, value):
-        self.tag = tag
-        self.value = value
-        self.children = []
-
-    def __repr__(self):
-        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
 
 
 def _translate(py_ast):
@@ -218,7 +206,7 @@ def _restructure(tmp_node, node_cls=AstNode):
     return root
 
 
-def python_to_tree(code, node_cls=AstNode):
+def python2astTree(code, node_cls=AstNode):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root, node_cls)
@@ -227,9 +215,13 @@ def python_to_tree(code, node_cls=AstNode):
     return res_root
 
 
-def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_process=False):
-    """WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same directory as the code file
-    `token_maps.pkl` should be a {int->[str]} mapping of copied words"""
+def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
+         no_process=False):
+    """
+    WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
+    directory as the code file
+    `token_maps.pkl` should be a {int->[str]} mapping of copied words
+    """
     import progressbar
     import pickle
     import itertools
@@ -241,8 +233,9 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
 
     if option is None:
         option = {}
-        option['mapping_path'] = os.path.dirname(os.path.abspath(fileName)) + '/{}.token_maps.pkl'.format(
-            orig_name[:-13])
+        option['mapping_path'] =\
+            os.path.dirname(os.path.abspath(fileName)) +\
+            '/{}.token_maps.pkl'.format(orig_name[:-13])
     # print(option['mapping_path'])
 
     if no_process:
@@ -267,11 +260,12 @@ def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None, no_proces
         if verbose is True:
             loadProgressBar.update(i)
         code = eval(line)
-        roots.append(python_to_tree(code))
+        roots.append(python2astTree(code))
         if i == linesToLoad:
             break
 
-    for root, tokens_map in itertools.izip_longest(roots, token_maps, fillvalue={}):
+    for root, tokens_map in itertools.izip_longest(roots, token_maps,
+                                                   fillvalue={}):
         literal_nodes = root.find_literal_nodes()
         for node in literal_nodes:
             if node.value[1] in tokens_map.values():
@@ -291,7 +285,6 @@ if __name__ == '__main__':
     from graphviz import Graph
     import os
     import errno
-
 
     def draw_tmp_tree(root, name='tmp'):
         try:
@@ -314,10 +307,8 @@ if __name__ == '__main__':
 
         return g.render()
 
-
     def repr_n(node):
         return 'Node{}'.format(repr(node.value))
-
 
     def draw_res_tree(root, name='res'):
         try:
@@ -350,7 +341,6 @@ if __name__ == '__main__':
                 g.edge(str(id(node)), str(id(node.parent)), color='green')
 
         return g.render()
-
 
     # example data structures
     code = r"if s[:4].lower() == 'http':    pass"

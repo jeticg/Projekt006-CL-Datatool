@@ -30,12 +30,10 @@ supportedList = {
     "conll": conll,
     "semanticFrame": semanticFrame,
     "astTree": astTree,
-    #    'django_ast': django_ast,
     'django': django,
     'intent': intent,
     'djangoJSONIntent': djangoJSONIntent,
     'djangoJSONCode': djangoJSONCode,
-    'djangoAST': djangoAST
 }
 
 
