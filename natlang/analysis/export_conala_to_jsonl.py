@@ -22,7 +22,7 @@ tokenize_nfa = re.compile(r'''
 ''', re.VERBOSE)
 
 word_checker = re.compile(r'''^[a-zA-Z][a-z]*$''')
-str_checker = re.compile(r'''("(\\"|[^"])*")|('(\\'|[^'])*')''')
+str_checker = re.compile(r'''^("(\\"|[^"])*")|('(\\'|[^'])*')$''')
 
 
 def parse_src(orig_line):
@@ -38,7 +38,7 @@ def parse_src(orig_line):
         else:
             category, lexeme = groups[0]
 
-        if category == 0:
+        if category == 1:
             # str literal
             str_content = lexeme
             if str_content in str_map:
@@ -48,8 +48,7 @@ def parse_src(orig_line):
                 str_cnt += 1
                 str_map[str_content] = replacement
             value.append(replacement)
-            continue
-        elif category == 1 and str_checker.match(lexeme):
+        elif category == 0 and str_checker.match(lexeme):
             # str as annotated content
             str_content = str(lexeme)
             if str_content in str_map:
