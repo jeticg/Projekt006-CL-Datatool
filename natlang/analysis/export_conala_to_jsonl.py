@@ -41,7 +41,7 @@ def parse_src(orig_line):
 
         if category == 1:
             # str literal
-            str_content = lexeme
+            str_content = eval(lexeme)
             if str_content in str_map:
                 replacement = str_map[str_content]
             else:
@@ -51,7 +51,7 @@ def parse_src(orig_line):
             value.append(replacement)
         elif category == 0 and str_checker.match(lexeme):
             # str as annotated content
-            str_content = lexeme
+            str_content = eval(lexeme)
             if str_content in str_map:
                 replacement = str_map[str_content]
             else:
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                     else:
                         jsonl_entry['type'].append('NAME')
                 elif category == tokenize.STRING:
-                    str_content = str(lexeme)
+                    str_content = eval(lexeme)
                     if str_content in str_map:
                         jsonl_entry['token'][-1] = str_map[str_content]
                     jsonl_entry['type'].append('STRING')
