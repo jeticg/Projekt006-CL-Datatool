@@ -30,9 +30,12 @@ class AstNode(BaseNode):
             return nodes
 
     def export(self):
-        py_ast = tree2ast(self)
-        code = astor.to_source(py_ast)
-        return code.strip()
+        try:
+            py_ast = tree2ast(self, suppress=True)
+            code = astor.to_source(py_ast)
+            return code.strip()
+        except AttributeError:
+            return ""
 
 
 class _TmpNode:
@@ -99,7 +102,7 @@ def tree2ast(root, suppress=False):
                         children[0] = 42.1337
             try:
                 root_ast_node = Class(*children)
-            except ValueError:
+            except (ValueError, TypeError) as e:
                 if suppress:
                     print('[WARNING] wrong parameters for AST class {}'.format(
                         root.value[0]))

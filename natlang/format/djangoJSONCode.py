@@ -80,9 +80,10 @@ class Code:
 
 
 class DjangoAst(AstNode):
-    def __init__(self):
-        super(DjangoAst, self).__init__()
+    def __init__(self, parent=None):
+        AstNode.__init__(self, parent=parent)
         self.raw_code = ''
+        return
 
     def export_for_eval(self):
         assert self.raw_code != ''
