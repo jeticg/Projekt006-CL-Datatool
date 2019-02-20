@@ -35,8 +35,6 @@ class AstNode(BaseNode):
         '''
         One should always implement their own exporter though
         '''
-        print("Warning: export not implemented, using constituency exporter",
-              file=sys.stderr)
         return BaseNode.export(self)
 
 
