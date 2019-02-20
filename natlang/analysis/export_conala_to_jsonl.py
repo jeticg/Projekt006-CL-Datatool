@@ -3,6 +3,7 @@ import keyword
 import re
 import tokenize
 from io import StringIO
+import string
 
 REF_DIR = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/conala_orig'
 EXPORT = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/conala_exported'
@@ -21,7 +22,7 @@ tokenize_nfa = re.compile(r'''
 ([^\s]+)    # other stuff
 ''', re.VERBOSE)
 
-word_checker = re.compile(r'''^[a-zA-Z][a-z]*$''')
+word_checker = re.compile(r'''^[a-zA-Z][a-z]*('s)?$''')
 str_checker = re.compile(r'''^("(\\"|[^"])*")|('(\\'|[^'])*')$''')
 
 
@@ -50,7 +51,7 @@ def parse_src(orig_line):
             value.append(replacement)
         elif category == 0 and str_checker.match(lexeme):
             # str as annotated content
-            str_content = str(lexeme)
+            str_content = lexeme
             if str_content in str_map:
                 replacement = str_map[str_content]
             else:
@@ -60,7 +61,7 @@ def parse_src(orig_line):
             value.append(replacement)
         else:
             punc = None
-            if not lexeme[-1].isalpha():
+            if lexeme[-1] in string.punctuation:
                 # punctuations
                 punc = lexeme[-1]
                 if lexeme[:-1]:
@@ -145,6 +146,7 @@ if __name__ == '__main__':
 
             jsonl_entry['cano_code'] = ' '.join(jsonl_entry['token'])
             jsonl_entry['decano_code'] = jsonl_entry['cano_code']
+            jsonl_entry['str_map'] = str_map
 
             assert jsonl_entry['token'] != [] and jsonl_entry['type'] != []
             assert len(jsonl_entry['token']) == len(jsonl_entry['type'])
