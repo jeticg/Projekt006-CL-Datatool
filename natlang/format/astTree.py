@@ -32,7 +32,12 @@ class AstNode(BaseNode):
         return 'AstNode({})'.format(repr(self.value))
 
     def export(self):
-        raise NotImplementedError
+        '''
+        One should always implement their own exporter though
+        '''
+        print("Warning: export not implemented, using constituency exporter",
+              file=sys.stderr)
+        return BaseNode.export(self)
 
 
 def constructTreeFromStr(string, rootLabel="ROOT"):
@@ -332,20 +337,6 @@ class TestTree(unittest.TestCase):
         # print y.__repr__()
         self.assertSequenceEqual(
             z.phrase, [('NP', "Andrei"), ('VP', "likes"), ('NP', "cheese")])
-        return
-
-    def testExportNode(self):
-        elements = ["(", "ROOT",
-                    "(", "S",
-                    "(", "NP", "Andrei", ")",
-                    "(", "VP", "(", "VP", "likes", ")",
-                    "(", "NP", "cheese", ")",
-                    ")",
-                    ")",
-                    ")"]
-        x = constructTree(elements)
-        self.assertEqual(elements, x.export().replace(
-            "(", " ( ").replace(")", " ) ").split())
         return
 
     def testBuildTreeLM(self, x=None):
