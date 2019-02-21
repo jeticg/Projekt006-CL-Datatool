@@ -30,7 +30,7 @@ def parse_src(orig_line):
     value = []
     str_map = {}
     str_cnt = 0
-    str_template = ' _STR:{}_ '
+    str_template = '_STR:{}_'
     matches = tokenize_nfa.finditer(' ' + orig_line)  # add a safe blank to the front
     for m in matches:
         groups = [(category, lexeme) for category, lexeme in enumerate(m.groups()) if lexeme is not None]
@@ -39,19 +39,14 @@ def parse_src(orig_line):
         else:
             category, lexeme = groups[0]
 
-        if category == 1:
-            # str literal
-            str_content = eval(lexeme)
-            if str_content in str_map:
-                replacement = str_map[str_content]
-            else:
-                replacement = str_template.format(str_cnt)
-                str_cnt += 1
-                str_map[str_content] = replacement
-            value.append(replacement)
-        elif category == 0 and str_checker.match(lexeme):
-            # str as annotated content
-            str_content = eval(lexeme)
+        if category == 1 or (category == 0 and str_checker.match(lexeme)):
+            # str literal or str as annotated content
+            try:
+                str_content = eval(lexeme)
+            except SyntaxError:
+                str_content = lexeme
+                print('broken string found for entry {}'.format(i))
+                print('broken string found in {}'.format(orig_line))
             if str_content in str_map:
                 replacement = str_map[str_content]
             else:
@@ -95,8 +90,8 @@ def parse_src(orig_line):
 
 
 if __name__ == '__main__':
-    with open('{}/{}.jsonl'.format(EXPORT, 'train'), 'w') as out_f, \
-            open('{}/{}.json'.format(REF_DIR, 'conala-train'), 'r') as in_f:
+    with open('{}/{}.jsonl'.format(EXPORT, 'test'), 'w') as out_f, \
+            open('{}/{}.json'.format(REF_DIR, 'conala-test'), 'r') as in_f:
         in_data = json.load(in_f)
 
         for i, example in enumerate(in_data):
@@ -108,14 +103,16 @@ if __name__ == '__main__':
                            'raw_code': example['snippet']}
 
             # tokenize src
-            if example['rewritten_intent']:
+            if 'rewritten_intent' in example and example['rewritten_intent']:
                 jsonl_entry['src'], str_map = parse_src(example['rewritten_intent'])
             else:
                 jsonl_entry['src'], str_map = parse_src(example['intent'])
 
             # fill in the code tokens and types
+            raw_tk_stream = []
             for tk in tokenize.generate_tokens(StringIO(jsonl_entry['raw_code']).readline):
                 category, lexeme = tk[:2]
+                raw_tk_stream.append(list(tk))
                 if category == tokenize.ENDMARKER:
                     break
                 jsonl_entry['token'].append(lexeme)
@@ -125,9 +122,15 @@ if __name__ == '__main__':
                     else:
                         jsonl_entry['type'].append('NAME')
                 elif category == tokenize.STRING:
-                    str_content = eval(lexeme)
+                    try:
+                        str_content = eval(lexeme)
+                    except SyntaxError:
+                        str_content = lexeme
+                        print('broken string found for entry {}'.format(i))
                     if str_content in str_map:
-                        jsonl_entry['token'][-1] = str_map[str_content]
+                        masked_str = '" {} "'.format(str_map[str_content])
+                        jsonl_entry['token'][-1] = masked_str
+                        raw_tk_stream[-1][1] = masked_str
                     jsonl_entry['type'].append('STRING')
                 elif category == tokenize.NUMBER:
                     jsonl_entry['type'].append('NUMBER')
@@ -135,6 +138,8 @@ if __name__ == '__main__':
                     jsonl_entry['type'].append('OP')
                 elif category == tokenize.NEWLINE:
                     jsonl_entry['type'].append('NEWLINE')
+                elif category == tokenize.NL:
+                    jsonl_entry['type'].append('NL')
                 elif category == tokenize.INDENT:
                     jsonl_entry['type'].append('INDENT')
                 elif category == tokenize.DEDENT:
@@ -144,11 +149,11 @@ if __name__ == '__main__':
                         repr(lexeme),
                         repr(jsonl_entry['raw_code'])))
 
-            jsonl_entry['cano_code'] = ' '.join(jsonl_entry['token'])
+            jsonl_entry['cano_code'] = tokenize.untokenize(raw_tk_stream)
             jsonl_entry['decano_code'] = jsonl_entry['cano_code']
             jsonl_entry['str_map'] = str_map
 
-            assert jsonl_entry['token'] != [] and jsonl_entry['type'] != []
+            # assert jsonl_entry['token'] != [] and jsonl_entry['type'] != []
             assert len(jsonl_entry['token']) == len(jsonl_entry['type'])
             out_f.write(json.dumps(jsonl_entry))
             out_f.write('\n')
