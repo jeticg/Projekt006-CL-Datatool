@@ -34,6 +34,8 @@ supportedList = {
     'intent': intent,
     'djangoJSONIntent': djangoJSONIntent,
     'djangoJSONCode': djangoJSONCode,
+    'conalaJSONIntent': conalaJSONIntent,
+    'conalaJSONCode': conalaJSONCode
 }
 
 
