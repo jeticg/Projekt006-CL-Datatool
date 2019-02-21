@@ -34,7 +34,8 @@ class AstNode(BaseNode):
             py_ast = tree2ast(self, suppress=True)
             code = astor.to_source(py_ast)
             return code.strip()
-        except (AttributeError, TypeError, KeyError, AssertionError):
+        except (AttributeError, TypeError, KeyError, AssertionError,
+                IndexError):
             return ""
 
 
