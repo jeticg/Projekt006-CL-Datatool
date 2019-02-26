@@ -192,8 +192,8 @@ def load(file, linesToLoad=sys.maxsize, verbose=True):
     if verbose is True:
         loadProgressBar =\
             progressbar.ProgressBar(widgets=widgets,
-                                    maxval=min(len(content))).start()
-    for line in content:
+                                    maxval=len(content)).start()
+    for i, line in enumerate(content):
         entry = json.loads(line)
         result.append(
             Code(entry['token'], entry['type'], canoCode=entry["cano_code"]))
