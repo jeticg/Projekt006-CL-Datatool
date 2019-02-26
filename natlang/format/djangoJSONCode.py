@@ -180,14 +180,28 @@ def decanonicaliseCode(code, ref_raw_code):
     return code
 
 
-def load(file, linesToLoad=sys.maxsize):
+def load(file, linesToLoad=sys.maxsize, verbose=True):
+    import progressbar
+    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
+               progressbar.FormatLabel(
+               '; Total: %(value)d sents (in: %(elapsed)s)')]
+
     with open(os.path.expanduser(file)) as f:
         content = [line.strip() for line in f][:linesToLoad]
     result = []
+    if verbose is True:
+        loadProgressBar =\
+            progressbar.ProgressBar(widgets=widgets,
+                                    maxval=min(len(content))).start()
     for line in content:
         entry = json.loads(line)
         result.append(
             Code(entry['token'], entry['type'], canoCode=entry["cano_code"]))
+        if verbose is True:
+            loadProgressBar.update(i)
+
+    if verbose is True:
+        loadProgressBar.finish()
     return result
 
 
