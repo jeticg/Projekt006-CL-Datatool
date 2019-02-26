@@ -38,6 +38,7 @@ p_except = re.compile(r'^except\s?')
 p_finally = re.compile(r'^finally\s?')
 p_decorator = re.compile(r'^@.*')
 masked_str = re.compile(r'''^_STR:\d+_$''')
+str_checker = re.compile(r'''^("(\\"|[^"])*")|('(\\'|[^'])*')$''')
 
 
 class Code:
@@ -104,7 +105,7 @@ class ConalaAst(AstNode):
             if isinstance(leaf.value[1], numbers.Number):
                 leaf.value = leaf.value[0], 'NUMBER'
             else:
-                if masked_str.match(leaf.value[1]):
+                if str_checker.match(leaf.value[1]):
                     leaf.value = leaf.value[0], 'STRING'
                 elif keyword.iskeyword(leaf.value[1]) or \
                         leaf.value[1] in builtin_fns:
