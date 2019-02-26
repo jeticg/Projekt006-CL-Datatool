@@ -93,8 +93,9 @@ class ConalaAst(AstNode):
 
     def createSketch(self):
         """
-        return the root of a new tree with sketches the sketch tree cannot be
-        converted back to python unless all sketch holes are filled
+        return the root of a new tree with sketches
+        the sketch tree cannot be converted back to python
+        unless all sketch holes are filled
         """
         assert self.raw_code != ''
         root = copy.deepcopy(self)
