@@ -54,6 +54,13 @@ def parse_src(orig_line):
                 str_cnt += 1
                 str_map[str_content] = replacement
             value.append(replacement)
+        elif category == 0:
+            # annotated variables
+            value.append(lexeme)
+            j = lexeme.find('.')
+            if 0 < j < len(lexeme) - 1:
+                new_tokens = ['['] + lexeme.replace('.', ' . ').split(' ') + [']']
+                value.extend(new_tokens)
         else:
             punc = None
             if lexeme[-1] in string.punctuation:
@@ -67,7 +74,7 @@ def parse_src(orig_line):
                     continue
 
             if not word_checker.match(lexeme):
-                # best-effort var detection
+                # possible variables
                 value.append(lexeme)
                 j = lexeme.find('.')
                 if 0 < j < len(lexeme) - 1:
