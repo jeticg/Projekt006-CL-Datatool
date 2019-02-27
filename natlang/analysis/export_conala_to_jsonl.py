@@ -26,11 +26,14 @@ word_checker = re.compile(r'''^[a-zA-Z][a-z]*('s)?$''')
 str_checker = re.compile(r'''^("(\\"|[^"])*")|('(\\'|[^'])*')$''')
 
 
-def parse_src(orig_line):
+def parse_src(orig_line, line_no):
     value = []
     str_map = {}
     str_cnt = 0
     str_template = '_STR:{}_'
+    var_map = {}
+    var_cnt = 0
+    var_template = 'VAR_{}'
     matches = tokenize_nfa.finditer(' ' + orig_line)  # add a safe blank to the front
     for m in matches:
         groups = [(category, lexeme) for category, lexeme in enumerate(m.groups()) if lexeme is not None]
@@ -45,7 +48,7 @@ def parse_src(orig_line):
                 str_content = eval(lexeme)
             except SyntaxError:
                 str_content = lexeme
-                print('broken string found for entry {}'.format(i))
+                print('broken string found for entry {}'.format(line_no))
                 print('broken string found in {}'.format(orig_line))
             if str_content in str_map:
                 replacement = str_map[str_content]
@@ -56,7 +59,10 @@ def parse_src(orig_line):
             value.append(replacement)
         elif category == 0:
             # annotated variables
-            value.append(lexeme)
+            replacement = var_template.format(var_cnt)
+            var_map[lexeme] = replacement
+            value.append(replacement)
+            # break up function calls
             j = lexeme.find('.')
             if 0 < j < len(lexeme) - 1:
                 new_tokens = ['['] + lexeme.replace('.', ' . ').split(' ') + [']']
@@ -93,13 +99,17 @@ def parse_src(orig_line):
             if punc is not None:
                 value.append(punc)
 
-    return value, str_map
+    return value, str_map, var_map
 
 
-if __name__ == '__main__':
-    with open('{}/{}.jsonl'.format(EXPORT, 'test'), 'w') as out_f, \
-            open('{}/{}.json'.format(REF_DIR, 'conala-test'), 'r') as in_f:
-        in_data = json.load(in_f)
+def export(in_path, out_path, fmt='json'):
+    with open(in_path, 'r') as in_f, open(out_path, 'w') as out_f:
+        if fmt == 'json':
+            in_data = json.load(in_f)
+        elif fmt == 'jsonl':
+            in_data = [json.loads(line) for line in in_f]
+        else:
+            raise ValueError('unknown format {}'.format(fmt))
 
         for i, example in enumerate(in_data):
             jsonl_entry = {'src': [],
@@ -111,9 +121,9 @@ if __name__ == '__main__':
 
             # tokenize src
             if 'rewritten_intent' in example and example['rewritten_intent']:
-                jsonl_entry['src'], str_map = parse_src(example['rewritten_intent'])
+                jsonl_entry['src'], str_map, var_map = parse_src(example['rewritten_intent'], i)
             else:
-                jsonl_entry['src'], str_map = parse_src(example['intent'])
+                jsonl_entry['src'], str_map, var_map = parse_src(example['intent'], i)
 
             # fill in the code tokens and types
             raw_tk_stream = []
@@ -127,6 +137,8 @@ if __name__ == '__main__':
                     if keyword.iskeyword(lexeme) or lexeme in builtin_fns:
                         jsonl_entry['type'].append('KEYWORD')
                     else:
+                        if lexeme in var_map:
+                            jsonl_entry['token'][-1] = var_map[lexeme]
                         jsonl_entry['type'].append('NAME')
                 elif category == tokenize.STRING:
                     try:
@@ -159,8 +171,15 @@ if __name__ == '__main__':
             jsonl_entry['cano_code'] = tokenize.untokenize(raw_tk_stream)
             jsonl_entry['decano_code'] = jsonl_entry['cano_code']
             jsonl_entry['str_map'] = str_map
+            jsonl_entry['var_map'] = var_map
 
             # assert jsonl_entry['token'] != [] and jsonl_entry['type'] != []
             assert len(jsonl_entry['token']) == len(jsonl_entry['type'])
             out_f.write(json.dumps(jsonl_entry))
             out_f.write('\n')
+
+
+if __name__ == '__main__':
+    export('{}/{}.jsonl'.format(REF_DIR, 'conala-mined'),
+           '{}/{}.jsonl'.format(EXPORT, 'mined'),
+           'jsonl')
