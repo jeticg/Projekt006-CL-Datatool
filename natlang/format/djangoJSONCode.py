@@ -186,8 +186,13 @@ def load(file, linesToLoad=sys.maxsize):
     result = []
     for line in content:
         entry = json.loads(line)
-        result.append(
-            Code(entry['token'], entry['type'], canoCode=entry["cano_code"]))
+        try:
+            result.append(
+                Code(entry['token'], entry['type'],
+                     canoCode=entry["cano_code"]))
+        except SyntaxError:
+            result.append(None)
+
     return result
 
 
