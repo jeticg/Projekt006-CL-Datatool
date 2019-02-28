@@ -202,7 +202,11 @@ def load(file, linesToLoad=sys.maxsize, verbose=True):
                      canoCode=entry["cano_code"]))
         except SyntaxError:
             result.append(None)
+        if verbose is True:
+            loadProgressBar.update(i)
 
+    if verbose is True:
+        loadProgressBar.finish()
     return result
 
 
