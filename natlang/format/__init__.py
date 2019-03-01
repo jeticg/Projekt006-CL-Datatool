@@ -17,3 +17,4 @@ from natlang.format import djangoJSONIntent
 from natlang.format import conalaJSONCode
 from natlang.format import conalaJSONIntent
 from natlang.format import bashJSONCode
+from natlang.format import bashJSONIntent
