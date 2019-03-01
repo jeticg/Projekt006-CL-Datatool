@@ -28,7 +28,7 @@ class Code:
     def createSketch(self):
         self.sketch = []
         for tk, ty in zip(self.value, self.valueTypes):
-            if ty in ('WORD', 'FLAG', 'NUM'):
+            if ty in ('WORD', 'FLAG', 'NUM', 'SBTK'):
                 self.sketch.append(ty)
             else:
                 self.sketch.append(tk)
