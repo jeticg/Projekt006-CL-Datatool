@@ -5,6 +5,12 @@ from pprint import pprint
 
 MARKER_NFA = re.compile(r'''<[A-Z_]+>''')
 
+KEYWORDS = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
+            'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
+            'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
+            'ln', 'split', 'read', 'basename', 'which', 'readlink',
+            'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
+
 
 def split_tokens(line):
     line = line.strip()
@@ -45,7 +51,7 @@ SBTK_START_MARKER = '__SP__ARG_START'
 SBTK_END_MARKER = '__SP__ARG_END'
 SEP_MARKER = '<TOKEN_SEPARATOR>'
 FLAG_MARKER = '<FLAG_SUFFIX>'
-STRANGE_MARKERS = ['UTILITY', 'Regex', 'Quantity']
+STRANGE_MARKERS = ['UTILITY', 'Regex', 'Quantity', 'Option']
 
 
 def export_tokens(loaded_tokens):
@@ -58,12 +64,8 @@ def export_tokens(loaded_tokens):
         elif tk == FLAG_MARKER:
             types[-1] = 'FLAG'
         elif tk == SBTK_START_MARKER:
-            tokens.append('<SBTK_START>')
-            types.append('SBTK_START')
             sbtk_on = True
         elif tk == SBTK_END_MARKER:
-            tokens.append('<SBTK_END>')
-            types.append('SBTK_END')
             sbtk_on = False
         elif tk in STRANGE_MARKERS:
             pass
@@ -76,6 +78,8 @@ def export_tokens(loaded_tokens):
                     types.append('OP')
                 elif tk.isnumeric():
                     types.append('NUM')
+                elif tk in KEYWORDS:
+                    types.append('KEYWORD')
                 else:
                     types.append('WORD')
     return tokens, types
