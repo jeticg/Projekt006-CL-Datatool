@@ -12,9 +12,6 @@ from natlang.format import txtOrTree
 from natlang.format import conll
 from natlang.format import django
 from natlang.format import intent
-from natlang.format import djangoJSONCode
-from natlang.format import djangoJSONIntent
-from natlang.format import conalaJSONCode
-from natlang.format import conalaJSONIntent
-from natlang.format import bashJSONCode
-from natlang.format import bashJSONIntent
+from natlang.format import intentJSON
+from natlang.format import pyCodeJSON
+from natlang.format import bashJSON

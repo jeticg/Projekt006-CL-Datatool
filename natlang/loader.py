@@ -32,12 +32,9 @@ supportedList = {
     "astTree": astTree,
     'django': django,
     'intent': intent,
-    'djangoJSONIntent': djangoJSONIntent,
-    'djangoJSONCode': djangoJSONCode,
-    'conalaJSONIntent': conalaJSONIntent,
-    'conalaJSONCode': conalaJSONCode,
-    'bashJSONCode': bashJSONCode,
-    'bashJSONIntent': bashJSONIntent
+    'intentJSON': intentJSON,
+    'pyCodeJSON': pyCodeJSON,
+    'bashJSON': bashJSON
 }
 
 
