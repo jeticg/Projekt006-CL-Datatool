@@ -35,7 +35,8 @@ supportedList = {
     'djangoJSONIntent': djangoJSONIntent,
     'djangoJSONCode': djangoJSONCode,
     'conalaJSONIntent': conalaJSONIntent,
-    'conalaJSONCode': conalaJSONCode
+    'conalaJSONCode': conalaJSONCode,
+    'bashJSONCode': bashJSONCode
 }
 
 
