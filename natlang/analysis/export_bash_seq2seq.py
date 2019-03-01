@@ -18,6 +18,29 @@ def split_tokens(line):
     return tokens
 
 
+def split_tokens_nl(line):
+    line = line.strip()
+    results = list(MARKER_NFA.finditer(line))
+
+    indices = [0]
+    for result in results:
+        assert result.group() == SEP_MARKER
+        indices.extend(result.span())
+
+    tokens = [line[i:j] for i, j in zip(indices, indices[1:] + [None])]
+    return tokens
+
+
+def export_nl_tokens(loaded_tokens):
+    tokens = []
+    for tk in loaded_tokens:
+        if tk == SEP_MARKER:
+            pass
+        else:
+            tokens.append(tk)
+    return tokens
+
+
 SBTK_START_MARKER = '__SP__ARG_START'
 SBTK_END_MARKER = '__SP__ARG_END'
 SEP_MARKER = '<TOKEN_SEPARATOR>'
@@ -58,12 +81,19 @@ def export_tokens(loaded_tokens):
     return tokens, types
 
 
-def export(in_path, out_path):
-    with open(in_path, 'r') as in_f, open(out_path, 'w') as out_f:
-        for line in in_f:
+def export(in_path, out_path, nl_path):
+    with open(in_path, 'r') as in_f, open(out_path, 'w') as out_f, open(nl_path, 'r') as nl_f:
+        lines = in_f.readlines()
+        nls = nl_f.readlines()
+        assert len(lines) == len(nls)
+        for line, nl in zip(lines, nls):
             loaded_tokens = split_tokens(line)
             tokens, types = export_tokens(loaded_tokens)
-            jsonl_entry = {'token': tokens, 'type': types}
+
+            nl_split_tokens = split_tokens_nl(nl)
+            nl_tokens = export_nl_tokens(nl_split_tokens)
+
+            jsonl_entry = {'token': tokens, 'type': types, 'src': nl_tokens}
             out_f.write(json.dumps(jsonl_entry))
             out_f.write('\n')
 
@@ -74,10 +104,12 @@ IN_PATH = '/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash'
 OUT_PATH = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash_exported'
 IN_SUFFIX = '.cm.partial.token'
 OUT_SUFFIX = '.jsonl'
+NL_SUFFIX = '.nl.partial.token'
 
 for dataset in ['train', 'dev', 'test']:
     export('{}/{}{}'.format(IN_PATH, dataset, IN_SUFFIX),
-           '{}/{}{}'.format(OUT_PATH, dataset, OUT_SUFFIX))
+           '{}/{}{}'.format(OUT_PATH, dataset, OUT_SUFFIX),
+           '{}/{}{}'.format(IN_PATH, dataset, NL_SUFFIX))
 
 # lines = f.readlines()
 # loaded_tokens = split_tokens(lines[0])
