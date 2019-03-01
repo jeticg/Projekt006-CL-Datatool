@@ -81,9 +81,10 @@ class Code:
 
 
 class DjangoAst(AstNode):
-    def __init__(self):
-        super(DjangoAst, self).__init__()
+    def __init__(self, parent=None):
+        AstNode.__init__(self, parent=parent)
         self.raw_code = ''
+        return
 
     def export_for_eval(self):
         assert self.raw_code != ''
@@ -180,14 +181,32 @@ def decanonicaliseCode(code, ref_raw_code):
     return code
 
 
-def load(file, linesToLoad=sys.maxsize):
+def load(file, linesToLoad=sys.maxsize, verbose=True):
+    import progressbar
+    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
+               progressbar.FormatLabel(
+               '; Total: %(value)d sents (in: %(elapsed)s)')]
+
     with open(os.path.expanduser(file)) as f:
         content = [line.strip() for line in f][:linesToLoad]
     result = []
-    for line in content:
+    if verbose is True:
+        loadProgressBar =\
+            progressbar.ProgressBar(widgets=widgets,
+                                    maxval=len(content)).start()
+    for i, line in enumerate(content):
         entry = json.loads(line)
-        result.append(
-            Code(entry['token'], entry['type'], canoCode=entry["cano_code"]))
+        try:
+            result.append(
+                Code(entry['token'], entry['type'],
+                     canoCode=entry["cano_code"]))
+        except SyntaxError:
+            result.append(None)
+        if verbose is True:
+            loadProgressBar.update(i)
+
+    if verbose is True:
+        loadProgressBar.finish()
     return result
 
 
