@@ -42,18 +42,18 @@ str_checker = re.compile(r'''^(("[^"]*")|('([^'])*'))$''')
 
 
 class Code:
-    def __init__(self, tokens, valueTypes, canoCode=None):
+    def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
         self.valueTypes = valueTypes
+        self.canoCode = canoCode
+        self.astTree = None
+        self.sketch = None
         assert len(self.value) == len(self.valueTypes)
-        self.sketch = []
-        self.createSketch()  # writes to self.sketch
-        if canoCode is None:
-            self.astTree = None
-            self.canoCode = None
-        else:
-            self.canoCode = canoCode
+
+        if self.canoCode is not None:
             self.astTree = python2astTree(canoCode, DjangoAst)
+        if createSketch is True:
+            self.sketch = self.getSketch()
         return
 
     def __iter__(self):
@@ -68,13 +68,20 @@ class Code:
     def __getitem__(self, key):
         return self.value[key]
 
-    def createSketch(self):
-        self.sketch = []
+    def getSketch(self):
+        sketchTokens = []
         for tk, ty in zip(self.value, self.valueTypes):
             if ty in ('NAME', 'STRING', 'NUMBER'):
-                self.sketch.append(ty)
+                sketchTokens.append(ty)
             else:
-                self.sketch.append(tk)
+                sketchTokens.append(tk)
+        sketch = Code(sketchTokens,
+                      self.valueTypes,
+                      canoCode=None,
+                      createSketch=False)
+        if self.astTree is not None:
+            sketch.astTree = self.astTree.getSketch()
+        return sketch
 
     def export(self):
         return " ".join(self.value)
@@ -83,38 +90,28 @@ class Code:
 class DjangoAst(AstNode):
     def __init__(self, parent=None):
         AstNode.__init__(self, parent=parent)
-        self.raw_code = ''
         return
 
-    def export_for_eval(self):
-        assert self.raw_code != ''
-        py_ast = tree2ast(self)
-        code = astor.to_source(py_ast).strip()
-        decano_code = decanonicaliseCode(code, self.raw_code)
-        tokens = tokenize.generate_tokens(StringIO(decano_code).readline)
-        tokens = [x[1] for x in tokens]
-        # todo: replace special tokens?
-        return tokens[:-1]
-
-    def createSketch(self):
+    def getSketch(self):
         """
         return the root of a new tree with sketches the sketch tree cannot be
         converted back to python unless all sketch holes are filled
         """
-        assert self.raw_code != ''
         root = copy.deepcopy(self)
         leaves = root.find_literal_nodes()
         for leaf in leaves:
             if isinstance(leaf.value[1], numbers.Number):
                 leaf.value = leaf.value[0], 'NUMBER'
             else:
-                if str_checker.match(leaf.value[1]):
+                if isinstance(leaf.value[1], bytes) or\
+                        str_checker.match(leaf.value[1]):
                     leaf.value = leaf.value[0], 'STRING'
                 elif keyword.iskeyword(leaf.value[1]) or \
                         leaf.value[1] in builtin_fns:
                     continue
                 else:
                     leaf.value = leaf.value[0], 'NAME'
+
         return root
 
     def visualize(self, name='res'):
@@ -154,7 +151,20 @@ class DjangoAst(AstNode):
 
         return g.render()
 
+    """
+    def export_for_eval(self):
+        assert self.raw_code != ''
+        py_ast = tree2ast(self)
+        code = astor.to_source(py_ast).strip()
+        decano_code = decanonicaliseCode(code, self.raw_code)
+        tokens = tokenize.generate_tokens(StringIO(decano_code).readline)
+        tokens = [x[1] for x in tokens]
+        # todo: replace special tokens?
+        return tokens[:-1]
+    """
 
+
+"""
 def decanonicaliseCode(code, ref_raw_code):
     if code.endswith('def dummy():\n    pass'):
         code = code.replace('def dummy():\n    pass', '').strip()
@@ -179,6 +189,7 @@ def decanonicaliseCode(code, ref_raw_code):
         code = code[:-len('\n    pass')]
 
     return code
+"""
 
 
 def load(file, linesToLoad=sys.maxsize, verbose=True):
