@@ -38,7 +38,8 @@ setuptools.setup(
         'six',
         'tqdm',
         'torch',
-        'torchvision'
+        'torchvision',
+        'astor',
     ],
     test_suite='natlang.testSuite'
 )

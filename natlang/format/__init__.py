@@ -10,3 +10,8 @@ from natlang.format import txt
 from natlang.format import txtFiles
 from natlang.format import txtOrTree
 from natlang.format import conll
+from natlang.format import django
+from natlang.format import intent
+from natlang.format import intentJSON
+from natlang.format import pyCodeJSON
+from natlang.format import bashJSON

@@ -37,6 +37,8 @@ class RealtimeExporter():
     def write(self, sent):
         if isinstance(sent, Node):
             line = sent.export()
+        elif isinstance(sent, str):
+            line = sent
         else:
             line = " ".join(sent)
         self.__outputFile.write(line + "\n")

@@ -13,8 +13,8 @@ __version__ = "0.3a"
 
 
 def load(file, linesToLoad=sys.maxsize):
-    with open(os.path.expanduser(file)) as f:
-        content = [line.strip().split() for line in f][:linesToLoad]
+    with open(os.path.expanduser(file), encoding='utf-8') as f:
+        content = [line.lower().strip().split() for line in f][:linesToLoad]
     return content
 
 
