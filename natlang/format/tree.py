@@ -47,6 +47,9 @@ class Node:
             self.sibling.onScreen(__spacing, True)
         return
 
+    def __iter__(self):
+        return iter([w for t, w in self.phrase])
+
     def __len__(self):
         return len(self.phrase)
 
