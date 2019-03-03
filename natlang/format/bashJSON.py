@@ -40,6 +40,106 @@ class Code:
         return " ".join(self.value)
 
 
+def load(file, linesToLoad=sys.maxsize):
+    with open(os.path.expanduser(file)) as f:
+        content = [line.strip() for line in f][:linesToLoad]
+    result = []
+    for line in content:
+        entry = json.loads(line)
+        result.append(
+            Code(entry['token'], entry['type']))
+    return result
+
+
+class _TmpNode:
+    def __init__(self, tag, value):
+        self.tag = tag
+        self.value = value
+        self.children = []
+
+    def __repr__(self):
+        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
+
+    def draw(self, name='tmp'):
+        from graphviz import Graph
+        import os
+        import errno
+
+        try:
+            os.makedirs('figures')
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+        fname = 'figures/{}'.format(name + '.gv')
+        g = Graph(format='png', filename=fname)
+
+        fringe = [self]
+        while fringe:
+            node = fringe.pop()
+            g.node(str(id(node)), repr(node))
+            for child in node.children:
+                fringe.append(child)
+                g.node(str(id(child)), repr(node))
+                g.edge(str(id(node)), str(id(child)))
+
+        return g.render()
+
+
+class AstNode(BaseNode):
+    # FIXME: WIP
+    def find_literal_nodes(self):
+        if self.value[0] == 'LITERAL':
+            return [self]
+        else:
+            nodes = []
+            node = self.child
+            while node is not None:
+                nodes.extend(node.find_literal_nodes())
+                node = node.sibling
+            return nodes
+
+    def export(self):
+        pass
+
+    def draw(self, name='ast'):
+        from graphviz import Graph
+        import os
+        import errno
+
+        def repr_n(node):
+            return 'Node{}'.format(repr(node.value))
+
+        try:
+            os.makedirs('figures')
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+        fname = 'figures/{}'.format(name + '.gv')
+        g = Graph(format='png', filename=fname)
+        g.attr(rankdir='BT')
+
+        fringe = [self]
+        while fringe:
+            node = fringe.pop()
+            g.node(str(id(node)), repr_n(node))
+            if node.child is not None:
+                child = node.child
+                fringe.append(child)
+                g.node(str(id(child)), repr_n(node))
+
+            if node.sibling is not None:
+                sibling = node.sibling
+                fringe.append(sibling)
+                g.node(str(id(sibling)), repr_n(node))
+
+            if node.parent is not None:
+                g.edge(str(id(node)), str(id(node.parent)))
+
+        return g.render()
+
+
 def proc_line(line):
     parts = bashlex.parse(line)
     assert len(parts) == 1
@@ -157,67 +257,64 @@ def process_node(node, line):
         return ret_node
 
 
-class AstNode(BaseNode):
-    # FIXME: WIP
-    def find_literal_nodes(self):
-        if self.value[0] == 'LITERAL':
-            return [self]
+def _restructure_rec(node, orig_children):
+    """
+    `node` is the already transformed node (type=tree.Node)
+    `orig_children` is a list of the children corresponds to `node`
+        (type=[TmpNode])
+    """
+    # edge case
+    tag = node.value[0]
+    if node.value is None and not orig_children:
+        # transformed grammar with no children
+        dummy = AstNode()
+        dummy.value = ('DUMMY', None)
+        node.child = dummy
+        dummy.parent = node
+
+    # transform each child node
+    child_nodes = []
+    for orig_child in orig_children:
+        child_node = AstNode()
+        if orig_child.value is None:
+            # internal node
+            child_node.value = (orig_child.tag,)
         else:
-            nodes = []
-            node = self.child
-            while node is not None:
-                nodes.extend(node.find_literal_nodes())
-                node = node.sibling
-            return nodes
+            # leaf node
+            child_node.value = (orig_child.tag, orig_child.value)
+        child_nodes.append(child_node)
 
-    def export(self):
-        pass
+    # link child nodes
+    for i, child_node in enumerate(child_nodes):
+        child_node.parent = node
+        if i == 0:
+            node.child = child_node
+        if i + 1 < len(child_nodes):
+            # not last node
+            child_node.sibling = child_nodes[i + 1]
 
-
-class _TmpNode:
-    def __init__(self, tag, value):
-        self.tag = tag
-        self.value = value
-        self.children = []
-
-    def __repr__(self):
-        return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
-
-    def draw(self, name='tmp'):
-        from graphviz import Graph
-        import os
-        import errno
-
-        try:
-            os.makedirs('figures')
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
-
-        fname = 'figures/{}'.format(name + '.gv')
-        g = Graph(format='png', filename=fname)
-
-        fringe = [self]
-        while fringe:
-            node = fringe.pop()
-            g.node(str(id(node)), repr(node))
-            for child in node.children:
-                fringe.append(child)
-                g.node(str(id(child)), repr(node))
-                g.edge(str(id(node)), str(id(child)))
-
-        return g.render()
+    # recurse
+    for child_node, orig_child in zip(child_nodes, orig_children):
+        _restructure_rec(child_node, orig_child.children)
 
 
-def load(file, linesToLoad=sys.maxsize):
-    with open(os.path.expanduser(file)) as f:
-        content = [line.strip() for line in f][:linesToLoad]
-    result = []
-    for line in content:
-        entry = json.loads(line)
-        result.append(
-            Code(entry['token'], entry['type']))
-    return result
+def _restructure(tmp_node, node_cls=AstNode):
+    """transform the structure of TmpNode into Custom node class
+    node_cls should be a subclass of AstNode"""
+    node = node_cls()
+    if tmp_node.value is None:
+        node.value = (tmp_node.tag,)
+    else:
+        node.value = (tmp_node.tag, tmp_node.value)
+
+    _restructure_rec(node, tmp_node.children)
+
+    # append topmost root node
+    root = node_cls()
+    root.value = ('ROOT',)
+    root.child = node
+    node.parent = root
+    return root
 
 
 if __name__ == '__main__':
@@ -228,3 +325,4 @@ if __name__ == '__main__':
     line = lines[15]
     node = proc_line(line)
     tmp_node = process_node(node, line)
+    ast_node = _restructure(tmp_node)
