@@ -381,13 +381,14 @@ def bash2astTree(line):
 
 
 if __name__ == '__main__':
-    # train = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-    #              'bash_exported/train.jsonl')
-    # dev = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-    #            'bash_exported/dev.jsonl')
-    # test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-    #             'bash_exported/test.jsonl')
-    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
-    lines = train_f.readlines()
-    line = lines[15]
-    ast_node = bash2astTree(line)
+    train = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+                 'bash_exported/train.jsonl')
+    dev = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+               'bash_exported/dev.jsonl')
+    test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+                'bash_exported/test.jsonl')
+
+    # train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
+    # lines = train_f.readlines()
+    # line = lines[15]
+    # ast_node = bash2astTree(line)
