@@ -2,19 +2,31 @@ import json
 import os
 import sys
 import bashlex
-import itertools
+import copy
 import re
+import string
 from operator import itemgetter
 from natlang.format.astTree import AstNode as BaseNode
 
+KEYWORDS = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
+            'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
+            'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
+            'ln', 'split', 'read', 'basename', 'which', 'readlink',
+            'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
+
 
 class Code:
-    def __init__(self, tokens, valueTypes, canoCode=None):
+    def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
         self.valueTypes = valueTypes
         assert len(self.value) == len(self.valueTypes)
-        self.sketch = []
-        self.createSketch()  # writes to self.sketch
+        self.canoCode = canoCode
+        self.astTree = None
+        self.sketch = None
+        if self.canoCode is not None:
+            self.astTree = bash2astTree(canoCode)
+        if createSketch is True:
+            self.sketch = self.getSketch()
 
     def __iter__(self):
         return iter(self.value)
@@ -28,13 +40,14 @@ class Code:
     def __getitem__(self, key):
         return self.value[key]
 
-    def createSketch(self):
-        self.sketch = []
+    def getSketch(self):
+        sketch = []
         for tk, ty in zip(self.value, self.valueTypes):
             if ty in ('WORD', 'FLAG', 'NUM', 'SBTK'):
-                self.sketch.append(ty)
+                sketch.append(ty)
             else:
-                self.sketch.append(tk)
+                sketch.append(tk)
+        return sketch
 
     def export(self):
         return " ".join(self.value)
@@ -47,7 +60,7 @@ def load(file, linesToLoad=sys.maxsize):
     for line in content:
         entry = json.loads(line)
         result.append(
-            Code(entry['token'], entry['type']))
+            Code(entry['token'], entry['type'], entry['cano_code']))
     return result
 
 
@@ -86,7 +99,7 @@ class _TmpNode:
         return g.render()
 
 
-class AstNode(BaseNode):
+class BashAst(BaseNode):
     def find_literal_nodes(self):
         if self.value[0] == 'subtoken':
             return [self]
@@ -109,20 +122,39 @@ class AstNode(BaseNode):
         if ty == 'subtoken':
             return self.value[1]
         elif ty == 'word':
-            return ''.join(x.export() for x in self.children())
+            return ''.join(x.export_to_code() for x in self.children())
         elif ty == 'pipeline':
-            return ' | '.join(x.export() for x in self.children())
+            return ' | '.join(x.export_to_code() for x in self.children())
         elif ty == 'CST':
-            command = ' '.join((x.export() for x in self.children()))
+            command = ' '.join((x.export_to_code() for x in self.children()))
             return '$({})'.format(command)
         elif ty == 'PST_left':
-            command = ' '.join((x.export() for x in self.children()))
+            command = ' '.join((x.export_to_code() for x in self.children()))
             return '<({})'.format(command)
         elif ty == 'PST_right':
-            command = ' '.join((x.export() for x in self.children()))
+            command = ' '.join((x.export_to_code() for x in self.children()))
             return '>({})'.format(command)
         else:
-            return ' '.join(x.export() for x in self.children())
+            return ' '.join(x.export_to_code() for x in self.children())
+
+    def getSketch(self):
+        """
+        return the root of a new tree with sketches the sketch tree cannot be
+        converted back to python unless all sketch holes are filled
+        """
+        root = copy.deepcopy(self)
+        leaves = root.find_literal_nodes()
+        for leaf in leaves:
+            if leaf.value[1].isnumeric():
+                leaf.value = leaf.value[0], 'NUM'
+            elif leaf.value[1] in KEYWORDS or leaf.value[1] in string.punctuation:
+                # preserve keywords and puncs
+                continue
+            else:
+                # mask other subtokens
+                leaf.value = leaf.value[0], 'SBTK'
+
+        return root
 
     def draw(self, name='ast'):
         from graphviz import Graph
@@ -289,7 +321,7 @@ def _restructure_rec(node, orig_children):
     tag = node.value[0]
     if node.value is None and not orig_children:
         # transformed grammar with no children
-        dummy = AstNode()
+        dummy = BashAst()
         dummy.value = ('DUMMY', None)
         node.child = dummy
         dummy.parent = node
@@ -297,7 +329,7 @@ def _restructure_rec(node, orig_children):
     # transform each child node
     child_nodes = []
     for orig_child in orig_children:
-        child_node = AstNode()
+        child_node = BashAst()
         if orig_child.value is None:
             # internal node
             child_node.value = (orig_child.tag,)
@@ -320,7 +352,7 @@ def _restructure_rec(node, orig_children):
         _restructure_rec(child_node, orig_child.children)
 
 
-def _restructure(tmp_node, node_cls=AstNode):
+def _restructure(tmp_node, node_cls=BashAst):
     """transform the structure of TmpNode into Custom node class
     node_cls should be a subclass of AstNode"""
     node = node_cls()
@@ -339,12 +371,21 @@ def _restructure(tmp_node, node_cls=AstNode):
     return root
 
 
-if __name__ == '__main__':
-    # loaded = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-    #               'bash_exported/dev.jsonl')
-    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
-    lines = train_f.readlines()
-    line = lines[15]
+def bash2astTree(line):
     node = proc_line(line)
     tmp_node = process_node(node, line)
-    ast_node = _restructure(tmp_node)
+    ast_node = _restructure(tmp_node, BashAst)
+    return ast_node
+
+
+if __name__ == '__main__':
+    train = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+                 'bash_exported/train.jsonl')
+    dev = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+               'bash_exported/dev.jsonl')
+    test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+                'bash_exported/test.jsonl')
+    # train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
+    # lines = train_f.readlines()
+    # line = lines[15]
+    # ast_node = bash2astTree(line)
