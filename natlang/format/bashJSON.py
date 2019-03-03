@@ -126,17 +126,35 @@ def process_node(node, line):
                     raise RuntimeError('unknown kind {}'.format(part.kinds))
                 assert type_name != 'unknown'
                 pos_list.append((remapped_pos, type_name, part))
+
         segments = split_segments(node, pos_list)
 
         children = []
         for segment in segments:
             ty, data = segment
             if ty == 'text':
-                subtokens = split_subtoken(data)  # todo: wrap each subtoken in a node
-                children.append(subtokens)
+                subtokens = split_subtoken(data)
+                for subtoken in subtokens:
+                    children.append(_TmpNode('subtoken', subtoken))
             else:
-                children.append(data)  # todo: transform data recursively
-        return children
+                child = process_node(data, line)
+                child.tag = ty
+                children.append(child)
+        ret_node = _TmpNode('word', None)
+        ret_node.children = [child for child in children if child is not None]
+        return ret_node
+    elif node.kind == CST_KIND:
+        return process_node(node.command, line)
+    elif node.kind == PST_KIND:
+        return process_node(node.command, line)
+    elif node.kind == 'pipe':
+        return None
+    else:
+        ret_node = _TmpNode(node.kind, None)
+        if hasattr(node, 'parts'):
+            children = [process_node(part, line) for part in node.parts]
+            ret_node.children = [child for child in children if child is not None]
+        return ret_node
 
 
 class AstNode(BaseNode):
@@ -157,7 +175,6 @@ class AstNode(BaseNode):
 
 
 class _TmpNode:
-    # FIXME: WIP
     def __init__(self, tag, value):
         self.tag = tag
         self.value = value
@@ -165,6 +182,31 @@ class _TmpNode:
 
     def __repr__(self):
         return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
+
+    def draw(self, name='tmp'):
+        from graphviz import Graph
+        import os
+        import errno
+
+        try:
+            os.makedirs('figures')
+        except OSError as exc:  # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+
+        fname = 'figures/{}'.format(name + '.gv')
+        g = Graph(format='png', filename=fname)
+
+        fringe = [self]
+        while fringe:
+            node = fringe.pop()
+            g.node(str(id(node)), repr(node))
+            for child in node.children:
+                fringe.append(child)
+                g.node(str(id(child)), repr(node))
+                g.edge(str(id(node)), str(id(child)))
+
+        return g.render()
 
 
 def load(file, linesToLoad=sys.maxsize):
@@ -179,5 +221,10 @@ def load(file, linesToLoad=sys.maxsize):
 
 
 if __name__ == '__main__':
-    loaded = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-                  'bash_exported/dev.jsonl')
+    # loaded = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+    #               'bash_exported/dev.jsonl')
+    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
+    lines = train_f.readlines()
+    line = lines[15]
+    node = proc_line(line)
+    tmp_node = process_node(node, line)
