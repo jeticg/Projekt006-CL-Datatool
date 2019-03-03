@@ -112,26 +112,28 @@ def find_clipped_word_nodes(d):
     return err_lines
 
 
-CST_ERR = [157, 162, 533, 624, 1681, 4694, 4791, 5499]
+CST_ERR_TRAIN = [157, 162, 533, 624, 1681, 4694, 4791, 5499]
 
 if __name__ == '__main__':
-    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
+    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/test.cm.filtered')
     d = find_all_rec_words(train_f)
     train_f.seek(0)
     lines = train_f.readlines()
 
-    children = process_node(d[1][0], lines[1])
+    from natlang.format.bashJSON import process_node, CST_KIND, PST_KIND, remap_pos, determine_pst_type
 
-    # KIND = PST_KIND
-    # cst_indices = find_code_indices_for_kind(d, KIND)
-    # err_lines = []
-    # for i, j in cst_indices:
-    #     line = lines[i]
-    #     node = d[i][j]
-    #     for child in node.parts:
-    #         if child.kind == KIND:
-    #             remapped_pos = remap_pos(node, child, line)
-    #             pst_str = node.word[slice(*remapped_pos)]
-    #             cst_type = determine_pst_type(pst_str)
-    #             if cst_type == 'unknown':
-    #                 err_lines.append(i)
+    # children = process_node(d[1][0], lines[1])
+
+    KIND = PST_KIND
+    cst_indices = find_code_indices_for_kind(d, KIND)
+    err_lines = []
+    for i, j in cst_indices:
+        line = lines[i]
+        node = d[i][j]
+        for child in node.parts:
+            if child.kind == KIND:
+                remapped_pos = remap_pos(node, child, line)
+                pst_str = node.word[slice(*remapped_pos)]
+                cst_type = determine_pst_type(pst_str)
+                if cst_type == 'unknown':
+                    err_lines.append(i)
