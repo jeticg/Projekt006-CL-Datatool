@@ -87,9 +87,8 @@ class _TmpNode:
 
 
 class AstNode(BaseNode):
-    # FIXME: WIP
     def find_literal_nodes(self):
-        if self.value[0] == 'LITERAL':
+        if self.value[0] == 'subtoken':
             return [self]
         else:
             nodes = []
@@ -99,8 +98,31 @@ class AstNode(BaseNode):
                 node = node.sibling
             return nodes
 
-    def export(self):
-        pass
+    def children(self):
+        n = self.child
+        while n is not None:
+            yield n
+            n = n.sibling
+
+    def export_to_code(self):
+        ty = self.value[0]
+        if ty == 'subtoken':
+            return self.value[1]
+        elif ty == 'word':
+            return ''.join(x.export() for x in self.children())
+        elif ty == 'pipeline':
+            return ' | '.join(x.export() for x in self.children())
+        elif ty == 'CST':
+            command = ' '.join((x.export() for x in self.children()))
+            return '$({})'.format(command)
+        elif ty == 'PST_left':
+            command = ' '.join((x.export() for x in self.children()))
+            return '<({})'.format(command)
+        elif ty == 'PST_right':
+            command = ' '.join((x.export() for x in self.children()))
+            return '>({})'.format(command)
+        else:
+            return ' '.join(x.export() for x in self.children())
 
     def draw(self, name='ast'):
         from graphviz import Graph
