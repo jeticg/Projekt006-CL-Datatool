@@ -147,8 +147,10 @@ class BashAst(BaseNode):
         for leaf in leaves:
             if leaf.value[1].isnumeric():
                 leaf.value = leaf.value[0], 'NUM'
-            elif leaf.value[1] in KEYWORDS or leaf.value[1] in string.punctuation:
-                # preserve keywords and puncs
+            elif leaf.value[1] in KEYWORDS \
+                    or leaf.value[1] in string.punctuation \
+                    or leaf.value[1] == ' ':
+                # preserve keywords, puncs, and spaces
                 continue
             else:
                 # mask other subtokens
@@ -379,13 +381,13 @@ def bash2astTree(line):
 
 
 if __name__ == '__main__':
-    train = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-                 'bash_exported/train.jsonl')
-    dev = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-               'bash_exported/dev.jsonl')
-    test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
-                'bash_exported/test.jsonl')
-    # train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
-    # lines = train_f.readlines()
-    # line = lines[15]
-    # ast_node = bash2astTree(line)
+    # train = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+    #              'bash_exported/train.jsonl')
+    # dev = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+    #            'bash_exported/dev.jsonl')
+    # test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
+    #             'bash_exported/test.jsonl')
+    train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
+    lines = train_f.readlines()
+    line = lines[15]
+    ast_node = bash2astTree(line)
