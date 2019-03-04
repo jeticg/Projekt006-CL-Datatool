@@ -25,6 +25,8 @@ class Code:
         self.sketch = None
         if self.canoCode is not None:
             self.astTree = bash2astTree(canoCode)
+            if self.astTree is None:
+                return None
         if createSketch is True:
             self.sketch = self.getSketch()
 
@@ -117,25 +119,25 @@ class BashAst(BaseNode):
             yield n
             n = n.sibling
 
-    def export_to_code(self):
+    def export(self):
         ty = self.value[0]
         if ty == 'subtoken':
             return self.value[1]
         elif ty == 'word':
-            return ''.join(x.export_to_code() for x in self.children())
+            return ''.join(x.export() for x in self.children())
         elif ty == 'pipeline':
-            return ' | '.join(x.export_to_code() for x in self.children())
+            return ' | '.join(x.export() for x in self.children())
         elif ty == 'CST':
-            command = ' '.join((x.export_to_code() for x in self.children()))
+            command = ' '.join((x.export() for x in self.children()))
             return '$({})'.format(command)
         elif ty == 'PST_left':
-            command = ' '.join((x.export_to_code() for x in self.children()))
+            command = ' '.join((x.export() for x in self.children()))
             return '<({})'.format(command)
         elif ty == 'PST_right':
-            command = ' '.join((x.export_to_code() for x in self.children()))
+            command = ' '.join((x.export() for x in self.children()))
             return '>({})'.format(command)
         else:
-            return ' '.join(x.export_to_code() for x in self.children())
+            return ' '.join(x.export() for x in self.children())
 
     def getSketch(self):
         """
@@ -214,7 +216,10 @@ def determine_pst_type(pst_str):
 
 
 def remap_pos(node, cst_node, line):
-    """remap the pos of a command substitution node `cst_node` to its parent node `node`"""
+    """
+    remap the pos of a command substitution node `cst_node` to its parent node
+    `node`
+    """
     cst_str = line[slice(*cst_node.pos)]
     remapped_start = node.word.find(cst_str)
     remapped_end = remapped_start + len(cst_str)
@@ -224,7 +229,8 @@ def remap_pos(node, cst_node, line):
 def split_segments(node, pos_list):
     """
     :param node: Node of type word
-    :param pos_list: [((start:int, end:int), type_name:str, node)] pos of special parts
+    :param pos_list: [((start:int, end:int), type_name:str, node)] pos of
+                     special parts
     :return: [(type_name: str, {text_segment: str | node})]
     """
     pos_list.sort(key=itemgetter(0))
@@ -309,7 +315,8 @@ def process_node(node, line):
         ret_node = _TmpNode(node.kind, None)
         if hasattr(node, 'parts'):
             children = [process_node(part, line) for part in node.parts]
-            ret_node.children = [child for child in children if child is not None]
+            ret_node.children =\
+                [child for child in children if child is not None]
         return ret_node
 
 
@@ -387,8 +394,3 @@ if __name__ == '__main__':
                'bash_exported/dev.jsonl')
     test = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/' +
                 'bash_exported/test.jsonl')
-
-    # train_f = open('/Users/ruoyi/Projects/PycharmProjects/nl2bash/data/bash/train.cm.filtered')
-    # lines = train_f.readlines()
-    # line = lines[15]
-    # ast_node = bash2astTree(line)
