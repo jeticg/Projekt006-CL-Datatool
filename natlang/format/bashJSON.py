@@ -25,8 +25,6 @@ class Code:
         self.sketch = None
         if self.canoCode is not None:
             self.astTree = bash2astTree(canoCode)
-            if self.astTree is None:
-                return None
         if createSketch is True:
             self.sketch = self.getSketch()
 
@@ -59,10 +57,14 @@ def load(file, linesToLoad=sys.maxsize):
     with open(os.path.expanduser(file)) as f:
         content = [line.strip() for line in f][:linesToLoad]
     result = []
-    for line in content:
+    for i, line in enumerate(content):
         entry = json.loads(line)
-        result.append(
-            Code(entry['token'], entry['type'], entry['cano_code']))
+        entry = Code(entry['token'], entry['type'], entry['cano_code'])
+        if entry.astTree is None:
+            print("WARNING: skipping invalid entry #" + str(i),
+                  file=sys.stderr)
+            continue
+        result.append(entry)
     return result
 
 
