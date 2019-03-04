@@ -36,7 +36,8 @@ setuptools.setup(
         'jieba',
         'progressbar',
         'six',
-        'astor'
+        'astor',
+        'bashlex',
     ],
     test_suite='natlang.testSuite'
 )
