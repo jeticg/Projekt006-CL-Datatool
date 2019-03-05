@@ -214,8 +214,7 @@ def python2astTree(code, node_cls=AstNode):
     py_ast = ast.parse(code)
     root = _translate(py_ast)
     res_root = _restructure(root, node_cls)
-    res_root.calcId(1)
-    res_root.calcPhrase(force=True)
+    res_root.refresh()
     return res_root
 
 

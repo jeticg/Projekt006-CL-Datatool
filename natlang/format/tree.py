@@ -63,6 +63,17 @@ class Node:
             result += " " + self.sibling.export()
         return result
 
+    def refresh(self):
+        '''
+        This method recalculates the ID and repropagates self.phrase
+        '''
+        tmp = self
+        while (tmp.parent is not None):
+            tmp = tmp.parent
+        tmp.calcId(1)
+        self.calcPhrase(force=True)
+        return
+
     def calcId(self, id):
         '''
         This method calculates the ids of all nodes in the subtree using
@@ -216,10 +227,9 @@ def constructTree(elements, rootLabel="ROOT"):
         if root.value == ():
             root.value = (rootLabel,)
         try:
-            root.calcId(1)
+            root.refresh()
         except RuntimeError:
             return None
-        root.calcPhrase(force=True)
     return root
 
 
@@ -262,8 +272,7 @@ def constructTreeFromRNNGAction(actions):
                 return root
             current = current.parent
 
-    root.calcId(1)
-    root.calcPhrase(force=True)
+    root.refresh()
     return root
 
 

@@ -88,10 +88,9 @@ def constructTree(elements, rootLabel="ROOT"):
         if root.value == ():
             root.value = (rootLabel,)
         try:
-            root.calcId(1)
+            root.refresh()
         except RuntimeError:
             return None
-        root.calcPhrase(force=True)
     return root
 
 

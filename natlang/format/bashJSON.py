@@ -386,6 +386,7 @@ def bash2astTree(line):
     node = proc_line(line)
     tmp_node = process_node(node, line)
     ast_node = _restructure(tmp_node, BashAst)
+    ast_node.refresh()
     return ast_node
 
 
