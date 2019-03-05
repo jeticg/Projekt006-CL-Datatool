@@ -58,7 +58,15 @@ def processOption(option, errorMessage="invalid option"):
 
 
 class DataLoader():
-    def __init__(self, format="txtOrTree"):
+    def __init__(self, format="txtOrTree", loader=None):
+        if loader is not None:
+            if hasattr(loader, '__call__'):
+                self.loader = loader
+                return
+            else:
+                raise TypeError(
+                    "natlang.dataLoader: invalid loader selection,",
+                    "selected loader does not have __call__ attr")
         # Added unicode for python2 compatibility
         if isinstance(format, six.string_types):
             if format not in supportedList:
@@ -67,12 +75,12 @@ class DataLoader():
             else:
                 self.loader = supportedList[format].load
         else:
-            if hasattr(format, '__call__'):
-                self.loader = format
+            if hasattr(format, 'load') and hasattr(format.load, '__call__'):
+                self.loader = format.load
             else:
                 raise ValueError(
-                    "natlang.dataLoader: custom format selected not " +
-                    "callable")
+                    "natlang.dataLoader: custom format selected does not",
+                    "have a callable load attr")
         return
 
     def __call__(self,
@@ -84,8 +92,9 @@ class DataLoader():
 
     def load(self, file, linesToLoad=sys.maxsize, verbose=True, option=None):
         def matchPattern(pattern):
+            pattern = os.path.expandvars(os.path.expanduser(pattern))
             return [filename
-                    for filename in glob.glob(os.path.expanduser(pattern))
+                    for filename in glob.glob(pattern)
                     if os.path.isfile(filename)]
 
         option = processOption(
@@ -177,7 +186,7 @@ class TestPatternMatching(unittest.TestCase):
         def load(fileName, linesToLoad=0, option={}):
             return [option]
 
-        loader = DataLoader(load)
+        loader = DataLoader(loader=load)
         testDict = {'a': '1', 'b': '2', 'c': '3'}
         self.assertDictEqual(testDict,
                              loader.load("/*", option=str(testDict))[0])
