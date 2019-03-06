@@ -18,6 +18,8 @@ KEYWORDS = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
 
 
 class Code:
+    PH = ['WORD', 'FLAG', 'NUM', 'SBTK']
+
     def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
         self.valueTypes = valueTypes
@@ -43,12 +45,18 @@ class Code:
         return self.value[key]
 
     def getSketch(self):
-        sketch = []
+        sketchTokens = []
         for tk, ty in zip(self.value, self.valueTypes):
             if ty in ('WORD', 'FLAG', 'NUM', 'SBTK'):
-                sketch.append(ty)
+                sketchTokens.append(ty)
             else:
-                sketch.append(tk)
+                sketchTokens.append(tk)
+        sketch = Code(sketchTokens,
+                      self.valueTypes,
+                      canoCode=None,
+                      createSketch=False)
+        if self.astTree is not None:
+            sketch.astTree = self.astTree.getSketch()
         return sketch
 
     def export(self):
