@@ -42,8 +42,9 @@ name = "natlang"
 # Functions
 def load(filePattern,
          format='txtOrTree',
+         loader=None,
          linesToLoad=sys.maxsize, verbose=True, option=None):
-    lad = loader.DataLoader(format)
+    lad = loader.DataLoader(format, loader)
     return lad(filePattern,
                linesToLoad=linesToLoad,
                verbose=verbose,
@@ -52,6 +53,7 @@ def load(filePattern,
 
 def biload(srcFilePattern, tgtFilePattern,
            srcFormat='txtOrTree', tgtFormat='txtOrTree',
+           srcLoader=None, tgtLoader=None,
            linesToLoad=sys.maxsize, verbose=True, option=None):
     lad = loader.ParallelDataLoader(srcFormat, tgtFormat)
     return lad(fFile=srcFilePattern,
@@ -59,3 +61,10 @@ def biload(srcFilePattern, tgtFilePattern,
                linesToLoad=linesToLoad,
                verbose=verbose,
                option=option)
+
+
+def export(content, fileName):
+    f = RealtimeExporter(fileName)
+    for line in content:
+        f.write(line)
+    return
