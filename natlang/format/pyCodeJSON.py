@@ -42,6 +42,8 @@ str_checker = re.compile(r'''^(("[^"]*")|('([^'])*'))$''')
 
 
 class Code:
+    PH = ['NAME', 'STRING', 'NUMBER']
+
     def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
         self.valueTypes = valueTypes

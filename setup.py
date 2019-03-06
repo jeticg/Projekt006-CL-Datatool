@@ -40,6 +40,7 @@ setuptools.setup(
         'torch',
         'torchvision',
         'astor',
+        'bashlex',
     ],
     test_suite='natlang.testSuite'
 )

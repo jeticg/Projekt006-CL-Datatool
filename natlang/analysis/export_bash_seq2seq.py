@@ -51,7 +51,7 @@ SBTK_START_MARKER = '__SP__ARG_START'
 SBTK_END_MARKER = '__SP__ARG_END'
 SEP_MARKER = '<TOKEN_SEPARATOR>'
 FLAG_MARKER = '<FLAG_SUFFIX>'
-STRANGE_MARKERS = ['UTILITY', 'Regex', 'Quantity', 'Option']
+STRANGE_MARKERS = ['UTILITY', 'Regex', 'Quantity', 'Option', 'File']
 
 
 def export_tokens(loaded_tokens):

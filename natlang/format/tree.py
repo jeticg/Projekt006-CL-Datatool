@@ -47,6 +47,9 @@ class Node:
             self.sibling.onScreen(__spacing, True)
         return
 
+    def __iter__(self):
+        return iter([w for t, w in self.phrase])
+
     def __len__(self):
         return len(self.phrase)
 
@@ -59,6 +62,17 @@ class Node:
         if self.sibling is not None:
             result += " " + self.sibling.export()
         return result
+
+    def refresh(self):
+        '''
+        This method recalculates the ID and repropagates self.phrase
+        '''
+        tmp = self
+        while (tmp.parent is not None):
+            tmp = tmp.parent
+        tmp.calcId(1)
+        self.calcPhrase(force=True)
+        return
 
     def calcId(self, id):
         '''
@@ -213,10 +227,9 @@ def constructTree(elements, rootLabel="ROOT"):
         if root.value == ():
             root.value = (rootLabel,)
         try:
-            root.calcId(1)
+            root.refresh()
         except RuntimeError:
             return None
-        root.calcPhrase(force=True)
     return root
 
 
@@ -259,8 +272,7 @@ def constructTreeFromRNNGAction(actions):
                 return root
             current = current.parent
 
-    root.calcId(1)
-    root.calcPhrase(force=True)
+    root.refresh()
     return root
 
 

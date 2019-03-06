@@ -17,6 +17,19 @@ Install using pip will get you the latest tested version of `natlang`.
 Alternatively, you can also install from source using the following command:
 
     > python setup.py install
+    
+If you want to load up a dataset, then just do this:
+
+    > import natlang as nl
+    > data = nl.load(filePattern, format=ChoosenFormat)
+    > # ChoosenFormat here can be an actual imported format or string.
+    > # Alternatively, you can also pass a loader func in using nl.load(filePatttern, loader=func)
+
+For parallel datasets:
+
+    > import natlang as nl
+    > data = nl.biload(srcPattern, tgtPattern, srcFormat, tgtFormat)
+    > # Loader option similar to nl.load also applies here. src stands for source, tgt stands for target.
 
 ## 1. Format
 
