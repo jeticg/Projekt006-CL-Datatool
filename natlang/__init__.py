@@ -64,7 +64,7 @@ def biload(srcFilePattern, tgtFilePattern,
 
 
 def export(content, fileName):
-    f = RealtimeExporter(fileName)
+    f = exporter.RealtimeExporter(fileName)
     for line in content:
         f.write(line)
     return
