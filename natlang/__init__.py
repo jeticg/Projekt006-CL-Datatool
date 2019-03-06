@@ -7,7 +7,7 @@ from natlang import analysis
 
 from natlang import exporter
 from natlang import fileConverter
-from natlang import loader
+from natlang import loader as loade
 
 from natlang import version
 
@@ -44,11 +44,11 @@ def load(filePattern,
          format='txtOrTree',
          loader=None,
          linesToLoad=sys.maxsize, verbose=True, option=None):
-    lad = loader.DataLoader(format, loader)
-    return lad(filePattern,
-               linesToLoad=linesToLoad,
-               verbose=verbose,
-               option=option)
+    _loader = loade.DataLoader(format, loader)
+    return _loader(filePattern,
+                   linesToLoad=linesToLoad,
+                   verbose=verbose,
+                   option=option)
 
 
 def biload(srcFilePattern, tgtFilePattern,
