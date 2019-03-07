@@ -328,7 +328,7 @@ def evaluatorNER(output, reference):
 
 if __name__ == "__main__":
     config = {
-        "epochs": 1,
+        "epochs": 5,
         "inDim": 256,
         "hidDim": 256,
         "layers": 1,
@@ -340,17 +340,18 @@ if __name__ == "__main__":
     logger.debug("--Commit#: {}".format(getCommitHash()))
 
     logger.info("Experimenting on CONLL2003 NER Task")
-    loader = nl.loader.DataLoader("conll")
-    format = nl.format.conll.conll2003
-    trainDataset = loader.load(
+    trainDataset = nl.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.train",
-        option={"entryIndex": format})[:1000]
-    valDataset = loader.load(
+        format=nl.format.conll,
+        option={"entryIndex": nl.format.conll.conll2003})
+    valDataset = nl.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testb",
-        option={"entryIndex": format})
-    testDataset = loader.load(
+        format=nl.format.conll,
+        option={"entryIndex": nl.format.conll.conll2003})
+    testDataset = nl.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testa",
-        option={"entryIndex": format})
+        format=nl.format.conll,
+        option={"entryIndex": nl.format.conll.conll2003})
 
     logger.info("Initialising Model")
     tagger = Tagger()
