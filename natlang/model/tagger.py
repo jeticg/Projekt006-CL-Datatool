@@ -312,7 +312,7 @@ def evaluatorNER(output, reference):
 
 if __name__ == "__main__":
     config = {
-        "epochs": 1,
+        "epochs": 5,
         "inDim": 256,
         "hidDim": 256,
         "layers": 1,
@@ -337,7 +337,7 @@ if __name__ == "__main__":
         option={"entryIndex": format})
 
     trainDataset = [sample for sample in trainDataset
-                    if sample is not None and len(sample) != 0][:1000]
+                    if sample is not None and len(sample) != 0]
     valDataset = [sample for sample in valDataset
                   if sample is not None and len(sample) != 0]
     testDataset = [sample for sample in testDataset
