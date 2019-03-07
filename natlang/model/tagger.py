@@ -201,8 +201,21 @@ class BiLSTM_CRF(nn.Module):
         return score, output
 
 
-def train(tagger, dataset, epochs, batchSize):
+def train(tagger, dataset, epochs, batchSize,
+          inDim=256, hidDim=256, layers=1, rebuild=True):
     logger = logging.getLogger('TRAIN')
+    if rebuild is True:
+        tagger.buildLexicon(dataset)
+        logger.info("Model inDim=%s, hidDim=%s, layser=%s" %
+                    (config["inDim"], config["hidDim"], config["layers"]))
+        tagger.buildModel(inDim=inDim,
+                          hidDim=hidDim,
+                          layers=layers)
+    dataset = [sample for sample in dataset
+               if sample is not None and len(sample) != 0]
+    dataset = tagger.convertDataset(dataset)
+    logger.info("Training with %s epochs, batch size %s" %
+                (config["epochs"], config["batchSize"]))
     model = tagger.model
     optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=1e-4)
 
@@ -249,6 +262,9 @@ def train(tagger, dataset, epochs, batchSize):
 
 
 def test(tagger, testDataset):
+    testDataset = [sample for sample in testDataset
+                   if sample is not None and len(sample) != 0]
+    testDataset = tagger.convertDataset(testDataset)
     logger = logging.getLogger('EVALUATOR')
     correct = 0
     total = 0
@@ -312,7 +328,7 @@ def evaluatorNER(output, reference):
 
 if __name__ == "__main__":
     config = {
-        "epochs": 5,
+        "epochs": 1,
         "inDim": 256,
         "hidDim": 256,
         "layers": 1,
@@ -328,7 +344,7 @@ if __name__ == "__main__":
     format = nl.format.conll.conll2003
     trainDataset = loader.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.train",
-        option={"entryIndex": format})
+        option={"entryIndex": format})[:1000]
     valDataset = loader.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testb",
         option={"entryIndex": format})
@@ -336,30 +352,17 @@ if __name__ == "__main__":
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testa",
         option={"entryIndex": format})
 
-    trainDataset = [sample for sample in trainDataset
-                    if sample is not None and len(sample) != 0]
-    valDataset = [sample for sample in valDataset
-                  if sample is not None and len(sample) != 0]
-    testDataset = [sample for sample in testDataset
-                   if sample is not None and len(sample) != 0]
-
     logger.info("Initialising Model")
     tagger = Tagger()
-    tagger.buildLexicon(trainDataset)
-    trainDataset = tagger.convertDataset(trainDataset)
-    valDataset = tagger.convertDataset(valDataset)
-    testDataset = tagger.convertDataset(testDataset)
-    logger.info("Model inDim=%s, hidDim=%s, layser=%s" %
-                (config["inDim"], config["hidDim"], config["layers"]))
-    tagger.buildModel(inDim=config["inDim"],
-                      hidDim=config["hidDim"],
-                      layers=config["layers"])
-    logger.info("Training with %s epochs, batch size %s" %
-                (config["epochs"], config["batchSize"]))
+
     train(tagger,
           trainDataset,
           epochs=config["epochs"],
-          batchSize=config["batchSize"])
+          batchSize=config["batchSize"],
+          inDim=config["inDim"],
+          hidDim=config["hidDim"],
+          layers=config["layers"],
+          rebuild=True)
 
     logger.info("Testing with validation dataset")
     resultsVal = test(tagger, valDataset)
