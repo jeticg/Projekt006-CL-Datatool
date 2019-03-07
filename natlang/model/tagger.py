@@ -1,4 +1,5 @@
 import random
+import copy
 import progressbar
 
 import torch
@@ -20,16 +21,18 @@ class Tagger(ModelBase):
         self.int2w = []
         self.t2int = {}
         self.int2t = []
+        self.inDim = self.hidDim = self.layers = None
         self.component = ["maxTrainLen",
                           "inDim", "hidDim", "layers",
-                          "w2int", "int2w"]
+                          "w2int", "int2w",
+                          "t2int", "int2t"]
         self.model = None
         return
 
     def buildLexicon(self, dataset, lexiconSize=50000):
-        self.w2int, self.int2w = ModelBase.buildLexicon(
+        self.w2int, self.int2w = ModelBase.buildCoNLLLexicon(
             self, dataset, entry="FORM", lexiconSize=lexiconSize)
-        self.t2int, self.int2t = ModelBase.buildLexicon(
+        self.t2int, self.int2t = ModelBase.buildCoNLLLexicon(
             self, dataset, entry="UPOS", lexiconSize=lexiconSize)
         for key in ["<SOS>", "<EOS>"]:
             self.t2int[key] = len(self.int2t)
@@ -37,8 +40,9 @@ class Tagger(ModelBase):
         return
 
     def convertDataset(self, dataset):
-        ModelBase.convertDataset(self, dataset, entry="FORM", w2int=self.w2int)
-        ModelBase.convertDataset(self, dataset, entry="UPOS", w2int=self.t2int)
+        dataset = copy.deepcopy(dataset)
+        ModelBase.convertCoNLL(self, dataset, entry="FORM", w2int=self.w2int)
+        ModelBase.convertCoNLL(self, dataset, entry="UPOS", w2int=self.t2int)
         for i in range(len(dataset)):
             sample = dataset[i]
             words = [node.rawEntries[node.format["FORM"]]
@@ -46,11 +50,17 @@ class Tagger(ModelBase):
             tags = [node.rawEntries[node.format["UPOS"]]
                     for node in sample.phrase]
             dataset[i] = torch.LongTensor(words), torch.LongTensor(tags)
-        return
+        return dataset
 
-    def BuildModel(self, inDim, hidDim, layers):
+    def buildModel(self, inDim, hidDim, layers):
+        self.inDim = inDim
+        self.hidDim = hidDim
+        self.layers = layers
         self.model = BiLSTM_CRF(self.w2int, self.t2int, inDim, hidDim, layers)
         return
+
+    def _buildModelFromSaved(self):
+        self.buildModel(self.inDim, self.hidDim, self.layers)
 
 
 def logSumExp(vec):
@@ -302,7 +312,7 @@ def evaluatorNER(output, reference):
 
 if __name__ == "__main__":
     config = {
-        "epochs": 5,
+        "epochs": 1,
         "inDim": 256,
         "hidDim": 256,
         "layers": 1,
@@ -327,7 +337,7 @@ if __name__ == "__main__":
         option={"entryIndex": format})
 
     trainDataset = [sample for sample in trainDataset
-                    if sample is not None and len(sample) != 0]
+                    if sample is not None and len(sample) != 0][:1000]
     valDataset = [sample for sample in valDataset
                   if sample is not None and len(sample) != 0]
     testDataset = [sample for sample in testDataset
@@ -336,12 +346,12 @@ if __name__ == "__main__":
     logger.info("Initialising Model")
     tagger = Tagger()
     tagger.buildLexicon(trainDataset)
-    tagger.convertDataset(trainDataset)
-    tagger.convertDataset(valDataset)
-    tagger.convertDataset(testDataset)
+    trainDataset = tagger.convertDataset(trainDataset)
+    valDataset = tagger.convertDataset(valDataset)
+    testDataset = tagger.convertDataset(testDataset)
     logger.info("Model inDim=%s, hidDim=%s, layser=%s" %
                 (config["inDim"], config["hidDim"], config["layers"]))
-    tagger.BuildModel(inDim=config["inDim"],
+    tagger.buildModel(inDim=config["inDim"],
                       hidDim=config["hidDim"],
                       layers=config["layers"])
     logger.info("Training with %s epochs, batch size %s" %
