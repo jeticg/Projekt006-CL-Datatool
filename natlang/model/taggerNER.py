@@ -182,10 +182,10 @@ def getBIOSpans(tags):
             continue
         elif tags[i] == 'O':
             if len(results) != 0 and len(results[-1]) == 2:
-                results[-1] += (i-1,)
+                results[-1] += (i - 1,)
         else:
             if len(results) != 0 and len(results[-1]) == 2:
-                results[-1] += (i-1,)
+                results[-1] += (i - 1,)
             results.append((tags[i][2:], i, ))
         previous = tags[i]
     return results
@@ -210,6 +210,7 @@ def evaluatorNER(output, reference):
 
 
 if __name__ == "__main__":
+    progID = """Natlang toolkit Universal Tagger %s""" % __version__
     config = {
         "epochs": 5,
         "inDim": 256,
@@ -219,7 +220,8 @@ if __name__ == "__main__":
     }
     initialiseLogger('taggerNER.log')
     logger = logging.getLogger('MAIN')
-    logger.info("""Natlang toolkit Universal Tagger %s""" % __version__)
+    config = processConfig(progID, config)
+    logger.info(progID)
     logger.debug("--Commit#: {}".format(getCommitHash()))
 
     logger.info("Experimenting on CONLL2003 NER Task")

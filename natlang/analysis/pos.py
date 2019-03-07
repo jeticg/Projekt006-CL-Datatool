@@ -3,7 +3,7 @@ import os
 import sys
 
 import natlang as nl
-import natlang.model.taggerNER as _tagger
+import natlang.model.taggerPOS as _tagger
 from natlang._support.general import getPTPath
 pretrainedLang = {
     "en": {
@@ -11,7 +11,7 @@ pretrainedLang = {
         "saved": "/en.save",
     },
 }
-pretrainPath = getPTPath("/tagger/ner")
+pretrainPath = getPTPath("/tagger/pos")
 
 
 def Tagger(lang="en", savedModel=None):

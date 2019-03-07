@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 import natlang as nl
+from natlang._support.argparser import processConfig
 from natlang._support.logger import logging, initialiseLogger, getCommitHash
 from natlang.model.modelBase import ModelBase
 from natlang.model.src.BiLSTM import Model as BiLSTM
@@ -167,16 +168,18 @@ def test(tagger, testDataset):
 
 
 if __name__ == "__main__":
+    progID = """Natlang toolkit Universal Tagger %s""" % __version__
     config = {
         "epochs": 5,
         "inDim": 256,
         "hidDim": 256,
         "layers": 1,
-        "batchSize": 1
+        "batchSize": 128
     }
     initialiseLogger('taggerPOS.log')
     logger = logging.getLogger('MAIN')
-    logger.info("""Natlang toolkit Universal Tagger %s""" % __version__)
+    config = processConfig(progID, config)
+    logger.info(progID)
     logger.debug("--Commit#: {}".format(getCommitHash()))
 
     logger.info("Experimenting on CONLL2003 UPOS Task")
