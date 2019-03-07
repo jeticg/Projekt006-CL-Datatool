@@ -10,7 +10,7 @@ import torch.optim as optim
 import natlang as nl
 from natlang._support.logger import logging, initialiseLogger, getCommitHash
 from natlang.model.modelBase import ModelBase
-from natlang.model.src.BiLSTM_CRF import Model as BiLSTM_CRF
+from natlang.model.src.BiLSTM import Model as BiLSTM
 __version__ = "0.1b1"
 
 
@@ -34,7 +34,7 @@ class Tagger(ModelBase):
         self.w2int, self.int2w = ModelBase.buildCoNLLLexicon(
             self, dataset, entry="FORM", lexiconSize=lexiconSize)
         self.t2int, self.int2t = ModelBase.buildCoNLLLexicon(
-            self, dataset, entry="NER", lexiconSize=lexiconSize)
+            self, dataset, entry="UPOS", lexiconSize=lexiconSize)
         for key in ["<SOS>", "<EOS>"]:
             self.t2int[key] = len(self.int2t)
             self.int2t.append(key)
@@ -43,12 +43,12 @@ class Tagger(ModelBase):
     def convertDataset(self, dataset):
         dataset = copy.deepcopy(dataset)
         ModelBase.convertCoNLL(self, dataset, entry="FORM", w2int=self.w2int)
-        ModelBase.convertCoNLL(self, dataset, entry="NER", w2int=self.t2int)
+        ModelBase.convertCoNLL(self, dataset, entry="UPOS", w2int=self.t2int)
         for i in range(len(dataset)):
             sample = dataset[i]
             words = [node.rawEntries[node.format["FORM"]]
                      for node in sample.phrase]
-            tags = [node.rawEntries[node.format["NER"]]
+            tags = [node.rawEntries[node.format["UPOS"]]
                     for node in sample.phrase]
             dataset[i] = torch.LongTensor(words), torch.LongTensor(tags)
         return dataset
@@ -57,7 +57,7 @@ class Tagger(ModelBase):
         self.inDim = inDim
         self.hidDim = hidDim
         self.layers = layers
-        self.model = BiLSTM_CRF(self.w2int, self.t2int, inDim, hidDim, layers)
+        self.model = BiLSTM(self.w2int, self.t2int, inDim, hidDim, layers)
         return
 
     def _buildModelFromSaved(self):
@@ -163,50 +163,7 @@ def test(tagger, testDataset):
                 if t == ref:
                     correct += 1
     logger.info("  Accuracy = %s" % (correct * 1.0 / total,))
-    scores = evaluatorNER(output, reference)
-    for key in scores:
-        logger.info("  %s = %s" % (key, scores[key]))
     return output
-
-
-def getBIOSpans(tags):
-    tags = tags + ['O']
-    results = []
-    previous = 'O'
-    for i in range(len(tags)):
-        if tags[i] == previous:
-            continue
-        if previous[0] == 'B' and tags[i][0] == 'i' and\
-                tags[i][1:] == previous[1:]:
-            previous = tags[i]
-            continue
-        elif tags[i] == 'O':
-            if len(results) != 0 and len(results[-1]) == 2:
-                results[-1] += (i-1,)
-        else:
-            if len(results) != 0 and len(results[-1]) == 2:
-                results[-1] += (i-1,)
-            results.append((tags[i][2:], i, ))
-        previous = tags[i]
-    return results
-
-
-def evaluatorNER(output, reference):
-    correct = 0.0
-    totalRef = 0.0
-    totalOut = 0.0
-    for tags, refTags in zip(output, reference):
-        out = getBIOSpans(tags)
-        ref = getBIOSpans(refTags)
-        correct += len([item for item in out if item in ref])
-        totalOut += len(out)
-        totalRef += len(ref)
-    precision = 1. * correct / totalOut
-    recall = 1. * correct / totalRef
-    F1 = 2. * precision * recall / (precision + recall)
-    return {"Precision": precision,
-            "Recall": recall,
-            "F1": F1}
 
 
 if __name__ == "__main__":
@@ -217,12 +174,12 @@ if __name__ == "__main__":
         "layers": 1,
         "batchSize": 1
     }
-    initialiseLogger('taggerNER.log')
+    initialiseLogger('taggerPOS.log')
     logger = logging.getLogger('MAIN')
     logger.info("""Natlang toolkit Universal Tagger %s""" % __version__)
     logger.debug("--Commit#: {}".format(getCommitHash()))
 
-    logger.info("Experimenting on CONLL2003 NER Task")
+    logger.info("Experimenting on CONLL2003 UPOS Task")
     trainDataset = nl.load(
         "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.train",
         format=nl.format.conll,
