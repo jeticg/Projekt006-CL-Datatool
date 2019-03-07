@@ -3,7 +3,7 @@ import os
 import sys
 
 import natlang as nl
-import natlang.model.tagger as _tagger
+import natlang.model.taggerNER as _tagger
 pretrainedLang = {
     "en": {
         "url": None,
