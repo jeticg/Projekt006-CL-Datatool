@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# POS Tagger
+# Simon Fraser University
+# Jetic Gu
+#
 import random
 import copy
 import progressbar
@@ -10,6 +17,8 @@ import torch.optim as optim
 import natlang as nl
 from natlang._support.argparser import processConfig
 from natlang._support.logger import logging, initialiseLogger, getCommitHash
+from natlang.format.conll import Node as ConllNode
+from natlang.format.tree import Node as TreeNode
 from natlang.model.modelBase import ModelBase
 from natlang.model.src.BiLSTM import Model as BiLSTM
 __version__ = "0.1b1"
@@ -32,25 +41,46 @@ class Tagger(ModelBase):
         return
 
     def buildLexicon(self, dataset, lexiconSize=50000):
-        self.w2int, self.int2w = ModelBase.buildCoNLLLexicon(
-            self, dataset, entry="FORM", lexiconSize=lexiconSize)
-        self.t2int, self.int2t = ModelBase.buildCoNLLLexicon(
-            self, dataset, entry="UPOS", lexiconSize=lexiconSize)
-        for key in ["<SOS>", "<EOS>"]:
-            self.t2int[key] = len(self.int2t)
-            self.int2t.append(key)
+        wordSet = []
+        tagSet = []
+        for i in range(len(dataset)):
+            sample = dataset[i]
+            if isinstance(sample, ConllNode):
+                words = [node.rawEntries[node.format["FORM"]]
+                         for node in sample.phrase]
+                tags = [node.rawEntries[node.format["UPOS"]]
+                        for node in sample.phrase]
+            elif isinstance(sample, TreeNode):
+                words = [w for t, w in sample.phrase]
+                tags = [t for t, w in sample.phrase]
+            else:
+                raise TypeError("Unrecognised data type in dataset")
+            wordSet.append(words)
+            tagSet.append(tags)
+        self.w2int, self.int2w = self.buildLexiconOnWords(wordSet, lexiconSize)
+        self.t2int, self.int2t = self.buildLexiconOnWords(tagSet, lexiconSize)
         return
 
     def convertDataset(self, dataset):
         dataset = copy.deepcopy(dataset)
-        ModelBase.convertCoNLL(self, dataset, entry="FORM", w2int=self.w2int)
-        ModelBase.convertCoNLL(self, dataset, entry="UPOS", w2int=self.t2int)
         for i in range(len(dataset)):
             sample = dataset[i]
-            words = [node.rawEntries[node.format["FORM"]]
-                     for node in sample.phrase]
-            tags = [node.rawEntries[node.format["UPOS"]]
-                    for node in sample.phrase]
+            if isinstance(sample, ConllNode):
+                words = [node.rawEntries[node.format["FORM"]]
+                         for node in sample.phrase]
+                tags = [node.rawEntries[node.format["UPOS"]]
+                        for node in sample.phrase]
+            elif isinstance(sample, TreeNode):
+                words = [w for t, w in sample.phrase]
+                tags = [t for t, w in sample.phrase]
+            else:
+                print(type(sample))
+                raise TypeError("Unrecognised data type in dataset")
+            for j in range(len(words)):
+                words[j] = self.w2int["<UNK>"] if words[j] not in self.w2int\
+                    else self.w2int[words[j]]
+                tags[j] = self.t2int["<UNK>"] if tags[j] not in self.t2int\
+                    else self.t2int[tags[j]]
             dataset[i] = torch.LongTensor(words), torch.LongTensor(tags)
         return dataset
 
@@ -184,17 +214,14 @@ if __name__ == "__main__":
 
     logger.info("Experimenting on CONLL2003 UPOS Task")
     trainDataset = nl.load(
-        "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.train",
-        format=nl.format.conll,
-        option={"entryIndex": nl.format.conll.conll2003})
+        "~/Daten/syntactic-data/Penn_Treebank/train.tree.en",
+        format=nl.format.tree)
     valDataset = nl.load(
-        "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testb",
-        format=nl.format.conll,
-        option={"entryIndex": nl.format.conll.conll2003})
+        "~/Daten/syntactic-data/Penn_Treebank/test1.tree.en",
+        format=nl.format.tree)
     testDataset = nl.load(
-        "/Users/jetic/Daten/syntactic-data/CoNLL-2003/eng.testa",
-        format=nl.format.conll,
-        option={"entryIndex": nl.format.conll.conll2003})
+        "~/Daten/syntactic-data/Penn_Treebank/test2.tree.en",
+        format=nl.format.tree)
 
     logger.info("Initialising Model")
     tagger = Tagger()

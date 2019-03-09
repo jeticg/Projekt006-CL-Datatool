@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Python version: 2/3
+#
+# NER Tagger
+# Simon Fraser University
+# Jetic Gu
+#
 import random
 import copy
 import progressbar

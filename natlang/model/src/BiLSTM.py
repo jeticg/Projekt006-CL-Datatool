@@ -36,16 +36,6 @@ class Model(nn.Module):
         # Maps the output of the LSTM into tag space.
         self.affineLayer = nn.Linear(hidDim, len(self.t2int))
 
-        # Matrix of transition parameters.  Entry i,j is the score of
-        # transitioning *to* i *from* j.
-        self.transScore = nn.Parameter(
-            torch.randn(len(self.t2int), len(self.t2int)))
-
-        # These two statements enforce the constraint that we never transfer
-        # to the start tag and we never transfer from the stop tag
-        self.transScore.data[self.t2int["<SOS>"], :] = -10000
-        self.transScore.data[:, self.t2int["<EOS>"]] = -10000
-
         self.hiddenRep = self.initHiddenRep()
         self.lossFunction = nn.NLLLoss()
 

@@ -57,6 +57,24 @@ class ModelBase:
             int2w.append(key)
         return w2int, int2w
 
+    def buildLexiconOnWords(self, dataset, lexiconSize=50000):
+        w2int = {}
+        int2w = []
+        for words in dataset:
+            for word in words:
+                if word not in w2int:
+                    w2int[word] = 0
+                w2int[word] += 1
+
+        lex =\
+            sorted(list(w2int.items()), key=lambda y: y[1])[-lexiconSize:]
+        w2int = dict(lex)
+        w2int["<UNK>"] = 0
+        for key in w2int:
+            w2int[key] = len(int2w)
+            int2w.append(key)
+        return w2int, int2w
+
     def convertCoNLL(self, dataset, entry, w2int):
         """
         Convert the entries in the dataset using w2int.

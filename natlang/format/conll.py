@@ -130,6 +130,9 @@ class Node():
             "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
             "\n"
 
+    def __iter__(self):
+        return iter([sample[0] for sample in self.phrase])
+
     def __len__(self):
         return len(self.phrase)
 
