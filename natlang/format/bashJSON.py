@@ -113,6 +113,13 @@ class _TmpNode:
 
 
 class BashAst(BaseNode):
+    placeHolders = ['WORD', 'FLAG', 'NUM', 'SBTK']
+    keywords = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
+                'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
+                'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
+                'ln', 'split', 'read', 'basename', 'which', 'readlink',
+                'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
+
     def find_literal_nodes(self):
         if self.value[0] == 'subtoken':
             return [self]
