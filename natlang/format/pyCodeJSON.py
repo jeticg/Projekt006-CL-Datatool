@@ -20,17 +20,6 @@ from io import StringIO
 
 from natlang.format.pyCode import AstNode, python2astTree, tree2ast
 
-builtin_fns = (
-    'abs', 'delattr', 'hash', 'memoryview', 'set', 'all', 'dict', 'help',
-    'min', 'setattr', 'any', 'dir', 'hex', 'next', 'slice', 'ascii', 'divmod',
-    'id', 'object', 'sorted', 'bin', 'enumerate', 'input', 'oct',
-    'staticmethod', 'bool', 'eval', 'int', 'open', 'str', 'breakpoint', 'exec',
-    'isinstance', 'ord', 'sum', 'bytearray', 'filter', 'issubclass', 'pow',
-    'super', 'bytes', 'float', 'iter', 'print', 'tuple', 'callable', 'format',
-    'len', 'property', 'type', 'chr', 'frozenset', 'list', 'range', 'vars',
-    'classmethod', 'getattr', 'locals', 'repr', 'zip', 'compile', 'globals',
-    'map', 'reversed', '__import__', 'complex', 'hasattr', 'max', 'round')
-
 p_elif = re.compile(r'^elif\s?')
 p_else = re.compile(r'^else\s?')
 p_try = re.compile(r'^try\s?')
@@ -42,7 +31,7 @@ str_checker = re.compile(r'''^(("[^"]*")|('([^'])*'))$''')
 
 
 class Code:
-    PH = ['NAME', 'STRING', 'NUMBER']
+    placeHolders = ['NAME', 'STRING', 'NUMBER']
 
     def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
@@ -73,7 +62,7 @@ class Code:
     def getSketch(self):
         sketchTokens = []
         for tk, ty in zip(self.value, self.valueTypes):
-            if ty in ('NAME', 'STRING', 'NUMBER'):
+            if ty in type(self).placeHolders:
                 sketchTokens.append(ty)
             else:
                 sketchTokens.append(tk)
@@ -90,6 +79,19 @@ class Code:
 
 
 class DjangoAst(AstNode):
+    placeHolders = ['NAME', 'STRING', 'NUMBER']
+    keywords = (
+        'abs', 'delattr', 'hash', 'memoryview', 'set', 'all', 'dict', 'help',
+        'min', 'setattr', 'any', 'dir', 'hex', 'next', 'slice', 'ascii',
+        'divmod', 'id', 'object', 'sorted', 'bin', 'enumerate', 'input', 'oct',
+        'staticmethod', 'bool', 'eval', 'int', 'open', 'str', 'breakpoint',
+        'exec', 'isinstance', 'ord', 'sum', 'bytearray', 'filter',
+        'issubclass', 'pow', 'super', 'bytes', 'float', 'iter', 'print',
+        'tuple', 'callable', 'format', 'len', 'property', 'type', 'chr',
+        'frozenset', 'list', 'range', 'vars', 'classmethod', 'getattr',
+        'locals', 'repr', 'zip', 'compile', 'globals',
+        'map', 'reversed', '__import__', 'complex', 'hasattr', 'max', 'round')
+
     def __init__(self, parent=None):
         AstNode.__init__(self, parent=parent)
         return
@@ -109,7 +111,7 @@ class DjangoAst(AstNode):
                         str_checker.match(leaf.value[1]):
                     leaf.value = leaf.value[0], 'STRING'
                 elif keyword.iskeyword(leaf.value[1]) or \
-                        leaf.value[1] in builtin_fns:
+                        leaf.value[1] in type(self).keywords:
                     continue
                 else:
                     leaf.value = leaf.value[0], 'NAME'
