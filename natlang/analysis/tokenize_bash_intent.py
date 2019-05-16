@@ -7,7 +7,8 @@ str_nfa = re.compile(r'''
 ''', re.VERBOSE)
 
 sbtk_nfa = re.compile(r'''
-[a-zA-Z]+| #word
+[a-zA-Z_][a-zA-Z0-9_]*| # word
+[0-9]+| # num
 .''', re.VERBOSE)
 
 
@@ -43,17 +44,20 @@ def proc_line(line):
     return tokens
 
 
-IN_PATH = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/test.nl.filtered'
-OUT_PATH = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/test.nl.filtered.tokens'
+IN_TMPL = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/{}.nl.filtered'
+OUT_TMPL = '/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/{}.nl.filtered.tokens'
 
 if __name__ == '__main__':
-    with open(IN_PATH) as in_f:
-        all_tokens = []
-        for l in in_f:
-            tokens = proc_line(l)
-            all_tokens.append(tokens)
+    for dataset in ['train', 'dev', 'test']:
+        IN_PATH = IN_TMPL.format(dataset)
+        OUT_PATH = OUT_TMPL.format(dataset)
+        with open(IN_PATH) as in_f:
+            all_tokens = []
+            for l in in_f:
+                tokens = proc_line(l)
+                all_tokens.append(tokens)
 
-    with open(OUT_PATH, 'w') as out_f:
-        for tokens in all_tokens:
-            out_f.write(json.dumps(tokens))
-            out_f.write('\n')
+        with open(OUT_PATH, 'w') as out_f:
+            for tokens in all_tokens:
+                out_f.write(json.dumps(tokens))
+                out_f.write('\n')
