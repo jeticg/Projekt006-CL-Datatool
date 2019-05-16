@@ -6,9 +6,10 @@
 # Ruoyi Wang
 #
 #
-from bashlex.ast import node as BashAst
+from bashlex.ast import node as BashNode
 import sys
 import os
+import copy
 
 from natlang.format.astTree import AstNode as BaseNode
 
@@ -66,7 +67,7 @@ def tree2ast(root):
             ast_node = tree2ast(n)
             n = n.sibling
             children.append(ast_node)
-        root_ast_node = BashAst(kind=root.value[0], children=children)  # todo: fix
+        root_ast_node = BashNode(kind=root.value[0], children=children)  # todo: fix
         return root_ast_node
 
 
@@ -81,7 +82,7 @@ def _translate(bash_ast):
         for i, child in enumerate(bash_ast.children):
             bash_ast.children[i] = _translate(child)
         return bash_ast
-    elif not isinstance(bash_ast, BashAst):
+    elif not isinstance(bash_ast, BashNode):
         # literal
         return _TmpNode('LITERAL', bash_ast)
     else:
@@ -173,6 +174,19 @@ def bashAst2astTree(bash_ast, node_cls=AstNode):
     res_root = _restructure(root, node_cls)
     res_root.refresh()
     return res_root
+
+
+class BashAst(AstNode):
+    def __init__(self, parent=None):
+        AstNode.__init__(self, parent=parent)
+
+    def getSketch(self):
+        root = copy.deepcopy(self)
+        leaves = root.find_literal_nodes()
+        for leaf in leaves:
+            leaf.value = leaf.value[0], '<SKETCH_{}>'.format(leaf.parent.value[0].upper())
+
+        return root
 
 
 def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
@@ -305,7 +319,7 @@ def draw_res_tree(root, name='res'):
 if __name__ == '__main__':
     import pickle
 
-    with open('/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/train.cm.filtered.ast.pkl', 'rb') as f:
+    with open('/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/dev.cm.filtered.ast.pkl', 'rb') as f:
         l = pickle.load(f)
 
     for t in l:
