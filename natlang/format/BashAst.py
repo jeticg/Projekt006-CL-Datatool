@@ -8,6 +8,7 @@
 #
 from bashlex.ast import node as BashAst
 import sys
+import os
 
 from natlang.format.astTree import AstNode as BaseNode
 
@@ -38,10 +39,7 @@ class _TmpNode:
         return 'TmpNode({}, {})'.format(repr(self.tag), repr(self.value))
 
 
-def tree2ast(root, suppress=False):
-    require_ctx = ('List', 'Tuple', 'Name', 'Starred', 'Subscript',
-                   'Attribute')
-
+def tree2ast(root):
     if root is None:
         return None
     elif root.value[0] == 'LITERAL':
@@ -49,58 +47,27 @@ def tree2ast(root, suppress=False):
     elif root.value[0] == 'DUMMY':
         return None
     elif root.value[0] == 'ROOT':
-        return tree2ast(root.child, suppress)
+        return tree2ast(root.child)
     elif root.value[0].endswith('_vec'):
         children = []
         n = root.child
         while n is not None:
-            ast_node = tree2ast(n, suppress)
+            ast_node = tree2ast(n)
             n = n.sibling
             if ast_node is not None:
                 children.append(ast_node)
         return children
     elif root.value[0].endswith('_optional'):
-        return tree2ast(root.child, suppress)
+        return tree2ast(root.child)
     else:
-        try:
-            Class = ast.__dict__[root.value[0]]
-        except KeyError:
-            if suppress:
-                print('[WARNING] AST class {} not found'.format(root.value[0]))
-                return None
-            else:
-                raise
-        else:
-            children = []
-            n = root.child
-            while n is not None:
-                ast_node = tree2ast(n, suppress)
-                n = n.sibling
-                children.append(ast_node)
-            # special treatments
-            if root.value[0] in require_ctx:
-                children.append(ast.Load)
-            elif root.value[0] == 'Print':
-                if len(children) == 2:
-                    children[-1] = bool(children[-1])
-            elif root.value[0] == 'Num':
-                if len(children) == 1:
-                    # todo: temporary workaround
-                    try:
-                        children[0] = float(children[0])
-                    except ValueError:
-                        children[0] = 42.1337
-            try:
-                root_ast_node = Class(*children)
-            except (ValueError, TypeError) as e:
-                if suppress:
-                    print('[WARNING] wrong parameters for AST class {}'.format(
-                        root.value[0]))
-                    return None
-                else:
-                    raise
-            else:
-                return root_ast_node
+        children = []
+        n = root.child
+        while n is not None:
+            ast_node = tree2ast(n)
+            n = n.sibling
+            children.append(ast_node)
+        root_ast_node = BashAst(kind=root.value[0], children=children)  # todo: fix
+        return root_ast_node
 
 
 def iter_fields(bash_ast):
@@ -201,9 +168,8 @@ def _restructure(tmp_node, node_cls=AstNode):
     return root
 
 
-def python2astTree(code, node_cls=AstNode):
-    py_ast = ast.parse(code)
-    root = _translate(py_ast)
+def bashAst2astTree(bash_ast, node_cls=AstNode):
+    root = _translate(bash_ast)
     res_root = _restructure(root, node_cls)
     res_root.refresh()
     return res_root
