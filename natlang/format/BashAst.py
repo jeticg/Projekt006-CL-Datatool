@@ -197,9 +197,10 @@ class Code:
     def __init__(self, tokens, sketch, ast, createSketch=True):
         self.value = tokens
         self.astTree = ast
-        self.sketch = Code(sketch, None, None, False)
+        if sketch is not None:
+            self.sketch = Code(sketch, None, None, False)
 
-        self.astTree = bashAst2astTree(ast)
+        self.astTree = bashAst2astTree(ast, BashAst)
         if createSketch is True:
             self.sketch = self.getSketch()
 
