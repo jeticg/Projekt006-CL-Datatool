@@ -10,6 +10,8 @@ from bashlex.ast import node as BashNode
 import sys
 import os
 import copy
+import pickle
+import json
 
 from natlang.format.astTree import AstNode as BaseNode
 
@@ -170,6 +172,8 @@ def _restructure(tmp_node, node_cls=AstNode):
 
 
 def bashAst2astTree(bash_ast, node_cls=AstNode):
+    if bash_ast is None:
+        return None
     root = _translate(bash_ast)
     res_root = _restructure(root, node_cls)
     res_root.refresh()
@@ -189,66 +193,51 @@ class BashAst(AstNode):
         return root
 
 
+class Code:
+    def __init__(self, tokens, sketch, ast, createSketch=True):
+        self.value = tokens
+        self.astTree = ast
+        self.sketch = Code(sketch, None, None, False)
+
+        self.astTree = bashAst2astTree(ast)
+        if createSketch is True:
+            self.sketch = self.getSketch()
+
+    def __iter__(self):
+        return iter(self.value)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __repr__(self):
+        return "<DjangoCode: " + str(self.value) + ">"
+
+    def __getitem__(self, key):
+        return self.value[key]
+
+    def getSketch(self):
+        sketch = self.sketch
+        if self.astTree is not None:
+            sketch.astTree = self.astTree.getSketch()
+        return sketch
+
+    def export(self):
+        return " ".join(self.value)
+
+
 def load(fileName, linesToLoad=sys.maxsize, verbose=True, option=None,
          no_process=False):
-    """
-    WARNING: this function assumes `[PREFIX].token_maps.pkl` is in the same
-    directory as the code file
-    `token_maps.pkl` should be a {int->[str]} mapping of copied words
-    """
-    import progressbar
-    import pickle
-    import itertools
-    orig_name = os.path.basename(fileName)
-    fileName = os.path.expanduser(fileName)
+    with open(fileName, 'rb') as f:
+        trees = pickle.load(f)
 
-    if option == {}:
-        option = None
+    loaded = []
+    with open(option, 'r') as f:
+        for i, line in enumerate(f):
+            entry = json.loads(line)
+            loaded.append(
+                Code(entry['token'], entry['sketch'], trees[i]))
 
-    if option is None:
-        option = {}
-        option['mapping_path'] = \
-            os.path.dirname(os.path.abspath(fileName)) + \
-            '/{}.token_maps.pkl'.format(orig_name[:-13])
-    # print(option['mapping_path'])
-
-    if no_process:
-        token_maps = []
-    else:
-        with open(option['mapping_path']) as mapping_f:
-            token_maps = pickle.load(mapping_f)
-
-    roots = []
-    i = 0
-    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
-               progressbar.FormatLabel(
-                   '; Total: %(value)d sents (in: %(elapsed)s)')]
-    if verbose is True:
-        loadProgressBar = \
-            progressbar.ProgressBar(widgets=widgets,
-                                    maxval=min(
-                                        sum(1 for line in open(fileName)),
-                                        linesToLoad)).start()
-    for line in open(fileName):
-        i += 1
-        if verbose is True:
-            loadProgressBar.update(i)
-        code = eval(line)
-        roots.append(python2astTree(code))
-        if i == linesToLoad:
-            break
-
-    for root, tokens_map in itertools.izip_longest(roots, token_maps,
-                                                   fillvalue={}):
-        literal_nodes = root.find_literal_nodes()
-        for node in literal_nodes:
-            if node.value[1] in tokens_map.values():
-                node.value = node.value[0], '<COPIED>'
-
-    if verbose is True:
-        loadProgressBar.finish()
-
-    return roots
+    return loaded
 
 
 def draw_tmp_tree(root, name='tmp'):
@@ -317,15 +306,5 @@ def draw_res_tree(root, name='res'):
 
 
 if __name__ == '__main__':
-    import pickle
-
-    with open('/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/dev.cm.filtered.ast.pkl', 'rb') as f:
-        l = pickle.load(f)
-
-    for t in l:
-        if t is None:
-            print('found None')
-            continue
-        bash_ast = t
-        root = _translate(bash_ast)
-        res_root = _restructure(root)
+    loaded = load('/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/train.cm.filtered.ast.pkl',
+                  option='/Users/ruoyi/Projects/PycharmProjects/data_fixer/bash/train.cm.filtered.seq2seq')
