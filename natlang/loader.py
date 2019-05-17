@@ -34,7 +34,9 @@ supportedList = {
     'intent': intent,
     'intentJSON': intentJSON,
     'pyCodeJSON': pyCodeJSON,
-    'bashJSON': bashJSON
+    'bashJSON': bashJSON,
+    'bashIntent': bashIntent,
+    'bashAst': bashAst
 }
 
 

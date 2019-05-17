@@ -46,9 +46,9 @@ def tree2ast(root):
     if root is None:
         return None
     elif root.value[0] == 'LITERAL':
-        return root.value[1]
+        return 'LITERAL', root.value[1]
     elif root.value[0] == 'DUMMY':
-        return None
+        return None, None
     elif root.value[0] == 'ROOT':
         return tree2ast(root.child)
     elif root.value[0].endswith('_vec'):
@@ -59,17 +59,22 @@ def tree2ast(root):
             n = n.sibling
             if ast_node is not None:
                 children.append(ast_node)
-        return children
+        return root.value[0][:-4], children
     elif root.value[0].endswith('_optional'):
-        return tree2ast(root.child)
+        return root.value[0][-len('_optional')], tree2ast(root.child)
     else:
-        children = []
+        children = {}
         n = root.child
         while n is not None:
-            ast_node = tree2ast(n)
+            kind, ast_node = tree2ast(n)
             n = n.sibling
-            children.append(ast_node)
-        root_ast_node = BashNode(kind=root.value[0], children=children)  # todo: fix
+            if kind == 'LITERAL':
+                kind = 'value'
+            if kind is None:
+                continue
+            children[kind] = ast_node
+            # children.append(ast_node)
+        root_ast_node = BashNode(kind=root.value[0], **children)  # todo: fix
         return root_ast_node
 
 
