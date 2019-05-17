@@ -44,7 +44,7 @@ class _TmpNode:
 
 def tree2ast(root):
     if root is None:
-        return None
+        return None, None
     elif root.value[0] == 'LITERAL':
         return 'LITERAL', root.value[1]
     elif root.value[0] == 'DUMMY':
@@ -55,13 +55,16 @@ def tree2ast(root):
         children = []
         n = root.child
         while n is not None:
-            ast_node = tree2ast(n)
+            kind, ast_node = tree2ast(n)
             n = n.sibling
-            if ast_node is not None:
-                children.append(ast_node)
+            if kind == 'LITERAL':
+                kind = 'value'
+            if kind is None:
+                continue
+            children.append(ast_node)
         return root.value[0][:-4], children
     elif root.value[0].endswith('_optional'):
-        return root.value[0][-len('_optional')], tree2ast(root.child)
+        return root.value[0][:-len('_optional')], tree2ast(root.child)[1]
     else:
         children = {}
         n = root.child
@@ -74,8 +77,8 @@ def tree2ast(root):
                 continue
             children[kind] = ast_node
             # children.append(ast_node)
-        root_ast_node = BashNode(kind=root.value[0], **children)  # todo: fix
-        return root_ast_node
+        root_ast_node = BashNode(kind=root.value[0], **children)
+        return root.value[0], root_ast_node
 
 
 def iter_fields(bash_ast):
