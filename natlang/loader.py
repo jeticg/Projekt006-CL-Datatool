@@ -148,9 +148,11 @@ class DataLoader():
 class ParallelDataLoader():
     def __init__(self,
                  srcFormat="txtOrTree",
-                 tgtFormat="txtOrTree"):
-        self.srcLoader = DataLoader(srcFormat)
-        self.tgtLoader = DataLoader(tgtFormat)
+                 tgtFormat="txtOrTree",
+                 srcLoader=None,
+                 tgtLoader=None):
+        self.srcLoader = DataLoader(srcFormat, srcLoader)
+        self.tgtLoader = DataLoader(tgtFormat, tgtLoader)
         return
 
     def __call__(self,

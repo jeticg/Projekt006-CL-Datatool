@@ -10,14 +10,15 @@ import string
 from operator import itemgetter
 from natlang.format.astTree import AstNode as BaseNode
 
-KEYWORDS = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
-            'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
-            'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
-            'ln', 'split', 'read', 'basename', 'which', 'readlink',
-            'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
-
 
 class Code:
+    placeHolders = ['WORD', 'FLAG', 'NUM', 'SBTK']
+    keywords = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
+                'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
+                'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
+                'ln', 'split', 'read', 'basename', 'which', 'readlink',
+                'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
+
     def __init__(self, tokens, valueTypes, canoCode=None, createSketch=True):
         self.value = tokens
         self.valueTypes = valueTypes
@@ -43,12 +44,18 @@ class Code:
         return self.value[key]
 
     def getSketch(self):
-        sketch = []
+        sketchTokens = []
         for tk, ty in zip(self.value, self.valueTypes):
-            if ty in ('WORD', 'FLAG', 'NUM', 'SBTK'):
-                sketch.append(ty)
+            if ty in type(self).placeHolders:
+                sketchTokens.append(ty)
             else:
-                sketch.append(tk)
+                sketchTokens.append(tk)
+        sketch = Code(sketchTokens,
+                      self.valueTypes,
+                      canoCode=None,
+                      createSketch=False)
+        if self.astTree is not None:
+            sketch.astTree = self.astTree.getSketch()
         return sketch
 
     def export(self):
@@ -106,6 +113,13 @@ class _TmpNode:
 
 
 class BashAst(BaseNode):
+    placeHolders = ['WORD', 'FLAG', 'NUM', 'SBTK']
+    keywords = ('find', 'xargs', 'grep', 'rm', 'echo', 'ls', 'sort',
+                'chmod', 'wc', 'cat', 'cut', 'head', 'mv', 'chown', 'cp',
+                'mkdir', 'tr', 'tail', 'dirname', 'rsync', 'tar', 'uniq',
+                'ln', 'split', 'read', 'basename', 'which', 'readlink',
+                'tee', 'date', 'pwd', 'ssh', 'diff', 'cd')
+
     def find_literal_nodes(self):
         if self.value[0] == 'subtoken':
             return [self]
@@ -153,7 +167,7 @@ class BashAst(BaseNode):
         for leaf in leaves:
             if leaf.value[1].isnumeric():
                 leaf.value = leaf.value[0], 'NUM'
-            elif leaf.value[1] in KEYWORDS \
+            elif leaf.value[1] in type(self).keywords \
                     or leaf.value[1] in string.punctuation \
                     or leaf.value[1] == ' ':
                 # preserve keywords, puncs, and spaces
