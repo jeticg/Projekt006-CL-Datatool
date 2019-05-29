@@ -9,7 +9,8 @@ from natlang import exporter
 from natlang import fileConverter
 from natlang import loader as loade
 
-from natlang import version
+from natlang import __version__
+__version__ = __version__.version
 
 testModules = {
     analysis.conllTransformer,

@@ -10,7 +10,7 @@ from distutils.util import convert_path
 
 # Get version
 main_ns = {}
-ver_path = convert_path('natlang/version.py')
+ver_path = convert_path('natlang/__version__.py')
 with open(ver_path) as ver_file:
     exec(ver_file.read(), main_ns)
 
