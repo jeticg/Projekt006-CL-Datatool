@@ -36,7 +36,8 @@ supportedList = {
     'pyCodeJSON': pyCodeJSON,
     'bashJSON': bashJSON,
     'bashIntent': bashIntent,
-    'bashAst': bashAst
+    'bashAst': bashAst,
+    'alignment': alignment
 }
 
 

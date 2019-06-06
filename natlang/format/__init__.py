@@ -17,3 +17,4 @@ from natlang.format import pyCodeJSON
 from natlang.format import bashJSON
 from natlang.format import bashIntent
 from natlang.format import bashAst
+from natlang.format import alignment
