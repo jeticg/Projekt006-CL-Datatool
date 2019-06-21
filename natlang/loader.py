@@ -26,17 +26,9 @@ supportedList = {
     "txt": txt,
     "AMR": AMR,
     "txtOrTree": txtOrTree,
-    "pyCode": pyCode,
     "conll": conll,
     "semanticFrame": semanticFrame,
-    "astTree": astTree,
-    'django': django,
-    'intent': intent,
-    'intentJSON': intentJSON,
-    'pyCodeJSON': pyCodeJSON,
-    'bashJSON': bashJSON,
-    'bashIntent': bashIntent,
-    'bashAst': bashAst
+    "alignment": alignment,
 }
 
 
