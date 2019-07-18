@@ -38,6 +38,8 @@ setuptools.setup(
         'six',
         'astor',
         'bashlex',
+        'numpy',
+        'scipy',
     ],
     test_suite='natlang.testSuite'
 )

@@ -29,6 +29,7 @@ supportedList = {
     "conll": conll,
     "semanticFrame": semanticFrame,
     "alignment": alignment,
+    "wav": wav,
 }
 
 

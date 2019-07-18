@@ -21,6 +21,7 @@ testModules = {
     format.txtFiles,
     format.txtOrTree,
     format.conll,
+    format.wav,
     loader,
 }
 

@@ -1,11 +1,10 @@
+import sys
+import os
 import numpy as np
 from scipy.io import wavfile
-import matplotlib.pyplot as plt
 from scipy.signal import stft
 
 
-DIR = '/Users/jetic/Daten/speech-data/timit/train/DR1/FCJF0'
-fns = ['/SA1.WAV']
 # Sample rate by default 16000
 # Target: 20ms per processed sample, that's every 320 samples to 1
 SAMPLE_RATE = 16000
@@ -26,24 +25,29 @@ def log_spectrogram(wav):
     return freqs, times, amp
 
 
-def read_wav_file(x):
+def load(file, linesToLoad=sys.maxsize):
+    file = os.path.expanduser(file)
     # Read wavfile using scipy wavfile.read
-    _, wav = wavfile.read(x)
+    _, wav = wavfile.read(file)
     # Normalize
-    wav = wav.astype(np.float32) / np.iinfo(np.int16).max
-    return wav
+    content = [wav.astype(np.float32) / np.iinfo(np.int16).max]
+    return content
 
 
-fig = plt.figure(figsize=(14, 8))
-for i, fn in enumerate(fns):
-    wav = read_wav_file(DIR + fn)
-    freqs, times, amp = log_spectrogram(wav)
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    DIR = '/Users/jetic/Daten/speech-data/timit/train/DR1/FCJF0'
+    fns = ['/SA1.WAV']
+    fig = plt.figure(figsize=(14, 8))
+    for i, fn in enumerate(fns):
+        wav = load(DIR + fn)[0]
+        freqs, times, amp = log_spectrogram(wav)
 
-    ax = fig.add_subplot(3, 1, i + 1)
-    ax.imshow(amp, aspect='auto', origin='lower',
-              extent=[times.min(), times.max(), freqs.min(), freqs.max()])
-    ax.set_title('Spectrogram of ' + fn)
-    ax.set_ylabel('Freqs in Hz')
-    ax.set_xlabel('Seconds')
+        ax = fig.add_subplot(3, 1, i + 1)
+        ax.imshow(amp, aspect='auto', origin='lower',
+                  extent=[times.min(), times.max(), freqs.min(), freqs.max()])
+        ax.set_title('Spectrogram of ' + fn)
+        ax.set_ylabel('Freqs in Hz')
+        ax.set_xlabel('Seconds')
 
-fig.tight_layout()
+    fig.tight_layout()
