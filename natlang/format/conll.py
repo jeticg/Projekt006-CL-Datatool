@@ -40,6 +40,18 @@ defaultEntryIndex = {
     "MISC": 9,  # Any other annotation.
     "__name__": "CoNLL U",
 }
+conllu = defaultEntryIndex
+
+conll2003 = {
+    # Description found on http://aclweb.org/anthology/W03-0419
+    # CoNLL-2003
+    "FORM": 0,  # Word FORM or punctuation symbol.
+    "UPOS": 1,  # Universal part-of-speech tag.
+    "CHUNK": 2,  # CHUNK tag in IO_Type form
+    "NER": 3,  # NER tag in IO_Type form
+    "__name__": "CoNLL 2003",
+    "__splitter__": ' ',
+}
 
 defaultCommentMark = '#'
 if sys.version_info[0] < 3:
@@ -118,6 +130,9 @@ class Node():
             "Leafnode Label: " + str([n.value[0] for n in self.phrase]) +\
             "\n"
 
+    def __iter__(self):
+        return iter([sample[0] for sample in self.phrase])
+
     def __len__(self):
         return len(self.phrase)
 
@@ -139,6 +154,19 @@ class Node():
         if self.sibling is not None:
             return self.phrase + self.sibling.calcPhrase()
         return self.phrase
+
+    def calcValue(self):
+        self.value = (self.rawEntries[self.format["FORM"]], )
+        for i, item in enumerate(self.rawEntries):
+            if ("ID" not in self.format or i != self.format["ID"]) and\
+                    ("HEAD" not in self.format or
+                     i != self.format["HEAD"]) and\
+                    ("DEPREL" not in self.format or
+                     i != self.format["DEPREL"]) and\
+                    i != self.format["FORM"]:
+                self.value += (self.rawEntries[i]
+                               if self.rawEntries[i] != '_' else None, )
+        return
 
     def _exportSubTree(self):
         content = []
@@ -162,7 +190,10 @@ class Node():
 
 
 def constructFromText(rawContent, entryIndex=defaultEntryIndex):
-    content = [line.strip().split('\t') for line in rawContent]
+    splitter = '\t'
+    if "__splitter__" in entryIndex:
+        splitter = entryIndex["__splitter__"]
+    content = [line.strip().split(splitter) for line in rawContent]
     # adding the root node
     nodes = [Node()]
     if "__name__" in entryIndex:
@@ -170,11 +201,12 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
     nodes[0].value = ("-ROOT-", )
 
     for i, line in enumerate(content, start=1):
-        # Check ID for data integrity
-        if int(line[entryIndex["ID"]]) != i:
-            sys.stderr.write(
-                "natlang.format.conll [WARN]: Corrupt data format\n")
-            return None
+        if "ID" in entryIndex:
+            # Check ID for data integrity
+            if int(line[entryIndex["ID"]]) != i:
+                sys.stderr.write(
+                    "natlang.format.conll [WARN]: Corrupt data format\n")
+                return None
 
         # force the first value in node.value to be FORM
         # temporarily store parent id in node.parent
@@ -183,14 +215,14 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
         newNode.format = entryIndex
         newNode.rawEntries = line
         newNode.id = i
-        newNode.parent = int(line[entryIndex["HEAD"]])
-        newNode.deprel = line[entryIndex["DEPREL"]]
+        if "HEAD" in entryIndex:
+            newNode.parent = int(line[entryIndex["HEAD"]])
+            newNode.deprel = line[entryIndex["DEPREL"]]
+        else:
+            newNode.parent = 0
+            newNode.deprel = "root"
 
-        newNode.value = (line[entryIndex["FORM"]], )
-        for i, item in enumerate(line):
-            if i != entryIndex["ID"] and i != entryIndex["HEAD"] and\
-                    i != entryIndex["DEPREL"] and i != entryIndex["FORM"]:
-                newNode.value += (line[i] if line[i] != '_' else None, )
+        newNode.calcValue()
 
         nodes.append(newNode)
 
@@ -223,7 +255,12 @@ def constructFromText(rawContent, entryIndex=defaultEntryIndex):
 def load(fileName,
          linesToLoad=sys.maxsize,
          entryIndex=defaultEntryIndex, commentMark=defaultCommentMark,
+         option={},
          verbose=True):
+    if "entryIndex" in option:
+        entryIndex = option["entryIndex"]
+    if "commentMark" in option:
+        commentMark = option["commentMark"]
     fileName = os.path.expanduser(fileName)
     content = []
     widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(),
@@ -247,13 +284,13 @@ def load(fileName,
             if line != "" and line[0] != commentMark:
                 entry.append(line)
             else:
-                content.append(constructFromText(entry))
+                content.append(constructFromText(entry, entryIndex=entryIndex))
                 entry = []
                 if i >= linesToLoad:
                     break
 
     if len(entry) > 0:
-        content.append(constructFromText(entry))
+        content.append(constructFromText(entry, entryIndex=entryIndex))
 
     if verbose is True:
         loadProgressBar.finish()
