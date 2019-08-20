@@ -36,8 +36,8 @@ def load(file, linesToLoad=sys.maxsize):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    DIR = '/Users/jetic/Daten/speech-data/timit/train/DR1/FCJF0'
-    fns = ['/SA1.WAV']
+    DIR = '../test'
+    fns = ['/sample.wav']
     fig = plt.figure(figsize=(14, 8))
     for i, fn in enumerate(fns):
         wav = load(DIR + fn)[0]
