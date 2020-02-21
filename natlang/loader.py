@@ -26,7 +26,6 @@ supportedList = {
     "txt": txt,
     "AMR": AMR,
     "txtOrTree": txtOrTree,
-    "pyCode": pyCode,
     "conll": conll,
     "semanticFrame": semanticFrame,
     "astTree": astTree,

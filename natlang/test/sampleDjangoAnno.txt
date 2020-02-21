@@ -1,6 +1,0 @@
-  call the function re.compile with an argument raw string '(?:W/)?"((?:\\.|[^"])*)"', substitute the result for ETAG_MATCH.
-  "  * The database isn't running or isn't configured correctly.\n  * At least one of the expected database tables doesn't exist.\n"   "  * The SQL was invalid.\nHint: Look at the output of 'django-admin.py sqlflush'. That's the SQL this command wasn't able to run.\n"   "The full error: %s", where '%s' is replaced by value under the 'NAME' key of the connection.settings_dict dictionary and e.   call the function six.reraise with 3 arguments: CommandError, CommandError created with argument new_msg,
-  from django.conf import settings into default name space.
-  if KeyError exception is caught,
-  try,
-  dest set to string 'verbosity', default set to string '1', type set to string 'choice', choices is a list containing elements: '0', '1', '2', '3', and help as a string 'Verbosity level; 0=minimal output, 1=normal output, 2=verbose output, 3=very verbose output'.   call the method parser.add_option with 2 arguments: string '--settings' and help as a string 'The Python path to a settings module, e.g. "myproject.settings.main". If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment variable will be used.'.
