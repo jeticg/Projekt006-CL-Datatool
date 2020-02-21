@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import unittest
 from natlang.format import AMR
+from natlang.format import astTree
+from natlang.format import pyCode
 from natlang.format import semanticFrame
 from natlang.format import tree
 from natlang.format import txt

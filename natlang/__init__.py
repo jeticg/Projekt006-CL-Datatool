@@ -15,12 +15,14 @@ __version__ = __version__.version
 testModules = {
     analysis.conllTransformer,
     format.AMR,
+    format.pyCode,
     format.semanticFrame,
     format.tree,
     format.txt,
     format.txtFiles,
     format.txtOrTree,
     format.conll,
+    format.astTree,
     loader,
 }
 
