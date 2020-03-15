@@ -107,3 +107,4 @@ venv.bak/
 data/
 *.tmp
 /natlang/format/figures/
+.DS_Store
